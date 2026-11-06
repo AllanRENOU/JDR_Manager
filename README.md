@@ -1,6 +1,7 @@
 # JDR Manager
 
 Outil d'aide au Maître du Jeu pour préparer et animer une partie de jeu de rôle.
+Contexte de développement pour Claude (conventions, composants, pièges connus) : `CLAUDE.md`.
 Documentation du projet (dossier parent) : `PRD.md`, `TRD.md`, `Brief_UI_UX.md`, `Plan_implementation.md`, `avancement.md`.
 
 ## Prérequis
