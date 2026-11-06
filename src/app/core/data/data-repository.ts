@@ -1,0 +1,88 @@
+import { InjectionToken } from '@angular/core';
+
+import {
+  Action,
+  Battlemap,
+  Id,
+  PlaySession,
+  Project,
+  Scene,
+  SceneNode,
+  SoundLibraryId,
+  SoundNode,
+} from '../models';
+
+/**
+ * Contrat d'accès aux données (TEC-21, TRD §4.1).
+ *
+ * C'est le seul point d'entrée vers le stockage : V1 = IndexedDB, plus tard une API.
+ * Toutes les méthodes sont asynchrones (TEC-24). Les médias sont exposés sous forme d'URL,
+ * jamais de `Blob` (TEC-32).
+ */
+export interface DataRepository {
+  // ── Projets ────────────────────────────────────────────────────────────
+  /** Projets triés du plus récemment modifié au plus ancien. */
+  listProjects(): Promise<Project[]>;
+  getProject(id: Id): Promise<Project | undefined>;
+  /** Crée ou remplace le projet. */
+  saveProject(project: Project): Promise<void>;
+  /**
+   * Supprime le projet et tout son contenu dans une seule transaction : scènes, battlemaps,
+   * actions, bibliothèque de sons du projet, partie sauvegardée et médias devenus inutilisés.
+   */
+  deleteProject(id: Id): Promise<void>;
+
+  // ── Arborescence des scènes, scènes, battlemaps, actions ───────────────
+  /** Nœuds de l'arborescence des scènes d'un projet, triés par `order`. */
+  listSceneNodes(projectId: Id): Promise<SceneNode[]>;
+  /** Crée ou remplace plusieurs nœuds en une transaction (déplacement, réordonnancement). */
+  saveSceneNodes(nodes: SceneNode[]): Promise<void>;
+  /**
+   * Supprime un nœud et ses descendants ; pour chaque scène supprimée : la scène, ses battlemaps,
+   * ses actions et les médias devenus inutilisés. Les références vers ces scènes sont retirées
+   * (`Project.firstSceneId`, `Scene.nextSceneIds`) ; celles des éléments `change-scene` sont
+   * signalées à l'affichage (PRS-07).
+   */
+  deleteSceneNode(id: Id): Promise<void>;
+  getScene(id: Id): Promise<Scene | undefined>;
+  saveScene(scene: Scene): Promise<void>;
+  /** Battlemaps d'une scène, triées par `order`. */
+  listBattlemaps(sceneId: Id): Promise<Battlemap[]>;
+  saveBattlemap(battlemap: Battlemap): Promise<void>;
+  /** Supprime la battlemap, son image si elle n'est plus utilisée, et la retire de `Scene.defaultBattlemapId`. */
+  deleteBattlemap(id: Id): Promise<void>;
+  /** Actions d'une scène, triées par `order`. */
+  listActions(sceneId: Id): Promise<Action[]>;
+  saveAction(action: Action): Promise<void>;
+  deleteAction(id: Id): Promise<void>;
+
+  // ── Bibliothèques de sons ──────────────────────────────────────────────
+  /** Nœuds d'une bibliothèque (`'global'` ou id du projet), triés par `order`. */
+  listSoundNodes(libraryId: SoundLibraryId): Promise<SoundNode[]>;
+  saveSoundNodes(nodes: SoundNode[]): Promise<void>;
+  /** Supprime un nœud et ses descendants, ainsi que les fichiers son devenus inutilisés. */
+  deleteSoundNode(id: Id): Promise<void>;
+
+  // ── Médias ─────────────────────────────────────────────────────────────
+  /**
+   * Copie le fichier dans le stockage et renvoie l'id du média.
+   * @throws DataError `unsupported-media-type` (format refusé, TEC-34) ou `quota-exceeded`.
+   */
+  uploadMedia(file: File): Promise<Id>;
+  /**
+   * URL utilisable dans `src` (`blob:` en V1, `https:` avec l'API). Ne pas appeler directement
+   * depuis un composant : passer par `MediaUrls`, qui partage et libère les URL (TEC-33).
+   * @throws DataError `media-not-found`.
+   */
+  getMediaUrl(mediaId: Id): Promise<string>;
+  /** Supprime le média, seulement s'il n'est plus référencé par une battlemap ou un son. */
+  deleteMedia(id: Id): Promise<void>;
+
+  // ── Partie sauvegardée ─────────────────────────────────────────────────
+  getPlaySession(projectId: Id): Promise<PlaySession | undefined>;
+  savePlaySession(session: PlaySession): Promise<void>;
+  deletePlaySession(projectId: Id): Promise<void>;
+}
+
+/** Jeton d'injection du dépôt ; l'implémentation est choisie dans `app.config.ts` (TEC-22). */
+export const DATA_REPOSITORY = new InjectionToken<DataRepository>('DataRepository');

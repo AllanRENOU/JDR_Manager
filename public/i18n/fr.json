@@ -65,7 +65,12 @@
   "error": {
     "generic": "Une erreur est survenue.",
     "storageUnavailable": "Le stockage du navigateur est indisponible.",
-    "missingMedia": "Média introuvable : {{ name }}"
+    "missingMedia": "Média introuvable : {{ name }}",
+    "data": {
+      "unsupported-media-type": "Format de fichier non pris en charge. Images : PNG, JPG, WebP. Sons : MP3, OGG, WAV, M4A.",
+      "quota-exceeded": "Espace de stockage du navigateur insuffisant. Supprimez des projets ou des sons inutilisés, puis réessayez.",
+      "media-not-found": "Fichier introuvable : il a peut-être été supprimé."
+    }
   },
   "settings": {
     "title": "Paramètres",

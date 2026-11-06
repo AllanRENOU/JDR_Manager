@@ -43,7 +43,30 @@ module.exports = defineConfig([
       '@angular-eslint/prefer-inject': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // TEC-23 : seule la couche de données (core/data) accède à IndexedDB via idb
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'idb',
+              message:
+                'TEC-23 : passer par DATA_REPOSITORY ; seuls les fichiers de core/data importent idb.',
+            },
+          ],
+          patterns: [{ group: ['idb/*'], message: 'TEC-23 : idb est réservé à core/data.' }],
+        },
+      ],
+      'no-restricted-globals': [
+        'error',
+        { name: 'indexedDB', message: 'TEC-23 : passer par DATA_REPOSITORY.' },
+      ],
     },
+  },
+  {
+    // Couche de données (et outillage de test) : seuls endroits autorisés à accéder à IndexedDB (TEC-23)
+    files: ['src/app/core/data/**/*.ts', 'src/testing/**/*.ts'],
+    rules: { 'no-restricted-imports': 'off', 'no-restricted-globals': 'off' },
   },
   {
     files: ['**/*.html'],

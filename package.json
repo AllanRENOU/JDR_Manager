@@ -11,7 +11,8 @@
     "lint:styles": "stylelint \"src/**/*.scss\"",
     "format": "prettier --write \"src/**/*.{ts,html,scss,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\"",
-    "check:themes": "node scripts/check-themes.mjs"
+    "check:themes": "node scripts/check-themes.mjs",
+    "test:coverage": "ng test --watch=false --coverage"
   },
   "private": true,
   "packageManager": "npm@10.9.9",
@@ -29,6 +30,7 @@
     "@fontsource/lora": "^5.3.0",
     "@jsverse/transloco": "^8.4.0",
     "@lucide/angular": "^1.70.0",
+    "idb": "^8.0.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -38,6 +40,8 @@
     "@angular/compiler-cli": "^22.2.0",
     "@eslint/js": "^10.0.1",
     "@jsverse/transloco-utils": "^8.4.0",
+    "@types/node": "^22.20.5",
+    "@vitest/coverage-v8": "^5.1.0",
     "angular-eslint": "22.6.0",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
