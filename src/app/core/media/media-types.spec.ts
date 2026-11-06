@@ -1,4 +1,4 @@
-import { acceptAttribute, resolveMediaType } from './media-types';
+import { acceptAttribute, formatLabel, resolveMediaType } from './media-types';
 
 describe('resolveMediaType', () => {
   it.each([
@@ -39,5 +39,14 @@ describe('acceptAttribute', () => {
     expect(acceptAttribute('image')).toBe('.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp');
     expect(acceptAttribute('sound')).toContain('.m4a');
     expect(acceptAttribute('sound')).not.toContain('image');
+  });
+});
+
+describe('formatLabel', () => {
+  it('donne le libellé court d’un type MIME enregistré', () => {
+    expect(formatLabel('audio/mpeg')).toBe('MP3');
+    expect(formatLabel('audio/mp4')).toBe('M4A');
+    expect(formatLabel('image/webp')).toBe('WebP');
+    expect(formatLabel('audio/flac')).toBe('FLAC');
   });
 });

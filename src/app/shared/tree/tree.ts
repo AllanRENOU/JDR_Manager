@@ -123,6 +123,11 @@ export class Tree<T extends TreeNode> {
   readonly folderTone = input<'project' | 'global'>('project');
   /** `false` : le menu d'un dossier ne propose pas « Nouvel élément » (ex. sons, créés par import). */
   readonly canCreateItems = input(true);
+  /**
+   * Message de confirmation de suppression propre à un nœud, déjà traduit (ex. avertissement
+   * « sons utilisés »). `null` ou absent : message générique de `labels`.
+   */
+  readonly deleteMessage = input<((node: T) => string | null) | null>(null);
   /** Entrées de menu supplémentaires, placées après « Renommer ». */
   readonly extraMenuItems = input<readonly TreeMenuItem<T>[]>([]);
 
@@ -426,7 +431,9 @@ export class Tree<T extends TreeNode> {
     const t = (key: string) => this.transloco.translate(key, { name: node.name, count });
     const confirmed = await this.modals.confirm({
       title: t(labels.deleteTitle),
-      message: t(node.kind === 'folder' ? labels.deleteFolderMessage : labels.deleteItemMessage),
+      message:
+        this.deleteMessage()?.(node) ??
+        t(node.kind === 'folder' ? labels.deleteFolderMessage : labels.deleteItemMessage),
       confirmLabel: t(labels.delete),
       destructive: true,
     });

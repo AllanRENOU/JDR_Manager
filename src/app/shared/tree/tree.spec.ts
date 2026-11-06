@@ -25,11 +25,13 @@ const NODES: TreeNode[] = [
       (remove)="removed.push($event)"
       [extraMenuItems]="extra"
       [canCreateItems]="canCreateItems()"
+      [deleteMessage]="deleteMessage()"
     />
   `,
 })
 class Host {
   readonly canCreateItems = signal(true);
+  readonly deleteMessage = signal<((node: TreeNode) => string | null) | null>(null);
   readonly tree = viewChild.required<Tree<TreeNode>>('tree');
   readonly created: TreeCreateEvent[] = [];
   readonly renamed: TreeRenameEvent[] = [];
@@ -225,6 +227,32 @@ describe('Tree', () => {
       await cancelled;
       expect(host.removed).toEqual(['acte1']);
       expect(cancel).toBeDefined();
+    });
+
+    it('utilise le message propre au nœud fourni par le parent (deleteMessage)', async () => {
+      const { fixture } = await render();
+      const host = fixture.componentInstance;
+      host.deleteMessage.set((node) =>
+        node.kind === 'folder' ? `Attention : ${node.name}` : null,
+      );
+      await fixture.whenStable();
+
+      const folder = host.tree().requestRemove(NODES[0]);
+      TestBed.tick();
+      expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
+        'Attention : Acte 1',
+      );
+      (document.querySelector('app-confirm-dialog footer button') as HTMLButtonElement).click();
+      await folder;
+
+      const item = host.tree().requestRemove(NODES[2]);
+      TestBed.tick();
+      expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
+        'Cette action est irréversible.',
+      );
+      (document.querySelector('app-confirm-dialog footer button') as HTMLButtonElement).click();
+      await item;
+      expect(host.removed).toEqual([]);
     });
   });
 

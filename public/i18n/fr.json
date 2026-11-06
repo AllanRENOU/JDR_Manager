@@ -135,7 +135,50 @@
     "newFolderIn": "Nouveau dossier dans « {{ library }} »",
     "openRoot": "Ouvrir la racine de « {{ library }} »",
     "deleteFolderMessage": "Le dossier, ses sous-dossiers et tous les sons qu’il contient seront supprimés. Cette action est irréversible.",
-    "noFolder": "Aucun dossier"
+    "noFolder": "Aucun dossier",
+    "columns": {
+      "name": "Nom",
+      "duration": "Durée",
+      "format": "Format",
+      "usedIn": "Utilisé dans",
+      "actions": "Actions",
+      "listen": "Écouter"
+    },
+    "usedIn": {
+      "one": "{{ count }} action",
+      "other": "{{ count }} actions"
+    },
+    "unused": "Non utilisé",
+    "empty": "Aucun son dans ce dossier.",
+    "missingFile": "Fichier introuvable",
+    "tableLabel": "Sons de « {{ folder }} »",
+    "search": "Rechercher un son",
+    "searchResults": "Résultats pour « {{ query }} »",
+    "noResult": "Aucun son ne correspond à « {{ query }} ».",
+    "import": "Importer des sons",
+    "importing": "Import en cours…",
+    "imported": {
+      "one": "{{ count }} son importé dans « {{ folder }} ».",
+      "other": "{{ count }} sons importés dans « {{ folder }} »."
+    },
+    "renameAction": "Renommer « {{ name }} »",
+    "renameField": "Nouveau nom de « {{ name }} »",
+    "deleteAction": "Supprimer « {{ name }} »",
+    "deleteTitle": "Supprimer « {{ name }} » ?",
+    "deleteMessage": "Le son et son fichier seront supprimés. Cette action est irréversible.",
+    "deleteUsedMessage": {
+      "one": "Ce son est utilisé dans {{ count }} action : elle le signalera comme introuvable. Le son et son fichier seront supprimés. Cette action est irréversible.",
+      "other": "Ce son est utilisé dans {{ count }} actions : elles le signaleront comme introuvable. Le son et son fichier seront supprimés. Cette action est irréversible."
+    },
+    "deleted": "Son « {{ name }} » supprimé.",
+    "listen": "Écouter « {{ name }} »",
+    "stopListen": "Arrêter la pré-écoute de « {{ name }} »",
+    "progress": "Progression de la pré-écoute",
+    "playError": "Impossible de lire « {{ name }} ».",
+    "deleteFolderUsedMessage": {
+      "one": "Le dossier, ses sous-dossiers et les sons qu’il contient ({{ sounds }}) seront supprimés. Attention : {{ count }} de ces sons est utilisé dans des actions, qui le signaleront comme introuvable. Cette action est irréversible.",
+      "other": "Le dossier, ses sous-dossiers et les sons qu’il contient ({{ sounds }}) seront supprimés. Attention : {{ count }} de ces sons sont utilisés dans des actions, qui les signaleront comme introuvables. Cette action est irréversible."
+    }
   },
   "error": {
     "generic": "Une erreur est survenue.",

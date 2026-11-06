@@ -92,3 +92,147 @@
   font-size: font-size(small);
   font-style: italic;
 }
+
+.content__header {
+  display: flex;
+  align-items: center;
+  gap: space(14);
+}
+
+.content__title {
+  display: flex;
+  flex-direction: column;
+  gap: space(4);
+  min-width: 0;
+}
+
+.content__path {
+  color: color(text-secondary);
+  font-size: font-size(small);
+}
+
+.content__name {
+  font-size: font-size(screen);
+}
+
+.content__empty {
+  color: color(text-tertiary);
+  font-style: italic;
+}
+
+// Tableau des sons (maquette « Sons ») : lignes séparées par un filet, sans bordure extérieure.
+.sounds {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: font-size(body);
+
+  th {
+    padding: 0 space(12) space(10) 0;
+    color: color(text-secondary);
+    font-size: font-size(label);
+    font-weight: font-weight(semibold);
+    letter-spacing: letter-spacing(overline);
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  td {
+    padding: space(10) space(12) space(10) 0;
+    vertical-align: middle;
+  }
+
+  tbody tr {
+    border-top: 1px solid color(border-subtle);
+  }
+
+  tbody tr:last-child {
+    border-bottom: 1px solid color(border-subtle);
+  }
+}
+
+.sound__name {
+  display: block;
+  font-weight: font-weight(semibold);
+}
+
+.sound__path {
+  display: block;
+  margin-top: space(2);
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+// Recherche (maquette « Sons ») : champ avec loupe, à droite du titre.
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.search__icon {
+  position: absolute;
+  left: space(12);
+  color: color(text-secondary);
+  pointer-events: none;
+}
+
+.search__input {
+  width: layout(search);
+  padding-left: space(40);
+}
+
+.sound__meta {
+  color: color(text-secondary);
+}
+
+.sound__unused {
+  color: color(text-tertiary);
+}
+
+.sound__missing {
+  color: color(danger-text);
+}
+
+.file-input {
+  display: none;
+}
+
+.sounds__actions {
+  width: 1%;
+}
+
+.sound__actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.sounds__listen {
+  width: control-height(md);
+}
+
+.sound--playing {
+  background: color(bg-card);
+}
+
+.progress {
+  display: block;
+  width: 100%;
+  max-width: layout(search);
+  height: space(4);
+  margin-top: space(6);
+  border-radius: radius(pill);
+  background: color(border-default);
+}
+
+.progress__bar {
+  display: block;
+  height: 100%;
+  border-radius: radius(pill);
+  background: color(accent);
+}
+
+.listen-cell {
+  display: block;
+  margin-left: space(12);
+}

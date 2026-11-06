@@ -4,6 +4,7 @@ import {
   Action,
   Battlemap,
   Id,
+  MediaInfo,
   PlaySession,
   Project,
   Scene,
@@ -62,13 +63,21 @@ export interface DataRepository {
   saveSoundNodes(nodes: SoundNode[]): Promise<void>;
   /** Supprime un nœud et ses descendants, ainsi que les fichiers son devenus inutilisés. */
   deleteSoundNode(id: Id): Promise<void>;
+  /**
+   * Nombre d'actions (tous projets confondus) qui lancent ou arrêtent chaque son, par id de
+   * `SoundNode` ; un son absent du résultat n'est pas utilisé (« Utilisé dans », SON-03).
+   */
+  countSoundUsages(): Promise<Record<Id, number>>;
 
   // ── Médias ─────────────────────────────────────────────────────────────
   /**
-   * Copie le fichier dans le stockage et renvoie l'id du média.
+   * Copie le fichier dans le stockage et renvoie l'id du média, avec les informations déjà lues
+   * (ex. durée d'un son, 6.7).
    * @throws DataError `unsupported-media-type` (format refusé, TEC-34) ou `quota-exceeded`.
    */
-  uploadMedia(file: File): Promise<Id>;
+  uploadMedia(file: File, details?: MediaDetails): Promise<Id>;
+  /** Informations des médias demandés (sans leur contenu) ; les médias introuvables sont ignorés. */
+  getMediaInfo(ids: readonly Id[]): Promise<MediaInfo[]>;
   /**
    * URL utilisable dans `src` (`blob:` en V1, `https:` avec l'API). Ne pas appeler directement
    * depuis un composant : passer par `MediaUrls`, qui partage et libère les URL (TEC-33).
@@ -82,6 +91,11 @@ export interface DataRepository {
   getPlaySession(projectId: Id): Promise<PlaySession | undefined>;
   savePlaySession(session: PlaySession): Promise<void>;
   deletePlaySession(projectId: Id): Promise<void>;
+}
+
+/** Informations lues sur le fichier avant l'import. */
+export interface MediaDetails {
+  durationMs?: number;
 }
 
 /** Jeton d'injection du dépôt ; l'implémentation est choisie dans `app.config.ts` (TEC-22). */

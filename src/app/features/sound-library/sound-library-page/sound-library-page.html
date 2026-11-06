@@ -29,7 +29,14 @@
   }
 </app-header>
 
-<main class="library">
+<main
+  class="library"
+  appFileDrop
+  #drop="appFileDrop"
+  [appFileDropKinds]="soundKinds"
+  [appFileDropDisabled]="!store.libraries().length"
+  (filesDropped)="importFiles($event)"
+>
   @if (projectId() && project.status() === 'resolved' && !project.value()) {
     <app-alert class="library__missing">
       {{ 'project.notFound' | transloco }}
@@ -67,6 +74,7 @@
             [nodes]="lib.folders"
             [labels]="treeLabels"
             [canCreateItems]="false"
+            [deleteMessage]="folderDeleteMessage(lib.libraryId)"
             [folderTone]="lib.isGlobal ? 'global' : 'project'"
             [ariaLabel]="(lib.isGlobal ? 'sound.globalTree' : 'sound.projectTree') | transloco"
             [selectedId]="
@@ -84,6 +92,172 @@
         </section>
       }
     </aside>
-    <section class="library__content"></section>
+    <section class="library__content">
+      @let opened = store.opened();
+      @let libraryLabel = libraryName(opened.libraryId === globalLibrary);
+      @let folderName = store.openedFolder()?.name ?? libraryLabel;
+      @let searching = store.searching();
+      <div class="content__header">
+        <div class="content__title">
+          @if (searching) {
+            <h2 class="content__name">
+              {{ 'sound.searchResults' | transloco: { query: store.query().trim() } }}
+            </h2>
+          } @else {
+            @if (store.openedFolder()) {
+              <span class="content__path">{{ folderPath() }}</span>
+            }
+            <h2 class="content__name">{{ folderName }}</h2>
+          }
+        </div>
+        <label class="search">
+          <svg lucideSearch class="search__icon" [size]="16" aria-hidden="true"></svg>
+          <input
+            appInput
+            class="search__input"
+            type="search"
+            [attr.aria-label]="'sound.search' | transloco"
+            [placeholder]="'sound.search' | transloco"
+            [value]="store.query()"
+            (input)="store.query.set($any($event.target).value)"
+            (keydown.escape)="store.query.set('')"
+          />
+        </label>
+        <button appButton type="button" [disabled]="store.importing()" (click)="fileInput.click()">
+          <svg lucideUpload aria-hidden="true"></svg>
+          {{ (store.importing() ? 'sound.importing' : 'sound.import') | transloco }}
+        </button>
+        <input
+          #fileInput
+          class="file-input"
+          type="file"
+          multiple
+          tabindex="-1"
+          aria-hidden="true"
+          [accept]="accept"
+          (change)="onFilesChosen(fileInput)"
+        />
+      </div>
+
+      @if (store.rows().length === 0) {
+        <p class="content__empty">
+          @if (searching) {
+            {{ 'sound.noResult' | transloco: { query: store.query().trim() } }}
+          } @else {
+            {{ 'sound.empty' | transloco }}
+          }
+        </p>
+      } @else {
+        <table
+          class="sounds"
+          [attr.aria-label]="'sound.tableLabel' | transloco: { folder: folderName }"
+        >
+          <thead>
+            <tr>
+              <th scope="col" class="sounds__listen">
+                <span class="visually-hidden">{{ 'sound.columns.listen' | transloco }}</span>
+              </th>
+              <th scope="col">{{ 'sound.columns.name' | transloco }}</th>
+              <th scope="col">{{ 'sound.columns.duration' | transloco }}</th>
+              <th scope="col">{{ 'sound.columns.format' | transloco }}</th>
+              <th scope="col">{{ 'sound.columns.usedIn' | transloco }}</th>
+              <th scope="col" class="sounds__actions">
+                <span class="visually-hidden">{{ 'sound.columns.actions' | transloco }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of store.rows(); track row.node.id) {
+              @let playing = preview.playingId() === row.node.id;
+              <tr class="sound" [class.sound--playing]="playing">
+                <td>
+                  <app-listen-button
+                    class="listen-cell"
+                    [name]="row.node.name"
+                    [playing]="playing"
+                    [disabled]="!row.media"
+                    (toggled)="togglePreview(row)"
+                  />
+                </td>
+                <td>
+                  @if (editingId() === row.node.id) {
+                    <input
+                      #renameInput
+                      appInput
+                      class="sound__rename"
+                      type="text"
+                      maxlength="120"
+                      [value]="row.node.name"
+                      [attr.aria-label]="'sound.renameField' | transloco: { name: row.node.name }"
+                      (keydown.enter)="commitRename(row, renameInput.value)"
+                      (keydown.escape)="cancelRename()"
+                      (blur)="commitRename(row, renameInput.value)"
+                    />
+                  } @else {
+                    <span class="sound__name">{{ row.node.name }}</span>
+                  }
+                  @if (playing) {
+                    <span
+                      class="progress"
+                      role="progressbar"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      [attr.aria-valuenow]="progressPercent()"
+                      [attr.aria-label]="'sound.progress' | transloco"
+                    >
+                      <span class="progress__bar" [style.width.%]="progressPercent()"></span>
+                    </span>
+                  }
+                  @if (searching) {
+                    <span class="sound__path">{{ rowPath(row) }}</span>
+                  }
+                </td>
+                @if (row.media; as media) {
+                  <td class="sound__meta">{{ formatDuration(media.durationMs) }}</td>
+                  <td class="sound__meta">{{ formatLabel(media.mimeType) }}</td>
+                } @else {
+                  <td class="sound__missing" colspan="2">{{ 'sound.missingFile' | transloco }}</td>
+                }
+                <td class="sound__meta" [class.sound__unused]="row.usages === 0">
+                  @if (row.usages === 0) {
+                    {{ 'sound.unused' | transloco }}
+                  } @else {
+                    {{ pluralKey('sound.usedIn', row.usages) | transloco: { count: row.usages } }}
+                  }
+                </td>
+                <td class="sound__actions">
+                  <button
+                    appButton="icon"
+                    size="sm"
+                    type="button"
+                    [attr.aria-label]="'sound.renameAction' | transloco: { name: row.node.name }"
+                    (click)="startRename(row.node.id)"
+                  >
+                    <svg lucidePencil aria-hidden="true"></svg>
+                  </button>
+                  <button
+                    appButton="icon"
+                    size="sm"
+                    type="button"
+                    [attr.aria-label]="'sound.deleteAction' | transloco: { name: row.node.name }"
+                    (click)="deleteSound(row)"
+                  >
+                    <svg lucideTrash2 aria-hidden="true"></svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
   }
 </main>
+
+@if (drop.active()) {
+  <app-file-drop-overlay
+    [fileCount]="drop.fileCount()"
+    [kinds]="soundKinds"
+    [destination]="destination()"
+  />
+}

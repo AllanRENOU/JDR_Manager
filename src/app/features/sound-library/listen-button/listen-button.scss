@@ -1,0 +1,32 @@
+@use 'functions' as *;
+
+// Bouton rond de pré-écoute (maquette « Sons ») : contour au repos, accent pendant la lecture.
+.listen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: control-height(md);
+  height: control-height(md);
+  border: 1px solid color(border-strong);
+  border-radius: radius(pill);
+  background: transparent;
+  color: color(text-primary);
+  cursor: pointer;
+  transition: transition(background-color, border-color);
+
+  &:hover:not(:disabled) {
+    background: color(bg-control-hover);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+:host(.playing) .listen,
+:host(.playing) .listen:hover:not(:disabled) {
+  border-color: color(accent);
+  background: color(accent);
+  color: color(text-on-accent);
+}

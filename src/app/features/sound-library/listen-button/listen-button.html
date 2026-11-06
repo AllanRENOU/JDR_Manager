@@ -1,0 +1,16 @@
+<button
+  class="listen"
+  type="button"
+  [disabled]="disabled()"
+  [attr.aria-label]="
+    (playing() ? 'sound.stopListen' : 'sound.listen') | transloco: { name: name() }
+  "
+  [attr.aria-pressed]="playing()"
+  (click)="toggled.emit()"
+>
+  @if (playing()) {
+    <svg lucideSquare [size]="14" aria-hidden="true"></svg>
+  } @else {
+    <svg lucidePlay [size]="14" aria-hidden="true"></svg>
+  }
+</button>

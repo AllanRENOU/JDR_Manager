@@ -241,6 +241,31 @@ describe('IndexedDbRepository', () => {
       expect(await raw.get('media', shared.id)).toBeDefined();
     });
 
+    it('compte les actions qui lancent ou arrêtent chaque son, tous projets confondus', async () => {
+      const rain = aSoundNode(GLOBAL_SOUND_LIBRARY);
+      const wind = aSoundNode(GLOBAL_SOUND_LIBRARY);
+      const play = (soundId: string) => ({
+        id: crypto.randomUUID(),
+        type: 'play-sound' as const,
+        soundId,
+        volume: 1,
+        loop: false,
+        fadeInMs: 0,
+        fadeOutMs: 0,
+      });
+      await repository.saveAction(
+        anAction('scene-a', {
+          elements: [play(rain.id), { id: 'x', type: 'stop-sound', soundId: rain.id }],
+        }),
+      );
+      await repository.saveAction(
+        anAction('scene-b', { elements: [play(rain.id), play(wind.id)] }),
+      );
+      await repository.saveAction(anAction('scene-c'));
+
+      expect(await repository.countSoundUsages()).toEqual({ [rain.id]: 2, [wind.id]: 1 });
+    });
+
     it('ignore la suppression d’un son inconnu', async () => {
       await expect(repository.deleteSoundNode('inconnu')).resolves.toBeUndefined();
     });
@@ -290,6 +315,27 @@ describe('IndexedDbRepository', () => {
       });
       expect(media?.blob).toBeInstanceOf(Blob);
       expect(media?.blob.type).toBe('image/png');
+    });
+
+    it('enregistre les informations lues avant l’import (durée d’un son)', async () => {
+      const id = await repository.uploadMedia(new File(['son'], 'pluie.ogg'), { durationMs: 1500 });
+      expect((await raw.get('media', id))?.durationMs).toBe(1500);
+    });
+
+    it('renvoie les informations des médias sans leur contenu, en ignorant les absents', async () => {
+      const sound = aMedia({ mimeType: 'audio/ogg', fileName: 'pluie.ogg', durationMs: 1500 });
+      await raw.put('media', sound);
+      const infos = await repository.getMediaInfo([sound.id, 'absent']);
+      expect(infos).toEqual([
+        {
+          id: sound.id,
+          mimeType: 'audio/ogg',
+          size: sound.size,
+          fileName: 'pluie.ogg',
+          durationMs: 1500,
+        },
+      ]);
+      expect(infos[0]).not.toHaveProperty('blob');
     });
 
     it('normalise le type à partir de l’extension', async () => {

@@ -181,12 +181,20 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Pluriels : `pluralKey('project.stats.scenes', n)` choisit `.one` / `.other` (règle française : 0 et 1 au singulier).
 - Paramètres : route `/settings` (`features/settings/settings-page`), ouverte par l'icône réglages de l'accueil. Thèmes présentés par `ThemePreview` (`data-theme` sur l'hôte) dans un groupe radio (clic ou flèches → `Theme.setTheme`).
 
-## Bibliothèques de sons (lot 6, en cours)
+## Bibliothèques de sons (lot 6)
 
 - Écran `SoundLibraryPage` sur `/projects/:projectId/sounds` (projet + globale) et `/sounds` (globale seule). Navigation Scènes / Sons : `app-project-nav` (`shared/project-nav`) dans l'en-tête.
-- État : `SoundLibraryStore` (`features/sound-library`), même modèle que `EditorStore`. Les arborescences ne montrent que les dossiers (`store.trees()`), le dossier ouvert est `store.opened()` (`folderId: null` = racine).
-- `app-tree` : `[canCreateItems]="false"` masque « Nouvel élément » ; `folderTone="global"` colore les dossiers de la bibliothèque globale.
+- État : `SoundLibraryStore` (`features/sound-library`), même modèle que `EditorStore`. Les arborescences ne montrent que les dossiers (`store.trees()`), le dossier ouvert est `store.opened()` (`folderId: null` = racine). `store.rows()` = sons du dossier ouvert, ou résultats de `store.query()`.
+- Import : `store.importFiles(files)` (bouton et `appFileDrop`) lit la durée avec `AudioDuration` (`core/media`) puis `uploadMedia(file, { durationMs })` ; une erreur de quota est renvoyée dans `failure`, pas levée.
+- Pré-écoute : `SoundPreview` (fourni par l'écran, un seul `<audio>`, URL via `MediaUrls`) et `app-listen-button`. Le lecteur de Présentation (Web Audio) est un autre service, lot 9.
+- Dépôt : `countSoundUsages()` (« Utilisé dans », avertissement à la suppression), `getMediaInfo(ids)` (infos d'un média sans le `Blob`).
+- `app-tree` : `[canCreateItems]="false"` masque « Nouvel élément » ; `folderTone="global"` colore les dossiers de la bibliothèque globale ; `[deleteMessage]` (fonction stable `node => message | null`) remplace le message de confirmation de suppression (ex. dossier contenant des sons utilisés).
+- Règle d'Allan : **toute suppression d'un son utilisé par des actions doit avertir** (son seul ou dossier).
+- Utilitaires : `formatDuration(ms)` (`shared/util/duration.ts`), `formatLabel(mimeType)` (`core/media/media-types.ts`).
 - `resource()` : `hasValue()` est `false` quand le chargeur renvoie `undefined` ; tester « introuvable » avec `status() === 'resolved' && !value()`.
+- **Budget de styles** : 4 ko par composant (avertissement de `ng build`, à surveiller : `grep WARN`). Au-delà, sortir un sous-composant (ex. `ListenButton`).
+- Tests audio : jsdom ne lit pas l'audio. Fournir un faux `AudioDuration`, et espionner `HTMLMediaElement.prototype.play` / `pause`.
+- Vérification dans Chromium : un script peut remplir IndexedDB (`jdr-manager`) une fois l'accueil chargé (la base doit d'abord être créée par l'application) ; `Storage.overrideQuotaForOrigin` (CDP) simule un petit quota. `navigator.storage.estimate()` sous-estime les `Blob`.
 
 ## Arborescence du code
 

@@ -78,3 +78,19 @@ export const FORMAT_LABELS: Record<MediaKind, readonly string[]> = {
   image: ['PNG', 'JPG', 'WebP'],
   sound: ['MP3', 'OGG', 'WAV', 'M4A'],
 };
+
+/** Libellé court du format d'un média enregistré (colonne « Format » du tableau des sons). */
+const LABEL_BY_MIME: Record<string, string> = {
+  'image/png': 'PNG',
+  'image/jpeg': 'JPG',
+  'image/webp': 'WebP',
+  'audio/mpeg': 'MP3',
+  'audio/ogg': 'OGG',
+  'audio/wav': 'WAV',
+  'audio/mp4': 'M4A',
+};
+
+/** Libellé du format d'un type MIME normalisé ; à défaut, la partie après « / » en majuscules. */
+export function formatLabel(mimeType: string): string {
+  return LABEL_BY_MIME[mimeType] ?? (mimeType.split('/').pop() ?? '').toUpperCase();
+}

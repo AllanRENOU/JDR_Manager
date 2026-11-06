@@ -5,6 +5,7 @@ import {
   Battlemap,
   Id,
   Media,
+  MediaInfo,
   PlaySession,
   Project,
   Scene,
@@ -15,7 +16,7 @@ import {
 } from '../models';
 import { resolveMediaType } from '../media/media-types';
 import { DataError, isQuotaExceededError } from './data-error';
-import { DataRepository } from './data-repository';
+import { DataRepository, MediaDetails } from './data-repository';
 import { DB_NAME, JdrDb, openJdrDb } from './jdr-db';
 import { ALL_STORES, collectSubtree, deleteScenes, deleteUnusedMedia } from './jdr-db-cascade';
 
@@ -207,9 +208,25 @@ export class IndexedDbRepository implements DataRepository {
     await tx.done;
   }
 
+  async countSoundUsages(): Promise<Record<Id, number>> {
+    const counts: Record<Id, number> = {};
+    for (const action of await (await this.db()).getAll('actions')) {
+      const soundIds = new Set<Id>();
+      for (const element of action.elements) {
+        if (element.type === 'play-sound' || element.type === 'stop-sound') {
+          soundIds.add(element.soundId);
+        }
+      }
+      for (const id of soundIds) {
+        counts[id] = (counts[id] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }
+
   // ── Médias ─────────────────────────────────────────────────────────────
 
-  async uploadMedia(file: File): Promise<Id> {
+  async uploadMedia(file: File, details: MediaDetails = {}): Promise<Id> {
     const type = resolveMediaType(file);
     if (!type) {
       throw new DataError('unsupported-media-type', `Format non pris en charge : ${file.name}`);
@@ -222,6 +239,7 @@ export class IndexedDbRepository implements DataRepository {
       mimeType: type.mimeType,
       size: blob.size,
       fileName: file.name,
+      ...(details.durationMs !== undefined && { durationMs: details.durationMs }),
     };
     try {
       await (await this.db()).add('media', media);
@@ -235,6 +253,15 @@ export class IndexedDbRepository implements DataRepository {
       throw error;
     }
     return media.id;
+  }
+
+  async getMediaInfo(ids: readonly Id[]): Promise<MediaInfo[]> {
+    const tx = (await this.db()).transaction('media');
+    const found = await Promise.all(ids.map((id) => tx.store.get(id)));
+    await tx.done;
+    return found
+      .filter((media): media is Media => media !== undefined)
+      .map(({ blob: _blob, ...info }) => info);
   }
 
   async getMediaUrl(mediaId: Id): Promise<string> {
