@@ -1,0 +1,18 @@
+<nav class="nav" [attr.aria-label]="'sound.nav' | transloco">
+  <a
+    class="nav__link"
+    [routerLink]="['/projects', projectId(), 'edit']"
+    routerLinkActive="nav__link--active"
+    ariaCurrentWhenActive="page"
+  >
+    {{ 'sound.navScenes' | transloco }}
+  </a>
+  <a
+    class="nav__link"
+    [routerLink]="['/projects', projectId(), 'sounds']"
+    routerLinkActive="nav__link--active"
+    ariaCurrentWhenActive="page"
+  >
+    {{ 'sound.navSounds' | transloco }}
+  </a>
+</nav>

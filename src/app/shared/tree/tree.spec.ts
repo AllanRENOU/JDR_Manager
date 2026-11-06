@@ -24,10 +24,12 @@ const NODES: TreeNode[] = [
       (rename)="renamed.push($event)"
       (remove)="removed.push($event)"
       [extraMenuItems]="extra"
+      [canCreateItems]="canCreateItems()"
     />
   `,
 })
 class Host {
+  readonly canCreateItems = signal(true);
   readonly tree = viewChild.required<Tree<TreeNode>>('tree');
   readonly created: TreeCreateEvent[] = [];
   readonly renamed: TreeRenameEvent[] = [];
@@ -250,6 +252,15 @@ describe('Tree', () => {
       (document.querySelectorAll('.app-menu-item')[1] as HTMLButtonElement).click();
       await fixture.whenStable();
       expect(fixture.componentInstance.created).toEqual([{ parentId: 'acte1', kind: 'folder' }]);
+    });
+
+    it('sans « Nouvel élément » quand le parent crée les éléments autrement (canCreateItems)', async () => {
+      const { fixture } = await render();
+      fixture.componentInstance.canCreateItems.set(false);
+      await fixture.whenStable();
+      (fixture.nativeElement.querySelector('.tree__more') as HTMLButtonElement).click();
+      await fixture.whenStable();
+      expect(menuLabels()).toEqual(['Nouveau sous-dossier', 'Renommer', 'Modifier', 'Supprimer']);
     });
 
     it('ouvre le même menu au clic droit ; entrées spécifiques filtrées par type et par nœud', async () => {

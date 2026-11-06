@@ -136,6 +136,10 @@
   color: color(folder-project);
 }
 
+:host(.tree--global) .tree__icon {
+  color: color(folder-global);
+}
+
 .tree__label {
   flex: 1;
   min-width: 0;

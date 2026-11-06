@@ -1,0 +1,94 @@
+@use 'functions' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.title {
+  overflow: hidden;
+  font-size: font-size(section);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mode {
+  flex-shrink: 0;
+  color: color(accent-text);
+}
+
+.library {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.library__missing {
+  margin: space(32);
+}
+
+.library__tree {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: space(16);
+  width: layout(sidebar-left);
+  padding: space(12) space(8);
+  overflow-y: auto;
+  border-right: 1px solid color(border-subtle);
+  background: color(bg-panel);
+}
+
+.library__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: space(20);
+  min-width: 0;
+  padding: space(28) space(32);
+  overflow-y: auto;
+}
+
+.lib__header {
+  display: flex;
+  align-items: center;
+  gap: space(8);
+  padding: space(4) space(4) space(8) 0;
+}
+
+// En-tête de bibliothèque : surtitre (Brief §3), cliquable pour ouvrir la racine.
+.lib__root {
+  flex: 1;
+  min-width: 0;
+  padding: space(6) space(8);
+  border: 0;
+  border-radius: radius(sm);
+  background: transparent;
+  color: color(text-secondary);
+  font-size: font-size(label);
+  font-weight: font-weight(semibold);
+  letter-spacing: letter-spacing(overline);
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transition(background-color, color);
+
+  &:hover {
+    background: color(bg-control-hover);
+    color: color(text-primary);
+  }
+}
+
+.lib__root--opened,
+.lib__root--opened:hover {
+  background: color(accent-tint);
+  color: color(accent-text);
+}
+
+.lib__empty {
+  padding: 0 space(8);
+  color: color(text-tertiary);
+  font-size: font-size(small);
+  font-style: italic;
+}

@@ -181,6 +181,13 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Pluriels : `pluralKey('project.stats.scenes', n)` choisit `.one` / `.other` (règle française : 0 et 1 au singulier).
 - Paramètres : route `/settings` (`features/settings/settings-page`), ouverte par l'icône réglages de l'accueil. Thèmes présentés par `ThemePreview` (`data-theme` sur l'hôte) dans un groupe radio (clic ou flèches → `Theme.setTheme`).
 
+## Bibliothèques de sons (lot 6, en cours)
+
+- Écran `SoundLibraryPage` sur `/projects/:projectId/sounds` (projet + globale) et `/sounds` (globale seule). Navigation Scènes / Sons : `app-project-nav` (`shared/project-nav`) dans l'en-tête.
+- État : `SoundLibraryStore` (`features/sound-library`), même modèle que `EditorStore`. Les arborescences ne montrent que les dossiers (`store.trees()`), le dossier ouvert est `store.opened()` (`folderId: null` = racine).
+- `app-tree` : `[canCreateItems]="false"` masque « Nouvel élément » ; `folderTone="global"` colore les dossiers de la bibliothèque globale.
+- `resource()` : `hasValue()` est `false` quand le chargeur renvoie `undefined` ; tester « introuvable » avec `status() === 'resolved' && !value()`.
+
 ## Arborescence du code
 
 ```

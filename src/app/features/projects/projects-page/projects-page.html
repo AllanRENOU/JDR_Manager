@@ -2,6 +2,15 @@
   <span headerStart class="logo">JDR Manager</span>
   <a
     headerEnd
+    appButton="secondary"
+    size="header"
+    routerLink="/sounds"
+    [attr.aria-label]="'sound.openGlobalLabel' | transloco"
+  >
+    <svg lucideMusic aria-hidden="true"></svg>{{ 'sound.openGlobal' | transloco }}
+  </a>
+  <a
+    headerEnd
     appButton="icon"
     size="header"
     routerLink="/settings"

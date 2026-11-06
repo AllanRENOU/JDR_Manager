@@ -35,6 +35,8 @@ describe('ProjectsPage (4.1)', () => {
     expect(el.querySelector('.grid li:last-child')?.textContent).toContain('Créer un projet');
     const settings = el.querySelector('a[href="/settings"]') as HTMLAnchorElement;
     expect(settings.getAttribute('aria-label')).toBe('Ouvrir les paramètres');
+    const sounds = el.querySelector('a[href="/sounds"]') as HTMLAnchorElement;
+    expect(sounds.getAttribute('aria-label')).toBe('Ouvrir la bibliothèque globale de sons');
   });
 
   it('liste les projets du plus récent au plus ancien, avec leur date de modification', async () => {

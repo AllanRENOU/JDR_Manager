@@ -1,1 +1,89 @@
-<p>sound-library-page works!</p>
+<app-header>
+  <a
+    headerStart
+    appButton="icon"
+    size="header"
+    routerLink="/projects"
+    [attr.aria-label]="'project.backToProjects' | transloco"
+  >
+    <svg lucideArrowLeft aria-hidden="true"></svg>
+  </a>
+  @if (projectId()) {
+    @if (project.value(); as p) {
+      <h1 class="title">{{ p.name }}</h1>
+      <svg
+        lucidePencilRuler
+        class="mode"
+        role="img"
+        [attr.aria-label]="'project.editMode' | transloco"
+      ></svg>
+      <app-project-nav [projectId]="p.id" />
+    }
+  } @else {
+    <h1 class="title">{{ 'sound.global' | transloco }}</h1>
+  }
+  @if (project.value(); as p) {
+    <a headerEnd appButton size="header" [routerLink]="['/projects', p.id, 'play']">
+      <svg lucidePlay aria-hidden="true"></svg>{{ 'project.present' | transloco }}
+    </a>
+  }
+</app-header>
+
+<main class="library">
+  @if (projectId() && project.status() === 'resolved' && !project.value()) {
+    <app-alert class="library__missing">
+      {{ 'project.notFound' | transloco }}
+      <a alertAction routerLink="/projects">{{ 'project.backToProjects' | transloco }}</a>
+    </app-alert>
+  } @else {
+    <aside class="library__tree" [attr.aria-label]="'sound.library' | transloco">
+      @for (lib of store.trees(); track lib.libraryId) {
+        @let name = libraryName(lib.isGlobal);
+        @let rootOpened = store.isOpened(lib.libraryId, null);
+        <section class="lib">
+          <div class="lib__header">
+            <button
+              class="lib__root"
+              type="button"
+              [class.lib__root--opened]="rootOpened"
+              [attr.aria-current]="rootOpened ? 'true' : null"
+              [attr.aria-label]="'sound.openRoot' | transloco: { library: name }"
+              (click)="store.open(lib.libraryId, null)"
+            >
+              {{ name }}
+            </button>
+            <button
+              appButton="icon"
+              size="sm"
+              type="button"
+              [attr.aria-label]="'sound.newFolderIn' | transloco: { library: name }"
+              (click)="createFolder(lib.libraryId, { parentId: null }, tree)"
+            >
+              <svg lucideFolderPlus aria-hidden="true"></svg>
+            </button>
+          </div>
+          <app-tree
+            #tree
+            [nodes]="lib.folders"
+            [labels]="treeLabels"
+            [canCreateItems]="false"
+            [folderTone]="lib.isGlobal ? 'global' : 'project'"
+            [ariaLabel]="(lib.isGlobal ? 'sound.globalTree' : 'sound.projectTree') | transloco"
+            [selectedId]="
+              store.opened().libraryId === lib.libraryId ? store.opened().folderId : null
+            "
+            (selectedIdChange)="store.open(lib.libraryId, $event)"
+            (create)="createFolder(lib.libraryId, $event, tree)"
+            (rename)="rename(lib.libraryId, $event)"
+            (remove)="remove(lib.libraryId, $event)"
+            (move)="move(lib.libraryId, $event)"
+          />
+          @if (lib.folders.length === 0) {
+            <p class="lib__empty">{{ 'sound.noFolder' | transloco }}</p>
+          }
+        </section>
+      }
+    </aside>
+    <section class="library__content"></section>
+  }
+</main>

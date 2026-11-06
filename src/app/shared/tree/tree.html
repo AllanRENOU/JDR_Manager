@@ -115,9 +115,11 @@
 <ng-template #rowMenu let-node>
   <div appMenu>
     @if (node.kind === 'folder') {
-      <button appMenuItem (triggered)="requestCreate(node.id, 'item')">
-        <svg lucidePlus aria-hidden="true"></svg>{{ text().newItem | transloco }}
-      </button>
+      @if (canCreateItems()) {
+        <button appMenuItem (triggered)="requestCreate(node.id, 'item')">
+          <svg lucidePlus aria-hidden="true"></svg>{{ text().newItem | transloco }}
+        </button>
+      }
       <button appMenuItem (triggered)="requestCreate(node.id, 'folder')">
         <svg lucideFolderPlus aria-hidden="true"></svg>{{ text().newSubfolder | transloco }}
       </button>

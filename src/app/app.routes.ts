@@ -26,6 +26,13 @@ export const routes: Routes = [
       import('./features/editor/editor-page/editor-page').then((m) => m.EditorPage),
   },
   {
+    path: 'projects/:projectId/sounds',
+    loadComponent: () =>
+      import('./features/sound-library/sound-library-page/sound-library-page').then(
+        (m) => m.SoundLibraryPage,
+      ),
+  },
+  {
     path: 'projects/:projectId/play',
     loadComponent: () =>
       import('./features/presentation/gm-screen/gm-screen-page/gm-screen-page').then(

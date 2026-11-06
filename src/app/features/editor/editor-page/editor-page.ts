@@ -10,6 +10,7 @@ import {
 } from '@lucide/angular';
 
 import { Id } from '../../../core/models';
+import { ProjectNav } from '../../../shared/project-nav/project-nav';
 import { Tree } from '../../../shared/tree/tree';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { AppHeader } from '../../../shared/ui/app-header/app-header';
@@ -28,6 +29,7 @@ import { EditorStore } from '../editor-store';
     Alert,
     Button,
     Pill,
+    ProjectNav,
     Tree,
     Field,
     Input,

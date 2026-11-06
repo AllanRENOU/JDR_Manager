@@ -95,6 +95,7 @@ export interface TreeRenameEvent {
   ],
   templateUrl: './tree.html',
   styleUrl: './tree.scss',
+  host: { '[class.tree--global]': 'folderTone() === "global"' },
 })
 export class Tree<T extends TreeNode> {
   private readonly modals = inject(Modals);
@@ -118,6 +119,10 @@ export class Tree<T extends TreeNode> {
   readonly disabledIds = input<readonly Id[]>([]);
   /** Nom de l'arborescence pour les lecteurs d'écran (déjà traduit), ex. « Scènes du projet ». */
   readonly ariaLabel = input('');
+  /** Couleur des icônes de dossier (Brief §2.7) : dossiers d'un projet ou de la bibliothèque globale. */
+  readonly folderTone = input<'project' | 'global'>('project');
+  /** `false` : le menu d'un dossier ne propose pas « Nouvel élément » (ex. sons, créés par import). */
+  readonly canCreateItems = input(true);
   /** Entrées de menu supplémentaires, placées après « Renommer ». */
   readonly extraMenuItems = input<readonly TreeMenuItem<T>[]>([]);
 

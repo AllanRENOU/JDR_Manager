@@ -17,6 +17,7 @@
       role="img"
       [attr.aria-label]="'project.editMode' | transloco"
     ></svg>
+    <app-project-nav [projectId]="project.id" />
   }
   @if (store.saveState() !== 'idle') {
     <span

@@ -122,7 +122,20 @@
     "launch": "Lancer un son",
     "volume": "Volume",
     "playAll": "Tout reprendre",
-    "pauseAll": "Tout mettre en pause"
+    "pauseAll": "Tout mettre en pause",
+    "global": "Bibliothèque globale",
+    "project": "Ce projet",
+    "openGlobal": "Sons",
+    "openGlobalLabel": "Ouvrir la bibliothèque globale de sons",
+    "nav": "Navigation du projet",
+    "navScenes": "Scènes",
+    "navSounds": "Sons",
+    "projectTree": "Dossiers de sons du projet",
+    "globalTree": "Dossiers de la bibliothèque globale",
+    "newFolderIn": "Nouveau dossier dans « {{ library }} »",
+    "openRoot": "Ouvrir la racine de « {{ library }} »",
+    "deleteFolderMessage": "Le dossier, ses sous-dossiers et tous les sons qu’il contient seront supprimés. Cette action est irréversible.",
+    "noFolder": "Aucun dossier"
   },
   "error": {
     "generic": "Une erreur est survenue.",
