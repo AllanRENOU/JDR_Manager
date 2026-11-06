@@ -9,6 +9,11 @@ export const routes: Routes = [
       import('./features/projects/projects-page/projects-page').then((m) => m.ProjectsPage),
   },
   {
+    path: 'settings',
+    loadComponent: () =>
+      import('./features/settings/settings-page/settings-page').then((m) => m.SettingsPage),
+  },
+  {
     path: 'sounds',
     loadComponent: () =>
       import('./features/sound-library/sound-library-page/sound-library-page').then(

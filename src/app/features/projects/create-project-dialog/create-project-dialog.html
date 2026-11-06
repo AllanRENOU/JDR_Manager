@@ -1,5 +1,5 @@
 <form (submit)="submit($event)">
-  <app-modal [title]="'project.create.title' | transloco">
+  <app-modal [title]="(renaming ? 'project.rename.title' : 'project.create.title') | transloco">
     <app-field [label]="'project.create.name' | transloco" [required]="true" #field>
       <input
         appInput
@@ -16,7 +16,7 @@
       {{ 'common.actions.cancel' | transloco }}
     </button>
     <button modalFooterEnd appButton type="submit" [disabled]="!valid()">
-      {{ 'project.create.submit' | transloco }}
+      {{ (renaming ? 'project.rename.submit' : 'project.create.submit') | transloco }}
     </button>
   </app-modal>
 </form>

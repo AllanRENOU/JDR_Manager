@@ -4,9 +4,18 @@ import { LucideX } from '@lucide/angular';
 
 import { ActionElementType } from '../../../core/models';
 
-/** Couleur d'une pastille : un type d'élément (Brief §2.6) ou un style neutre. */
+/** Couleur d'une pastille : un type d'élément (Brief §2.6), « en cours » (`active`, §2.5) ou un style neutre. */
 export type PillTone =
-  'neutral' | 'accent' | 'battlemap' | 'sound' | 'stop-all' | 'text' | 'wait' | 'click' | 'scene';
+  | 'neutral'
+  | 'accent'
+  | 'active'
+  | 'battlemap'
+  | 'sound'
+  | 'stop-all'
+  | 'text'
+  | 'wait'
+  | 'click'
+  | 'scene';
 
 /** Couleur associée à chaque type d'élément d'action (Brief §2.6). */
 export const ELEMENT_TONES: Record<ActionElementType, PillTone> = {

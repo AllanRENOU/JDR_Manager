@@ -61,7 +61,7 @@ ng test --watch=false       # tests unitaires
 npm run test:coverage
 ng lint                     # ESLint (TS + templates)
 npm run lint:styles         # Stylelint (SCSS)
-npm run check:themes        # un jeton de thème manquant / inconnu doit faire échouer la compilation
+npm run check:themes        # jetons de thème complets + chaque thème branché (styles.scss, THEMES, fr.json)
 npm run format              # Prettier ; format:check pour vérifier
 ```
 
@@ -98,7 +98,10 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Ajouter un thème :
   1. créer le fichier `themes/_<id>.scss` ;
   2. faire le `@include engine.theme(...)` dans `styles.scss` ;
-  3. l'ajouter à `THEMES` dans `core/theme/theme.ts`.
+  3. l'ajouter au type `ThemeId` et à `THEMES` dans `core/theme/theme.ts` ;
+  4. traduire son nom (`settings.themes.<clé>` dans `fr.json`) ;
+  5. `npm run check:themes` dit ce qui manque. Les écrans (Paramètres › Apparence) n'ont rien à changer.
+- `data-theme="<id>"` sur **n'importe quel élément** redéfinit les variables du thème pour son sous-arbre (c'est ainsi que fonctionne `ThemePreview`).
 - Penser à vérifier le rendu dans les **deux thèmes**.
 
 ### Couche de données (TEC-21 à TEC-26)
@@ -135,7 +138,7 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 | Élément                                | Emplacement                                      | Usage                                                                                                                                                                                                     |
 | -------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `appButton`                            | `shared/ui/button`                               | `<button appButton="primary                                                                                                                                                                               | secondary                                             | filled                                                                                                                      | quiet | add | danger | danger-strong | icon" size="sm | md  | header | lg  | touch">` |
-| `app-pill`                             | `shared/ui/pill`                                 | Pastille ; `tone` = type d'élément (`ELEMENT_TONES`), `removable`, `variant="badge"`                                                                                                                      |
+| `app-pill`                             | `shared/ui/pill`                                 | Pastille ; `tone` = type d'élément (`ELEMENT_TONES`), `neutral`, `accent` ou `active` (« en cours »), `removable`, `variant="badge"`                                                                      |
 | `appInput`, `app-field`                | `shared/ui/input`, `shared/ui/field`             | Champ + libellé (`#f` puis `[id]="f.controlId"`), `required`, `hint`, `error`, `hiddenLabel` ; `.app-check` pour case / radio                                                                             |
 | `app-segmented-control`                | `shared/ui/segmented-control`                    | Groupe radio, modèle `value` (compatible Signal Forms)                                                                                                                                                    |
 | `app-collapsible-section`              | `shared/ui/collapsible-section`                  | `title`, `summary`, `preferenceKey` (état mémorisé), emplacement `sectionAction`                                                                                                                          |
@@ -171,6 +174,13 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - **Moteur** : `ActionRunner.run(action, context, signal)`. Le moteur fournit un `ActionContext` (aujourd'hui `addText`) et un `AbortController` par scène ; `PresentationEngine.textOf(item)` relit le texte dans l'action (`null` = supprimé).
 - Dates : `provideFrenchLocale()` (`core/i18n/locale.ts`), à ajouter aussi dans les tests qui affichent des dates.
 
+## Accueil et paramètres (lot 5)
+
+- Accueil : `ProjectsPage` charge un `ProjectSummary` par projet (`loadProjectSummary()`, `features/projects/project-summary.ts`) et affiche des `ProjectCard`. La carte n'écrit rien : son menu « ⋯ » émet `rename` / `remove`, la page ouvre la fenêtre, confirme, enregistre et recharge (`projects.reload()`).
+- La fenêtre `CreateProjectDialog` sert aussi au renommage : `modals.open(CreateProjectDialog, { data: { name } })`.
+- Pluriels : `pluralKey('project.stats.scenes', n)` choisit `.one` / `.other` (règle française : 0 et 1 au singulier).
+- Paramètres : route `/settings` (`features/settings/settings-page`), ouverte par l'icône réglages de l'accueil. Thèmes présentés par `ThemePreview` (`data-theme` sur l'hôte) dans un groupe radio (clic ou flèches → `Theme.setTheme`).
+
 ## Arborescence du code
 
 ```
@@ -188,7 +198,7 @@ src/app/
     selection-dialog/
     file-drop/
   features/
-    projects/  sound-library/  editor/  presentation/{gm-screen,player-screen,engine,audio}
+    projects/  settings/  sound-library/  editor/  presentation/{gm-screen,player-screen,engine,audio}
     dev/            pages de démonstration temporaires
   app.config.ts  app.routes.ts (routes paresseuses)  app.html
 src/styles/         jetons, fonctions, moteur de thèmes, thèmes, styles globaux des directives
@@ -215,6 +225,9 @@ public/i18n/fr.json
   - `TestBed.tick()` pour les fenêtres CDK ;
   - avec `vi.useFakeTimers()`, utiliser `fixture.detectChanges()`, car `whenStable()` ne se termine pas.
 - Dans les templates de test, attention aux **noms de variables de modèle** (`#xxx`) qui masquent une propriété du composant du même nom.
+- Focus clavier : `TestBed.createComponent` n'attache pas l'élément au document ; faire `document.body.appendChild(fixture.nativeElement)` avant de tester `focus()` / `document.activeElement`.
+- Les notifications s'affichent dans `app.html`, absent d'un test d'écran : vérifier `TestBed.inject(Notifications).notifications()`.
+- Menus CDK dans un test : cliquer le déclencheur, `TestBed.tick()`, puis chercher les options dans `document` (`.app-menu button`), pas dans le composant.
 
 ## Pièges et décisions déjà rencontrés
 

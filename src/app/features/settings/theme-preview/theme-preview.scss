@@ -1,0 +1,64 @@
+@use 'functions' as *;
+
+// Tout est exprimé en jetons : sous `[data-theme]`, ils prennent les valeurs du thème prévisualisé.
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: layout(card-thumb);
+  padding: space(16);
+  background: color(bg-app);
+  color: color(text-primary);
+  font-family: font-family(ui);
+}
+
+.preview__card {
+  display: flex;
+  flex-direction: column;
+  gap: space(6);
+  width: 100%;
+  padding: space(12) space(14);
+  border: 1px solid color(border-subtle);
+  border-radius: radius(lg);
+  background: color(bg-card);
+  box-shadow: shadow(float);
+}
+
+.preview__title {
+  font-family: font-family(title);
+  font-size: font-size(body);
+  font-weight: font-weight(bold);
+}
+
+.preview__text {
+  overflow: hidden;
+  color: color(text-secondary);
+  font-family: font-family(narrative);
+  font-size: font-size(small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview__actions {
+  display: flex;
+  align-items: center;
+  gap: space(8);
+}
+
+.preview__button {
+  padding: space(4) space(10);
+  border-radius: radius(sm);
+  background: color(accent);
+  color: color(text-on-accent);
+  font-size: font-size(label);
+  font-weight: font-weight(semibold);
+}
+
+.preview__pill {
+  padding: space(2) space(8);
+  border-radius: radius(pill);
+  background: color(active-bg);
+  color: color(active-text);
+  font-size: font-size(overline);
+  font-weight: font-weight(semibold);
+}

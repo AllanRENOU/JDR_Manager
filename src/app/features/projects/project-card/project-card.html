@@ -1,0 +1,66 @@
+@let s = summary();
+<div class="card__thumb">
+  @if (thumbnail.url(); as url) {
+    <img [src]="url" alt="" loading="lazy" />
+  } @else {
+    <app-placeholder grid="fine" [variant]="alt() ? 'alt' : 'default'" />
+  }
+  @if (s.hasPlaySession) {
+    <app-pill class="card__badge" tone="active">
+      <span class="card__badge-dot" aria-hidden="true"></span>{{ 'project.inProgress' | transloco }}
+    </app-pill>
+  }
+</div>
+<div class="card__body">
+  <h2 class="card__name">{{ s.project.name }}</h2>
+  <p class="card__stats">
+    {{ pluralKey('project.stats.scenes', s.sceneCount) | transloco: { count: s.sceneCount } }} ·
+    {{ pluralKey('project.stats.sounds', s.soundCount) | transloco: { count: s.soundCount } }}
+  </p>
+  <p class="card__meta">
+    {{ 'project.updatedAt' | transloco: { date: (s.project.updatedAt | date: 'd MMMM y, HH:mm') } }}
+  </p>
+  @if (s.lastSceneName) {
+    <p class="card__meta">{{ 'project.lastScene' | transloco: { name: s.lastSceneName } }}</p>
+  }
+</div>
+<div class="card__actions">
+  <a
+    appButton="secondary"
+    size="sm"
+    [routerLink]="['/projects', s.project.id, 'edit']"
+    [attr.aria-label]="'project.editAction' | transloco: { name: s.project.name }"
+  >
+    <svg lucidePencil aria-hidden="true"></svg>{{ 'project.edit' | transloco }}
+  </a>
+  <a
+    appButton
+    size="sm"
+    [routerLink]="['/projects', s.project.id, 'play']"
+    [attr.aria-label]="'project.presentAction' | transloco: { name: s.project.name }"
+  >
+    <svg lucidePlay aria-hidden="true"></svg>{{ 'project.present' | transloco }}
+  </a>
+  <button
+    class="card__more"
+    appButton="icon"
+    size="sm"
+    type="button"
+    [cdkMenuTriggerFor]="menu"
+    [attr.aria-label]="'project.moreActions' | transloco: { name: s.project.name }"
+  >
+    <svg lucideEllipsis aria-hidden="true"></svg>
+  </button>
+</div>
+
+<ng-template #menu>
+  <div appMenu>
+    <button appMenuItem (triggered)="rename.emit()">
+      <svg lucidePencil aria-hidden="true"></svg>{{ 'common.actions.rename' | transloco }}
+    </button>
+    <div class="app-menu-separator" role="separator"></div>
+    <button appMenuItem tone="danger" (triggered)="remove.emit()">
+      <svg lucideTrash2 aria-hidden="true"></svg>{{ 'common.actions.delete' | transloco }}
+    </button>
+  </div>
+</ng-template>

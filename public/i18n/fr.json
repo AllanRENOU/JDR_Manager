@@ -48,7 +48,31 @@
     "editMode": "Mode Édition",
     "presentMode": "Mode Présentation",
     "editAction": "Éditer « {{ name }} »",
-    "presentAction": "Présenter « {{ name }} »"
+    "presentAction": "Présenter « {{ name }} »",
+    "stats": {
+      "scenes": {
+        "one": "{{ count }} scène",
+        "other": "{{ count }} scènes"
+      },
+      "sounds": {
+        "one": "{{ count }} son",
+        "other": "{{ count }} sons"
+      }
+    },
+    "lastScene": "Dernière scène jouée : {{ name }}",
+    "thumbnail": "Vignette de « {{ name }} »",
+    "inProgress": "Partie en cours",
+    "rename": {
+      "title": "Renommer le projet",
+      "submit": "Renommer"
+    },
+    "moreActions": "Plus d’actions pour « {{ name }} »",
+    "delete": {
+      "title": "Supprimer « {{ name }} » ?",
+      "message": "Le projet et tout son contenu (scènes, battlemaps, sons, médias et partie en cours) seront supprimés. Cette action est irréversible.",
+      "confirm": "Supprimer le projet",
+      "done": "Projet « {{ name }} » supprimé."
+    }
   },
   "scene": {
     "title": "Scènes",
@@ -112,10 +136,20 @@
   },
   "settings": {
     "title": "Paramètres",
+    "open": "Ouvrir les paramètres",
+    "appearance": "Apparence",
+    "appearanceHint": "Le thème s’applique immédiatement à tous les écrans, y compris la fenêtre joueurs. Il est mémorisé dans ce navigateur.",
     "theme": "Thème",
     "themes": {
       "nuitDoree": "Nuit dorée",
       "automne": "Automne"
+    },
+    "current": "Thème actuel",
+    "themeChoice": "Thème de l’application",
+    "preview": {
+      "title": "La crypte oubliée",
+      "text": "Une odeur de terre humide envahit la pièce.",
+      "button": "Présenter"
     }
   },
   "dev": {

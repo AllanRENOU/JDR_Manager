@@ -1,0 +1,70 @@
+@use 'functions' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid color(border-subtle);
+  border-radius: radius(xl);
+  background: color(bg-card);
+}
+
+.card__thumb {
+  position: relative;
+  height: layout(card-thumb);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.card__badge {
+  position: absolute;
+  top: space(10);
+  left: space(10);
+}
+
+.card__badge-dot {
+  width: space(6);
+  height: space(6);
+  border-radius: radius(pill);
+  background: color(active-text);
+}
+
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: space(4);
+  padding: space(16) space(20);
+}
+
+.card__name {
+  overflow: hidden;
+  font-size: font-size(section);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card__stats {
+  color: color(text-secondary);
+  font-size: font-size(small);
+}
+
+.card__meta {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+.card__actions {
+  display: flex;
+  gap: space(8);
+  margin-top: auto;
+  padding: 0 space(20) space(16);
+}
+
+.card__more {
+  margin-left: auto;
+}

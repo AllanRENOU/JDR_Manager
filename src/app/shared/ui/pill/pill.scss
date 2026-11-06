@@ -40,6 +40,11 @@
   }
 }
 
+:host(.tone-active) {
+  background: color(active-bg);
+  color: color(active-text);
+}
+
 :host(.tone-accent) {
   background: color(accent-tint);
   color: color(accent-text);

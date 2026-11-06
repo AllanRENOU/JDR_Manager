@@ -1,5 +1,14 @@
 <app-header>
   <span headerStart class="logo">JDR Manager</span>
+  <a
+    headerEnd
+    appButton="icon"
+    size="header"
+    routerLink="/settings"
+    [attr.aria-label]="'settings.open' | transloco"
+  >
+    <svg lucideSettings aria-hidden="true"></svg>
+  </a>
 </app-header>
 
 <main class="page">
@@ -12,40 +21,14 @@
       <p class="page__empty">{{ 'project.empty' | transloco }}</p>
     }
     <ul class="grid">
-      @for (project of projects.value(); track project.id) {
-        <li class="card">
-          <app-placeholder
-            class="card__thumb"
-            grid="fine"
-            [variant]="$index % 2 ? 'alt' : 'default'"
+      @for (summary of projects.value(); track summary.project.id) {
+        <li>
+          <app-project-card
+            [summary]="summary"
+            [alt]="$index % 2 === 1"
+            (rename)="renameProject(summary.project)"
+            (remove)="deleteProject(summary.project)"
           />
-          <div class="card__body">
-            <h2 class="card__name">{{ project.name }}</h2>
-            <p class="card__meta">
-              {{
-                'project.updatedAt'
-                  | transloco: { date: (project.updatedAt | date: 'd MMMM y, HH:mm') }
-              }}
-            </p>
-          </div>
-          <div class="card__actions">
-            <a
-              appButton="secondary"
-              size="sm"
-              [routerLink]="['/projects', project.id, 'edit']"
-              [attr.aria-label]="'project.editAction' | transloco: { name: project.name }"
-            >
-              <svg lucidePencil aria-hidden="true"></svg>{{ 'project.edit' | transloco }}
-            </a>
-            <a
-              appButton
-              size="sm"
-              [routerLink]="['/projects', project.id, 'play']"
-              [attr.aria-label]="'project.presentAction' | transloco: { name: project.name }"
-            >
-              <svg lucidePlay aria-hidden="true"></svg>{{ 'project.present' | transloco }}
-            </a>
-          </div>
         </li>
       }
       <li class="card card--create">

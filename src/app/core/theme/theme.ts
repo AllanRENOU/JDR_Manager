@@ -12,7 +12,9 @@ export interface ThemeDefinition {
 
 /**
  * Thèmes disponibles (TEC-17, Brief UI/UX §11). Le premier est le thème par défaut.
- * Ajouter un thème : créer son fichier SCSS, l'inclure dans `styles.scss`, puis le déclarer ici.
+ * Ajouter un thème : créer son fichier SCSS, l'inclure dans `styles.scss`, le déclarer ici et
+ * traduire son nom (`settings.themes.*`). `npm run check:themes` vérifie ces branchements ;
+ * les écrans (Paramètres › Apparence) n'ont pas à être modifiés.
  */
 export const THEMES: readonly ThemeDefinition[] = [
   { id: 'nuit-doree', labelKey: 'settings.themes.nuitDoree' },
