@@ -1,0 +1,37 @@
+@use 'functions' as *;
+
+:host {
+  display: inline-flex;
+  gap: space(4);
+  padding: space(4);
+  border: 1px solid color(border-default);
+  border-radius: radius(md);
+  background: color(bg-app);
+}
+
+.segment {
+  height: control-height(sm);
+  padding: 0 space(14);
+  border: 0;
+  border-radius: radius(sm);
+  background: transparent;
+  color: color(text-secondary);
+  font-size: font-size(small);
+  font-weight: font-weight(semibold);
+  cursor: pointer;
+  transition: transition(background-color, color);
+
+  &:hover:not(:disabled, .segment--active) {
+    color: color(text-primary);
+  }
+
+  &--active {
+    background: color(accent);
+    color: color(text-on-accent);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}

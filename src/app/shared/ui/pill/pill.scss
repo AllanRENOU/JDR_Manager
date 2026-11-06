@@ -1,0 +1,62 @@
+@use 'functions' as *;
+
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: space(4);
+  max-width: 100%;
+  padding: space(3) space(10);
+  border-radius: radius(pill);
+  background: color(bg-control);
+  color: color(text-secondary);
+  font-size: font-size(label);
+  font-weight: font-weight(semibold);
+  line-height: line-height(normal);
+  white-space: nowrap;
+}
+
+.pill__label {
+  display: inline-flex;
+  align-items: center;
+  gap: space(6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pill__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: calc(#{space(4)} * -1);
+  padding: space(2);
+  border: 0;
+  border-radius: radius(pill);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: color(bg-control-hover);
+  }
+}
+
+:host(.tone-accent) {
+  background: color(accent-tint);
+  color: color(accent-text);
+}
+
+@each $tone in battlemap, sound, stop-all, text, wait, click, scene {
+  :host(.tone-#{$tone}) {
+    background: color(el-#{$tone}-bg);
+    color: color(el-#{$tone}-fg);
+  }
+}
+
+// Badge « Par défaut » sur une miniature (Brief §6.5).
+:host(.variant-badge) {
+  padding: space(2) space(8);
+  background: color(accent);
+  color: color(text-on-accent);
+  font-size: font-size(overline);
+  font-weight: font-weight(bold);
+}

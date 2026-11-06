@@ -1,0 +1,21 @@
+// Calques CDK (fenêtres modales, menus) : styles structurels du CDK + habillage du design system.
+@use '@angular/cdk';
+@use '../functions' as *;
+@include cdk.overlay;
+
+.app-dialog-backdrop {
+  background: color(bg-backdrop);
+}
+
+.app-dialog-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+// Le conteneur CDK ne doit pas ajouter de fond : c'est <app-modal> qui porte le style.
+.app-dialog-panel .cdk-dialog-container {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+  outline: none;
+}

@@ -1,0 +1,91 @@
+// Champs de formulaire (Brief UI/UX §6.2) : directive `appInput` et contrôles natifs.
+@use '../functions' as *;
+
+.app-input {
+  width: 100%;
+  height: control-height(lg);
+  padding: 0 space(14);
+  border: 1px solid color(border-default);
+  border-radius: radius(md);
+  background: color(bg-app);
+  color: color(text-primary);
+  font-size: font-size(input);
+  transition: transition(border-color);
+
+  &::placeholder {
+    color: color(text-tertiary);
+  }
+
+  &:hover:not(:disabled) {
+    border-color: color(border-strong);
+  }
+
+  &:focus-visible {
+    border-color: color(accent);
+    outline-offset: 0;
+  }
+
+  &:disabled {
+    color: color(text-tertiary);
+    cursor: not-allowed;
+  }
+
+  &--on-card {
+    background: color(bg-card);
+  }
+
+  // Champ en erreur : poser aria-invalid="true" et aria-describedby vers le message du champ.
+  &[aria-invalid='true'] {
+    border-color: color(danger-border);
+  }
+}
+
+textarea.app-input {
+  height: auto;
+  min-height: calc(#{control-height(lg)} * 2);
+  padding: space(14) space(16);
+  line-height: line-height(input);
+  resize: none;
+}
+
+// Cases à cocher, boutons radio, curseurs : couleur d'accent (Brief §6.2).
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'] {
+  accent-color: color(accent);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: space(16);
+  height: space(16);
+  margin: 0;
+  cursor: pointer;
+}
+
+input[type='range'] {
+  cursor: pointer;
+}
+
+// Case ou bouton radio avec son libellé : <label class="app-check"><input type="checkbox" /> Texte</label>
+.app-check {
+  display: inline-flex;
+  align-items: center;
+  gap: space(8);
+  min-height: control-height(md);
+  color: color(text-primary);
+  cursor: pointer;
+}
+
+// Texte réservé aux lecteurs d'écran.
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: calc(#{space(2)} / -2);
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

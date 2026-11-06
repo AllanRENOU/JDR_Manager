@@ -1,0 +1,142 @@
+// Boutons (Brief UI/UX §6.1), appliqués par la directive `appButton`.
+@use '../functions' as *;
+
+.app-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: space(8);
+  height: control-height(lg);
+  padding: 0 space(16);
+  border: 1px solid transparent;
+  border-radius: radius(md);
+  background: transparent;
+  color: color(text-primary);
+  font-family: font-family(ui);
+  font-size: font-size(body);
+  font-weight: font-weight(semibold);
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transition(background-color, border-color, color, opacity);
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  // ── Hauteurs ──
+  &--size-sm {
+    height: control-height(md);
+    padding: 0 space(12);
+    font-size: font-size(small);
+  }
+
+  &--size-header {
+    height: control-height(header);
+  }
+
+  &--size-lg {
+    height: control-height(xl);
+    padding: 0 space(24);
+    border-radius: radius(xl);
+    font-size: font-size(input);
+  }
+
+  &--size-touch {
+    height: control-height(touch);
+  }
+
+  &--block {
+    display: flex;
+    width: 100%;
+  }
+
+  // ── Variantes ──
+  &--primary {
+    background: color(accent);
+    color: color(text-on-accent);
+
+    &:hover:not(:disabled) {
+      background: color(accent-hover);
+    }
+  }
+
+  &--secondary {
+    border-color: color(border-strong);
+
+    &:hover:not(:disabled) {
+      background: color(bg-control);
+    }
+  }
+
+  &--filled {
+    background: color(bg-control);
+
+    &:hover:not(:disabled) {
+      background: color(bg-control-hover);
+    }
+  }
+
+  &--quiet {
+    height: auto;
+    padding: 0;
+    color: color(accent);
+
+    &:hover:not(:disabled) {
+      color: color(accent-hover);
+    }
+  }
+
+  &--add {
+    border: 1px dashed color(border-strong);
+    color: color(accent-text);
+
+    &:hover:not(:disabled) {
+      border-color: color(accent);
+      background: color(accent-tint);
+    }
+  }
+
+  &--danger {
+    color: color(danger-text);
+
+    &:hover:not(:disabled) {
+      background: color(danger-bg);
+    }
+  }
+
+  &--danger-strong {
+    background: color(danger-strong);
+    color: color(text-on-danger);
+
+    &:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+  }
+
+  &--icon {
+    width: control-height(md);
+    height: control-height(md);
+    padding: 0;
+    border-radius: radius(sm);
+    color: color(text-secondary);
+
+    &:hover:not(:disabled) {
+      background: color(bg-control);
+      color: color(text-primary);
+    }
+
+    &.app-button--size-header {
+      width: control-height(header);
+      height: control-height(header);
+    }
+
+    &.app-button--size-touch {
+      width: control-height(touch);
+      height: control-height(touch);
+    }
+  }
+}

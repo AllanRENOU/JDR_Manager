@@ -1,0 +1,13 @@
+<span class="pill__label"><ng-content /></span>
+@if (removable()) {
+  <button
+    class="pill__remove"
+    type="button"
+    [attr.aria-label]="
+      ('common.actions.remove' | transloco) + (removeLabel() ? ' : ' + removeLabel() : '')
+    "
+    (click)="remove.emit()"
+  >
+    <svg lucideX [size]="12" aria-hidden="true"></svg>
+  </button>
+}

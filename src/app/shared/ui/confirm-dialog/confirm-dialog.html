@@ -1,0 +1,30 @@
+<app-modal
+  [title]="options.title"
+  [subtitle]="options.subtitle ?? ''"
+  [danger]="!!options.destructive"
+>
+  @if (options.destructive) {
+    <span modalIcon class="confirm__icon">
+      <svg lucideTriangleExclamationPoint [size]="22" aria-hidden="true"></svg>
+    </span>
+  }
+  <p class="confirm__message">{{ options.message }}</p>
+
+  <button
+    modalFooterEnd
+    appButton="secondary"
+    type="button"
+    cdkFocusInitial
+    (click)="ref.close(false)"
+  >
+    {{ options.cancelLabel ?? ('common.actions.cancel' | transloco) }}
+  </button>
+  <button
+    modalFooterEnd
+    type="button"
+    [appButton]="options.destructive ? 'danger-strong' : 'primary'"
+    (click)="ref.close(true)"
+  >
+    {{ options.confirmLabel ?? ('common.actions.confirm' | transloco) }}
+  </button>
+</app-modal>

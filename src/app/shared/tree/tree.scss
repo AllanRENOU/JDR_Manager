@@ -1,0 +1,214 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+}
+
+.tree {
+  min-height: control-height(item);
+  margin: 0;
+  padding: 0 0 space(16);
+  border-radius: radius(sm);
+  list-style: none;
+}
+
+// ── Glisser-déposer ──
+.tree--drop-root {
+  box-shadow: inset 0 -2px 0 color(accent);
+}
+
+.tree__row--drop-inside {
+  background: color(accent-tint);
+  box-shadow: inset 0 0 0 1px color(accent);
+}
+
+.tree__row--drop-before,
+.tree__row--drop-after {
+  &::after {
+    position: absolute;
+    right: space(4);
+    left: calc(#{space(8)} + var(--depth) * #{layout(tree-indent)});
+    height: space(2);
+    border-radius: radius(pill);
+    background: color(accent);
+    content: '';
+  }
+}
+
+.tree__row--drop-before::after {
+  top: calc(#{space(2)} / -2);
+}
+
+.tree__row--drop-after::after {
+  bottom: calc(#{space(2)} / -2);
+}
+
+// Ligne d'origine pendant le glissement et aperçu qui suit le pointeur.
+.tree__row.cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
+.tree__row.cdk-drag-preview {
+  background: color(bg-raised);
+  opacity: 0.85;
+  box-shadow: shadow(popover);
+}
+
+.tree--dragging .tree__row:hover:not(.tree__row--selected) {
+  background: transparent;
+}
+
+.tree__row {
+  --depth: 0;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: space(6);
+  min-height: control-height(item);
+  padding-right: space(8);
+  padding-left: calc(#{space(8)} + var(--depth) * #{layout(tree-indent)});
+  border-radius: radius(sm);
+  color: color(text-primary);
+  font-size: font-size(body);
+  cursor: pointer;
+  transition: transition(background-color);
+
+  &:hover {
+    background: color(bg-control);
+  }
+}
+
+// Ligne sélectionnée : fond doré léger, texte accent, filet de 2 px à gauche (Brief §6.7).
+.tree__row--selected,
+.tree__row--selected:hover {
+  background: color(accent-tint);
+  color: color(accent-text);
+
+  &::before {
+    position: absolute;
+    top: space(4);
+    bottom: space(4);
+    left: 0;
+    width: space(2);
+    border-radius: radius(pill);
+    background: color(accent);
+    content: '';
+  }
+}
+
+.tree__row--folder {
+  font-weight: font-weight(semibold);
+}
+
+// Les éléments sont alignés sur le nom des dossiers (chevron + icône).
+.tree__row:not(.tree__row--folder) {
+  padding-left: calc(#{space(8)} + var(--depth) * #{layout(tree-indent)} + #{space(20)});
+
+  &:has(.tree__check) {
+    padding-left: calc(#{space(8)} + var(--depth) * #{layout(tree-indent)});
+  }
+}
+
+.tree__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: space(16);
+  height: space(16);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: color(text-secondary);
+  cursor: pointer;
+
+  svg {
+    transition: transition(transform);
+  }
+
+  .collapsed {
+    transform: rotate(-90deg);
+  }
+}
+
+.tree__icon {
+  flex-shrink: 0;
+  color: color(folder-project);
+}
+
+.tree__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree__rename {
+  flex: 1;
+  min-width: 0;
+  height: control-height(sm);
+  padding: 0 space(8);
+  border: 1px solid color(accent);
+  border-radius: radius(sm);
+  background: color(bg-app);
+  color: color(text-primary);
+  font-weight: font-weight(regular);
+}
+
+// Bouton « ⋯ » : visible au survol, au focus clavier ou menu ouvert ; toujours visible au tactile.
+.tree__more {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: control-height(sm);
+  height: control-height(sm);
+  margin-right: calc(#{space(4)} * -1);
+  padding: 0;
+  border: 0;
+  border-radius: radius(sm);
+  background: transparent;
+  color: color(text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition: transition(opacity, background-color);
+
+  &:hover {
+    background: color(bg-control-hover);
+    color: color(text-primary);
+  }
+
+  .tree__row:hover &,
+  .tree__row:focus-within &,
+  .tree__row:focus-visible &,
+  &[aria-expanded='true'] {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+// ── Mode sélection ──
+.tree__check {
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.tree__row--disabled {
+  color: color(text-tertiary);
+  cursor: default;
+
+  &:hover {
+    background: transparent;
+  }
+}
+
+.tree__disabled {
+  flex-shrink: 0;
+  color: color(text-tertiary);
+  font-size: font-size(label);
+  font-style: italic;
+}

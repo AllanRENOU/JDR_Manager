@@ -1,0 +1,136 @@
+<ul
+  class="tree"
+  role="tree"
+  [attr.aria-label]="ariaLabel() || null"
+  [attr.aria-multiselectable]="selectionMode() === 'multiple' || null"
+  cdkDropList
+  [cdkDropListSortingDisabled]="true"
+  [class.tree--dragging]="draggingId() !== null"
+  [class.tree--drop-root]="dropTarget()?.position === 'root-end'"
+>
+  @for (row of rows(); track row.node.id) {
+    @let node = row.node;
+    @let disabled = node.kind === 'item' && isDisabled(node.id);
+    <li
+      class="tree__row"
+      cdkDrag
+      [cdkDragData]="node.id"
+      [cdkDragDisabled]="!editable() || editingId() === node.id"
+      (cdkDragStarted)="onDragStarted(node.id)"
+      (cdkDragMoved)="onDragMoved($event)"
+      (cdkDragEnded)="onDragEnded()"
+      [cdkContextMenuTriggerFor]="rowMenu"
+      [cdkContextMenuTriggerData]="{ $implicit: node }"
+      [cdkContextMenuDisabled]="!editable()"
+      [attr.data-tree-id]="node.id"
+      [class.tree__row--folder]="node.kind === 'folder'"
+      [class.tree__row--selected]="node.id === selectedId()"
+      [class.tree__row--disabled]="disabled"
+      [class.tree__row--drop-before]="isDropTarget(node.id, 'before')"
+      [class.tree__row--drop-after]="isDropTarget(node.id, 'after')"
+      [class.tree__row--drop-inside]="isDropTarget(node.id, 'inside')"
+      [style.--depth]="row.depth"
+      role="treeitem"
+      [attr.aria-level]="row.depth + 1"
+      [attr.aria-expanded]="node.kind === 'folder' ? row.expanded : null"
+      [attr.aria-selected]="selectionMode() === 'none' ? node.id === selectedId() : null"
+      [attr.aria-checked]="
+        selectionMode() !== 'none' && node.kind === 'item' ? isChecked(node.id) : null
+      "
+      [attr.aria-disabled]="disabled || null"
+      [attr.tabindex]="node.id === activeId() ? 0 : -1"
+      (click)="activate(row)"
+      (keydown)="onKeydown($event, row)"
+    >
+      @if (node.kind === 'folder') {
+        <button
+          class="tree__chevron"
+          type="button"
+          tabindex="-1"
+          aria-hidden="true"
+          (click)="$event.stopPropagation(); toggle(node.id)"
+        >
+          <svg lucideChevronDown [class.collapsed]="!row.expanded" aria-hidden="true"></svg>
+        </button>
+        @if (row.expanded) {
+          <svg lucideFolderOpen class="tree__icon" aria-hidden="true"></svg>
+        } @else {
+          <svg lucideFolder class="tree__icon" aria-hidden="true"></svg>
+        }
+      } @else if (selectionMode() !== 'none') {
+        <!-- Indicateur visuel : l'état est porté par la ligne (aria-checked), d'où tabindex -1. -->
+        <input
+          class="tree__check"
+          tabindex="-1"
+          aria-hidden="true"
+          [type]="selectionMode() === 'single' ? 'radio' : 'checkbox'"
+          [checked]="isChecked(node.id)"
+          [disabled]="disabled"
+          (click)="$event.preventDefault()"
+        />
+      }
+      @if (editingId() === node.id) {
+        <input
+          #renameInput
+          class="tree__rename"
+          type="text"
+          [value]="node.name"
+          [attr.aria-label]="text().renameField | transloco: { name: node.name }"
+          (click)="$event.stopPropagation()"
+          (keydown)="$event.stopPropagation()"
+          (keydown.enter)="commitRename(node, renameInput.value)"
+          (keydown.escape)="cancelRename()"
+          (blur)="commitRename(node, renameInput.value)"
+        />
+      } @else {
+        @if (node.kind === 'item' && itemTemplate(); as template) {
+          <span class="tree__label">
+            <ng-container *ngTemplateOutlet="template; context: { $implicit: node, row: row }" />
+          </span>
+        } @else {
+          <span class="tree__label">{{ node.name }}</span>
+        }
+        @if (disabled) {
+          <span class="tree__disabled">{{ text().disabled | transloco }}</span>
+        }
+        @if (editable()) {
+          <button
+            class="tree__more"
+            type="button"
+            tabindex="-1"
+            [attr.aria-label]="text().moreActions | transloco: { name: node.name }"
+            [cdkMenuTriggerFor]="rowMenu"
+            [cdkMenuTriggerData]="{ $implicit: node }"
+            (click)="$event.stopPropagation()"
+          >
+            <svg lucideEllipsis aria-hidden="true"></svg>
+          </button>
+        }
+      }
+    </li>
+  }
+</ul>
+
+<!-- Menu contextuel commun au bouton « ⋯ » et au clic droit (TRD §8). -->
+<ng-template #rowMenu let-node>
+  <div appMenu>
+    @if (node.kind === 'folder') {
+      <button appMenuItem (triggered)="requestCreate(node.id, 'item')">
+        <svg lucidePlus aria-hidden="true"></svg>{{ text().newItem | transloco }}
+      </button>
+      <button appMenuItem (triggered)="requestCreate(node.id, 'folder')">
+        <svg lucideFolderPlus aria-hidden="true"></svg>{{ text().newSubfolder | transloco }}
+      </button>
+    }
+    <button appMenuItem (triggered)="startRename(node.id)">
+      <svg lucidePencil aria-hidden="true"></svg>{{ text().rename | transloco }}
+    </button>
+    @for (extra of extraItemsFor(node); track extra.label) {
+      <button appMenuItem (triggered)="extra.run(node)">{{ extra.label | transloco }}</button>
+    }
+    <div class="app-menu-separator" role="separator"></div>
+    <button appMenuItem tone="danger" (triggered)="requestRemove(node)">
+      <svg lucideTrash2 aria-hidden="true"></svg>{{ text().delete | transloco }}
+    </button>
+  </div>
+</ng-template>

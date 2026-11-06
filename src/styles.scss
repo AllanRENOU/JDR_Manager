@@ -5,6 +5,10 @@
 @use 'styles/themes/automne';
 @use 'styles/material';
 @use 'styles/base';
+@use 'styles/components/button';
+@use 'styles/components/form';
+@use 'styles/components/overlay';
+@use 'styles/components/menu';
 
 // Jetons communs à tous les thèmes (espacements, rayons, typographie…).
 @include engine.common-tokens;

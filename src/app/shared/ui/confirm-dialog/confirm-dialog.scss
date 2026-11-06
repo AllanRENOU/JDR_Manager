@@ -1,0 +1,19 @@
+@use 'functions' as *;
+
+.confirm__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: control-height(lg);
+  height: control-height(lg);
+  border-radius: radius(pill);
+  background: color(danger-bg);
+  color: color(danger-text);
+}
+
+.confirm__message {
+  color: color(text-secondary);
+  line-height: line-height(input);
+  white-space: pre-line;
+}

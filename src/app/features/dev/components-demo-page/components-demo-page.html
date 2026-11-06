@@ -1,0 +1,235 @@
+<!-- Page de démonstration technique : textes en dur volontaires, page supprimée avant la V1. -->
+<main class="demo">
+  <header class="demo__header">
+    <h1>Composants partagés</h1>
+    <button appButton="secondary" size="sm" type="button" (click)="toggleTheme()">
+      Thème : {{ theme.theme() }}
+    </button>
+  </header>
+
+  <section class="demo__section" aria-labelledby="demo-tree">
+    <h2 id="demo-tree">Arborescence</h2>
+    <div class="demo__tree">
+      <app-tree
+        #sceneTree
+        [nodes]="scenes()"
+        [labels]="{ newItem: 'scene.new' }"
+        [(collapsedIds)]="collapsed"
+        [(selectedId)]="selectedScene"
+        (create)="onCreate($event)"
+        (rename)="onRename($event)"
+        (remove)="onRemove($event)"
+        (move)="onMove($event)"
+        [extraMenuItems]="sceneMenu"
+      >
+        <ng-template #item let-node>
+          <span class="demo__scene"
+            ><svg lucideClapperboard aria-hidden="true"></svg>{{ node.name }}</span
+          >
+        </ng-template>
+      </app-tree>
+    </div>
+    <div class="demo__row">
+      <button
+        appButton="add"
+        size="sm"
+        type="button"
+        (click)="sceneTree.requestCreate(null, 'item')"
+      >
+        <svg lucidePlus aria-hidden="true"></svg>Nouvelle scène
+      </button>
+      <button
+        appButton="add"
+        size="sm"
+        type="button"
+        (click)="sceneTree.requestCreate(null, 'folder')"
+      >
+        <svg lucidePlus aria-hidden="true"></svg>Nouveau dossier
+      </button>
+    </div>
+    <p>
+      Dossiers repliés : {{ collapsed().join(', ') || 'aucun' }} · Sélection :
+      {{ selectedScene() ?? 'aucune' }} · Première scène : {{ firstScene() }}
+    </p>
+  </section>
+
+  <section class="demo__section" aria-labelledby="demo-tree-select">
+    <h2 id="demo-tree-select">Arborescence en sélection (lecture seule)</h2>
+    <div class="demo__tree">
+      <app-tree
+        [nodes]="scenes()"
+        [editable]="false"
+        selectionMode="multiple"
+        [disabledIds]="['taverne']"
+        [labels]="{ disabled: 'scene.current' }"
+        [(checkedIds)]="checkedNext"
+      />
+    </div>
+    <p>Scènes suivantes : {{ checkedNext().join(', ') || 'aucune' }}</p>
+  </section>
+
+  <section class="demo__section" aria-labelledby="demo-buttons">
+    <h2 id="demo-buttons">Boutons</h2>
+    <div class="demo__row">
+      <button appButton="primary" type="button">Présenter</button>
+      <button appButton="secondary" type="button">Éditer</button>
+      <button appButton="filled" type="button">Nouvelle action</button>
+      <button appButton="quiet" type="button">Voir toutes les actions</button>
+      <button appButton="add" type="button">
+        <svg lucidePlus aria-hidden="true"></svg>Ajouter
+      </button>
+      <button appButton="danger" type="button">Supprimer l'action</button>
+      <button appButton="danger-strong" type="button">Supprimer définitivement</button>
+      <button appButton="icon" type="button" aria-label="Pause">
+        <svg lucidePause aria-hidden="true"></svg>
+      </button>
+      <button appButton="icon" size="header" type="button" aria-label="Fermer">
+        <svg lucideX aria-hidden="true"></svg>
+      </button>
+    </div>
+    <div class="demo__row">
+      <button appButton="primary" size="sm" type="button">Petit</button>
+      <button appButton="primary" size="lg" type="button">Scène suivante</button>
+      <button appButton="primary" type="button" disabled>Désactivé</button>
+    </div>
+  </section>
+
+  <section class="demo__section" aria-labelledby="demo-pills">
+    <h2 id="demo-pills">Pastilles</h2>
+    <div class="demo__row">
+      @for (tone of tones; track tone) {
+        <app-pill [tone]="tone">{{ tone }}</app-pill>
+      }
+      <app-pill [removable]="true" removeLabel="Taverne">Taverne</app-pill>
+      <app-pill variant="badge">Par défaut</app-pill>
+    </div>
+  </section>
+
+  <section class="demo__section" aria-labelledby="demo-fields">
+    <h2 id="demo-fields">Champs</h2>
+    <div class="demo__grid">
+      <app-field label="Nom de l'action" [required]="true" #name>
+        <input appInput [id]="name.controlId" placeholder="Ex. Entrée dans la taverne" />
+      </app-field>
+      <app-field label="Durée (secondes)" hint="Entre 1 et 600 secondes" #wait>
+        <input appInput type="number" [id]="wait.controlId" value="5" />
+      </app-field>
+    </div>
+    <app-field label="Texte de scène" [hiddenLabel]="true" #text>
+      <textarea appInput [id]="text.controlId">
+La porte grince et une odeur de terre humide envahit la pièce.</textarea>
+    </app-field>
+    <app-field label="Nom du son" error="Ce nom est déjà utilisé." #err>
+      <input appInput [id]="err.controlId" value="Taverne" />
+    </app-field>
+    <div class="demo__row">
+      <label class="app-check"><input type="checkbox" checked /> Boucle</label>
+      <label class="app-check"
+        ><input type="radio" name="demo-radio" checked /> Un seul écran</label
+      >
+      <label class="app-check"><input type="radio" name="demo-radio" /> Deux fenêtres</label>
+      <input type="range" min="0" max="100" value="60" aria-label="Volume" />
+    </div>
+    <div class="demo__row">
+      <app-segmented-control label="Déclencheur" [options]="triggerOptions" [(value)]="trigger" />
+      <span>Valeur : {{ trigger() }}</span>
+    </div>
+  </section>
+
+  <section class="demo__section demo__section--flush" aria-label="Sections repliables">
+    <app-collapsible-section
+      title="Battlemap"
+      summary="· Carte de la taverne"
+      preferenceKey="demo.battlemap"
+    >
+      <div class="demo__thumbs">
+        <div class="demo__thumb">
+          <app-placeholder label="Carte de la taverne"
+            ><svg lucideMap aria-hidden="true"></svg
+          ></app-placeholder>
+          <app-pill class="demo__badge" variant="badge">Par défaut</app-pill>
+        </div>
+        <div class="demo__thumb"><app-placeholder variant="alt" grid="fine" /></div>
+      </div>
+    </app-collapsible-section>
+    <app-collapsible-section title="Sons" summary="· 2 en cours" preferenceKey="demo.sons">
+      <button sectionAction appButton="icon" type="button" aria-label="Tout mettre en pause">
+        <svg lucidePause aria-hidden="true"></svg>
+      </button>
+      <p>Pluie battante · Taverne animée</p>
+    </app-collapsible-section>
+  </section>
+
+  <section class="demo__section" aria-labelledby="demo-modals">
+    <h2 id="demo-modals">Fenêtres</h2>
+    <div class="demo__row">
+      <button appButton="secondary" type="button" (click)="openModal()">Ouvrir une fenêtre</button>
+      <button appButton="secondary" type="button" (click)="openConfirm(false)">Confirmation</button>
+      <button appButton="danger" type="button" (click)="openConfirm(true)">
+        Confirmation destructive
+      </button>
+      <span>Résultat : {{ modalResult() }}</span>
+    </div>
+  </section>
+
+  <section class="demo__section" aria-labelledby="demo-messages">
+    <h2 id="demo-messages">Messages</h2>
+    <app-alert
+      >Battlemap introuvable : elle a peut-être été supprimée. Choisissez-en une autre.</app-alert
+    >
+    <app-alert tone="info">Glissez des fichiers ici pour les importer.</app-alert>
+    <div class="demo__row">
+      <button appButton="secondary" type="button" (click)="notifyError()">
+        Notification d’erreur
+      </button>
+      <button
+        appButton="secondary"
+        type="button"
+        (click)="notifications.info('Projet enregistré.')"
+      >
+        Notification d’information
+      </button>
+    </div>
+  </section>
+
+  <section class="demo__section" aria-labelledby="demo-menus">
+    <h2 id="demo-menus">Menus</h2>
+    <div class="demo__row">
+      <button
+        appButton="icon"
+        type="button"
+        aria-label="Plus d’actions"
+        [cdkMenuTriggerFor]="contextMenu"
+      >
+        <svg lucideEllipsis aria-hidden="true"></svg>
+      </button>
+      <button
+        appButton
+        type="button"
+        [cdkMenuTriggerFor]="nextScenes"
+        [cdkMenuPosition]="abovePositions"
+      >
+        Scène suivante <svg lucideChevronDown aria-hidden="true"></svg>
+      </button>
+      <span>Choix : {{ menuChoice() }}</span>
+    </div>
+    <ng-template #contextMenu>
+      <div appMenu>
+        <button appMenuItem (triggered)="menuChoice.set('Renommer')">
+          <svg lucidePencil aria-hidden="true"></svg>Renommer
+        </button>
+        <button appMenuItem (triggered)="menuChoice.set('Dupliquer')">Dupliquer</button>
+        <div class="app-menu-separator" role="separator"></div>
+        <button appMenuItem tone="danger" (triggered)="menuChoice.set('Supprimer')">
+          Supprimer
+        </button>
+      </div>
+    </ng-template>
+    <ng-template #nextScenes>
+      <div appMenu>
+        <button appMenuItem (triggered)="menuChoice.set('La crypte')">La crypte</button>
+        <button appMenuItem (triggered)="menuChoice.set('Le marché')">Le marché</button>
+      </div>
+    </ng-template>
+  </section>
+</main>

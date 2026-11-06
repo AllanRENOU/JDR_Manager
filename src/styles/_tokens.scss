@@ -5,6 +5,8 @@
 // Grille de base 4 px (Brief §4). La clé est la valeur en pixels : `space(16)` → 16px.
 $spacing: (
   0: 0,
+  2: 2px,
+  3: 3px,
   4: 4px,
   6: 6px,
   8: 8px,
@@ -28,7 +30,8 @@ $radius: (
   md: 10px,
   lg: 12px,
   xl: 14px,
-  2xl: 18px,
+  xxl: 18px,
+  xxxl: 20px,
   pill: 999px,
 );
 
@@ -67,6 +70,8 @@ $letter-spacing: (
 $control-height: (
   sm: 32px,
   md: 36px,
+  item: 38px,
+  header: 40px,
   lg: 44px,
   xl: 54px,
   touch: 48px,
@@ -90,6 +95,11 @@ $layout: (
   sidebar-play: 420px,
   feed-max: 760px,
   card-min: 320px,
+  tree-indent: 30px,
+  menu-min: 200px,
+  modal-sm: 560px,
+  modal-md: 620px,
+  modal-lg: 900px,
 );
 
 // Toutes les maps exposées en variables CSS, avec leur préfixe.

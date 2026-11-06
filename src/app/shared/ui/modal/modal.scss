@@ -1,0 +1,70 @@
+@use 'functions' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+  border: 1px solid color(border-subtle);
+  border-radius: radius(xxl);
+  background: color(bg-card);
+  box-shadow: shadow(popover);
+  overflow: hidden;
+}
+
+:host(.danger) {
+  border-color: color(danger-border);
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: space(16);
+  padding: space(20) space(20) space(12) space(24);
+}
+
+.modal__heading {
+  display: flex;
+  align-items: center;
+  gap: space(14);
+}
+
+.modal__title {
+  font-size: font-size(dialog);
+}
+
+.modal__subtitle {
+  margin-top: space(4);
+  color: color(text-secondary);
+  font-size: font-size(small);
+}
+
+.modal__content {
+  flex: 1;
+  min-height: 0;
+  padding: space(8) space(24) space(20);
+  overflow-y: auto;
+}
+
+.modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: space(12);
+  padding: space(16) space(24);
+  border-top: 1px solid color(border-subtle);
+
+  &:has(.modal__footer-start:empty):has(.modal__footer-end:empty) {
+    display: none;
+  }
+}
+
+.modal__footer-start,
+.modal__footer-end {
+  display: flex;
+  gap: space(12);
+}
+
+.modal__footer-end {
+  margin-left: auto;
+}

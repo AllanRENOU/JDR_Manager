@@ -1,0 +1,17 @@
+<div class="notifications" aria-live="polite">
+  @for (item of notifications.notifications(); track item.id) {
+    <app-alert class="notification" [tone]="item.tone">
+      {{ item.message }}
+      <button
+        alertAction
+        appButton="icon"
+        size="sm"
+        type="button"
+        [attr.aria-label]="'common.actions.close' | transloco"
+        (click)="notifications.dismiss(item.id)"
+      >
+        <svg lucideX [size]="14" aria-hidden="true"></svg>
+      </button>
+    </app-alert>
+  }
+</div>

@@ -1,0 +1,27 @@
+@use 'functions' as *;
+
+.notifications {
+  position: fixed;
+  right: space(24);
+  bottom: space(24);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: space(8);
+  width: min(#{layout(sidebar-right)}, calc(100vw - #{space(48)}));
+  pointer-events: none;
+}
+
+.notification {
+  align-items: center;
+  box-shadow: shadow(popover);
+  pointer-events: auto;
+  animation: notification-in duration(normal) easing(out);
+}
+
+@keyframes notification-in {
+  from {
+    opacity: 0;
+    transform: translateY(#{space(8)});
+  }
+}

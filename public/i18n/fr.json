@@ -13,10 +13,12 @@
       "save": "Enregistrer",
       "back": "Retour",
       "play": "Lecture",
-      "pause": "Pause"
+      "pause": "Pause",
+      "remove": "Retirer"
     },
     "search": "Rechercher",
-    "empty": "Aucun élément"
+    "empty": "Aucun élément",
+    "required": "obligatoire"
   },
   "project": {
     "title": "Mes projets",
@@ -32,7 +34,9 @@
     "newFolder": "Nouveau dossier",
     "text": "Texte de la scène",
     "next": "Scènes suivantes",
-    "battlemaps": "Battlemaps"
+    "battlemaps": "Battlemaps",
+    "setFirst": "Définir comme première scène",
+    "current": "scène actuelle"
   },
   "action": {
     "title": "Actions",
@@ -94,5 +98,18 @@
       "inputLabel": "Nom de la scène",
       "toggle": "Option"
     }
+  },
+  "tree": {
+    "newItem": "Nouvel élément",
+    "newFolder": "Nouveau dossier",
+    "newSubfolder": "Nouveau sous-dossier",
+    "rename": "Renommer",
+    "delete": "Supprimer",
+    "deleteTitle": "Supprimer « {{ name }} » ?",
+    "deleteItemMessage": "Cette action est irréversible.",
+    "deleteFolderMessage": "Le dossier et tout son contenu ({{ count }} élément(s)) seront supprimés. Cette action est irréversible.",
+    "moreActions": "Plus d’actions pour « {{ name }} »",
+    "renameField": "Nouveau nom de « {{ name }} »",
+    "disabled": "indisponible"
   }
 }

@@ -1,0 +1,12 @@
+<label class="field__label" [class.visually-hidden]="hiddenLabel()" [attr.for]="controlId">
+  {{ label() }}
+  @if (required()) {
+    <span class="field__required">({{ 'common.required' | transloco }})</span>
+  }
+</label>
+<ng-content />
+@if (error()) {
+  <p class="field__error" role="alert" [id]="messageId">{{ error() }}</p>
+} @else if (hint()) {
+  <p class="field__hint" [id]="messageId">{{ hint() }}</p>
+}

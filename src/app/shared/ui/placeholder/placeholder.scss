@@ -1,0 +1,30 @@
+@use 'functions' as *;
+
+:host {
+  --placeholder-step: #{space(20)};
+  --placeholder-line: #{color(placeholder-grid)};
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: control-height(lg);
+  background-color: color(placeholder-bg);
+  background-image:
+    linear-gradient(var(--placeholder-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--placeholder-line) 1px, transparent 1px);
+  background-size: var(--placeholder-step) var(--placeholder-step);
+  background-position: center;
+  color: color(text-tertiary);
+}
+
+:host(.alt) {
+  --placeholder-line: #{color(placeholder-alt-grid)};
+
+  background-color: color(placeholder-alt-bg);
+}
+
+:host(.fine) {
+  --placeholder-step: #{space(12)};
+}

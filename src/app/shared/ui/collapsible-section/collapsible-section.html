@@ -1,0 +1,19 @@
+<div class="section__header">
+  <button
+    class="section__toggle"
+    type="button"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="contentId"
+    (click)="toggle()"
+  >
+    <svg lucideChevronDown class="section__chevron" aria-hidden="true"></svg>
+    <span class="section__title">{{ title() }}</span>
+    @if (summary()) {
+      <span class="section__summary">{{ summary() }}</span>
+    }
+  </button>
+  <div class="section__action"><ng-content select="[sectionAction]" /></div>
+</div>
+<div class="section__content" [id]="contentId" [hidden]="!open()">
+  <ng-content />
+</div>

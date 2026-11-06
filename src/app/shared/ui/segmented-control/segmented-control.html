@@ -1,0 +1,16 @@
+@for (option of options(); track $index; let i = $index) {
+  <button
+    #option
+    class="segment"
+    type="button"
+    role="radio"
+    [class.segment--active]="option.value === value()"
+    [attr.aria-checked]="option.value === value()"
+    [tabindex]="tabIndex(i)"
+    [disabled]="disabled()"
+    (click)="select(option.value)"
+    (keydown)="onKeydown($event, i)"
+  >
+    {{ option.label }}
+  </button>
+}

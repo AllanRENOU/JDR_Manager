@@ -1,0 +1,7 @@
+@if (tone() === 'danger') {
+  <svg lucideCircleExclamationPoint class="alert__icon" aria-hidden="true"></svg>
+} @else {
+  <svg lucideInfo class="alert__icon" aria-hidden="true"></svg>
+}
+<div class="alert__text"><ng-content /></div>
+<div class="alert__action"><ng-content select="[alertAction]" /></div>

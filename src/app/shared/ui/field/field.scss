@@ -1,0 +1,30 @@
+@use 'functions' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: space(6);
+}
+
+.field__label {
+  color: color(text-secondary);
+  font-size: font-size(small);
+  font-weight: font-weight(medium);
+}
+
+.field__required {
+  margin-left: space(4);
+  color: color(accent-hover);
+  font-weight: font-weight(regular);
+}
+
+.field__hint {
+  color: color(text-tertiary);
+  font-size: font-size(label);
+  font-style: italic;
+}
+
+.field__error {
+  color: color(danger-text);
+  font-size: font-size(label);
+}

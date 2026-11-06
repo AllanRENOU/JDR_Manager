@@ -1,0 +1,63 @@
+// Menus et listes déroulantes (Brief UI/UX §6.8), directives `appMenu` / `appMenuItem`.
+@use '../functions' as *;
+
+.app-menu {
+  display: flex;
+  flex-direction: column;
+  min-width: layout(menu-min);
+  padding: space(6);
+  border: 1px solid color(border-default);
+  border-radius: radius(lg);
+  background: color(bg-control);
+  box-shadow: shadow(popover);
+  outline: none;
+}
+
+.app-menu-item {
+  display: flex;
+  align-items: center;
+  gap: space(10);
+  min-height: control-height(item);
+  padding: 0 space(12);
+  border: 0;
+  border-radius: radius(sm);
+  background: transparent;
+  color: color(text-primary);
+  font-size: font-size(body);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible,
+  &.cdk-menu-item-open,
+  &--selected {
+    background: color(bg-control-hover);
+    outline: none;
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    color: color(text-tertiary);
+    cursor: not-allowed;
+  }
+
+  &--danger {
+    color: color(danger-text);
+  }
+
+  svg {
+    flex-shrink: 0;
+    color: color(text-secondary);
+  }
+
+  &--danger svg {
+    color: inherit;
+  }
+}
+
+.app-menu-separator {
+  height: 1px;
+  margin: space(4) space(6);
+  background: color(border-subtle);
+}

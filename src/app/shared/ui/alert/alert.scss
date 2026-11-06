@@ -1,0 +1,33 @@
+@use 'functions' as *;
+
+:host {
+  display: flex;
+  align-items: flex-start;
+  gap: space(10);
+  padding: space(12) space(14);
+  border: 1px solid color(border-subtle);
+  border-radius: radius(md);
+  background: color(bg-raised);
+  color: color(text-secondary);
+  font-size: font-size(small);
+  line-height: line-height(normal);
+}
+
+:host(.tone-danger) {
+  border-color: color(danger-border);
+  background: color(danger-bg);
+  color: color(danger-text);
+}
+
+.alert__icon {
+  flex-shrink: 0;
+  margin-top: space(2);
+}
+
+.alert__text {
+  flex: 1;
+}
+
+.alert__action:empty {
+  display: none;
+}
