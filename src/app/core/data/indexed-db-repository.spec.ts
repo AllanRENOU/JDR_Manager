@@ -378,4 +378,23 @@ describe('IndexedDbRepository', () => {
       await expect(repository.deleteMedia('inconnu')).resolves.toBeUndefined();
     });
   });
+
+  it('retrouve les données après fermeture puis réouverture de la base (NF-10, 4.9)', async () => {
+    const project = aProject({ name: 'Persistance' });
+    const node = aSceneNode(project.id);
+    await repository.saveProject({ ...project, firstSceneId: node.id });
+    await repository.saveSceneNodes([node]);
+    await repository.saveScene(aScene(project.id, node.id));
+    await repository.saveAction(anAction(node.id, { isSceneText: true, trigger: 'scene-open' }));
+    await repository.close();
+
+    // Nouvelle instance, comme après un rechargement du navigateur.
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [{ provide: INDEXED_DB_NAME, useValue: dbName }] });
+    repository = TestBed.inject(IndexedDbRepository);
+
+    expect((await repository.getProject(project.id))?.firstSceneId).toBe(node.id);
+    expect(await repository.listSceneNodes(project.id)).toHaveLength(1);
+    expect((await repository.listActions(node.id))[0]?.isSceneText).toBe(true);
+  });
 });

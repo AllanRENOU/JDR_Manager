@@ -1,0 +1,68 @@
+@use 'functions' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.title {
+  overflow: hidden;
+  font-size: font-size(section);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title__scene {
+  margin-left: space(6);
+  color: color(text-secondary);
+  font-family: font-family(ui);
+  font-size: font-size(input);
+  font-weight: font-weight(medium);
+}
+
+.mode {
+  flex-shrink: 0;
+  color: color(accent-text);
+}
+
+.stage {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.stage__message {
+  align-self: flex-start;
+  margin: space(32);
+}
+
+// Fil d'actualité : colonne centrée de 760 px au plus (Brief §6.10).
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: space(16);
+  width: 100%;
+  max-width: layout(feed-max);
+  margin: 0 auto;
+  padding: space(32) space(24) space(64);
+}
+
+.feed__text {
+  padding: space(20) space(24);
+  border: 1px solid color(border-subtle);
+  border-radius: radius(xl);
+  background: color(bg-card);
+  font-family: font-family(narrative);
+  font-size: font-size(narrative);
+  line-height: line-height(narrative);
+  white-space: pre-line;
+}
+
+.feed__empty {
+  margin-top: space(48);
+  color: color(text-tertiary);
+  font-style: italic;
+  text-align: center;
+}

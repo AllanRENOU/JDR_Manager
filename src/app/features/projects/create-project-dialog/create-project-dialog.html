@@ -1,0 +1,22 @@
+<form (submit)="submit($event)">
+  <app-modal [title]="'project.create.title' | transloco">
+    <app-field [label]="'project.create.name' | transloco" [required]="true" #field>
+      <input
+        appInput
+        cdkFocusInitial
+        type="text"
+        maxlength="120"
+        [id]="field.controlId"
+        [placeholder]="'project.create.placeholder' | transloco"
+        [value]="name()"
+        (input)="name.set($any($event.target).value)"
+      />
+    </app-field>
+    <button modalFooterEnd appButton="secondary" type="button" (click)="ref.close()">
+      {{ 'common.actions.cancel' | transloco }}
+    </button>
+    <button modalFooterEnd appButton type="submit" [disabled]="!valid()">
+      {{ 'project.create.submit' | transloco }}
+    </button>
+  </app-modal>
+</form>

@@ -160,6 +160,17 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Pour un `move` : `applyMove(nodes, move)` dans `tree-model.ts` renvoie les nœuds à enregistrer (`saveSceneNodes` / `saveSoundNodes`).
 - `tree-model.ts` fournit aussi `pathTo()` (chemin « A › B › C »), `descendantIds()` et `filterNodes()`.
 
+## Écrans et services de fonctionnalité (lot 4)
+
+- Les écrans reçoivent les paramètres de route comme inputs (`withComponentInputBinding`) : `readonly projectId = input.required<Id>()`.
+- **État d'un écran** : service `@Injectable()` **sans** `providedIn`, fourni dans `providers` du composant, une instance par écran. C'est une exception voulue à `@Service()`, qui est global. Exemples :
+  - `EditorStore` (`features/editor`) : projet, arborescence, scène ouverte, texte de scène, enregistrement automatique ;
+  - `PresentationEngine` et `ActionRunner` (`features/presentation/engine`).
+- **Enregistrement automatique** : `DebouncedTask` (`shared/util`), 500 ms, plus `flush()` à la sortie du champ, au changement de scène, à la destruction de l'écran et sur `beforeunload`. Un champ édité ne se lie **pas** à la valeur enregistrée, mais à une valeur initiale posée à l'ouverture (`initialSceneText`) : un enregistrement en retard ne doit jamais écraser la saisie.
+- **Écritures concurrentes** : les enchaîner (`this.writes = this.writes.then(...)`), sinon deux frappes rapides peuvent créer deux objets.
+- **Moteur** : `ActionRunner.run(action, context, signal)`. Le moteur fournit un `ActionContext` (aujourd'hui `addText`) et un `AbortController` par scène ; `PresentationEngine.textOf(item)` relit le texte dans l'action (`null` = supprimé).
+- Dates : `provideFrenchLocale()` (`core/i18n/locale.ts`), à ajouter aussi dans les tests qui affichent des dates.
+
 ## Arborescence du code
 
 ```
@@ -191,6 +202,7 @@ public/i18n/fr.json
 - Un `*.spec.ts` à côté de chaque fichier ; une description par comportement, en français.
 - Composant qui utilise Transloco : `imports: [getTranslocoTestingModule()]` (`src/testing/transloco-testing.ts`, traductions françaises réelles).
 - Données de test : fabriques `aProject()`, `aScene()`, `aMedia()`… dans `src/testing/data-builders.ts`.
+- **Tests d'écrans** : `providers: [...useTestRepository()]` (`src/testing/test-repository.ts`) donne un vrai dépôt IndexedDB sur une base neuve, et `TestBed.inject(DATA_REPOSITORY)` permet de préparer les données. Input de route : `fixture.componentRef.setInput('projectId', id)`. Chargement asynchrone : `await vi.waitFor(...)`.
 - IndexedDB :
   - `import 'fake-indexeddb/auto'` ;
   - une base neuve par test via le jeton `INDEXED_DB_NAME` ;
@@ -205,6 +217,9 @@ public/i18n/fr.json
 - Dans les templates de test, attention aux **noms de variables de modèle** (`#xxx`) qui masquent une propriété du composant du même nom.
 
 ## Pièges et décisions déjà rencontrés
+
+- **Classes CSS d'un écran et éléments enfants** : un sélecteur d'un composant (ex. `.play`) s'applique aussi à l'élément hôte d'un composant enfant qui porte la même classe. Nommer les classes de façon spécifique (`.stage`, `.app-header--play`).
+- **Projection dans un emplacement** (`headerEnd`…) : un `@if` qui contient plusieurs nœuds empêche la projection dans l'emplacement nommé (erreur NG8011). Mettre l'élément projeté dans son propre `@if`.
 
 - `ng add @jsverse/transloco` échoue sur l'option `--ssr` : utiliser `ng g @jsverse/transloco:ng-add --langs=fr --ssr=false`.
 - Directive : un alias d'entrée doit être `préfixeDuSélecteur + NomDeLaPropriété` (`appFileDropKinds` pour `kinds`), sinon ESLint refuse (`no-input-rename`).

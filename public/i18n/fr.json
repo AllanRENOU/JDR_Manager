@@ -18,7 +18,13 @@
     },
     "search": "Rechercher",
     "empty": "Aucun élément",
-    "required": "obligatoire"
+    "required": "obligatoire",
+    "saveState": {
+      "pending": "Modifications non enregistrées…",
+      "saving": "Enregistrement…",
+      "saved": "Enregistré",
+      "error": "Échec de l’enregistrement"
+    }
   },
   "project": {
     "title": "Mes projets",
@@ -26,7 +32,23 @@
     "edit": "Éditer",
     "present": "Présenter",
     "import": "Importer un projet",
-    "export": "Exporter"
+    "export": "Exporter",
+    "empty": "Aucun projet pour l’instant. Créez votre premier scénario.",
+    "updatedAt": "Modifié le {{ date }}",
+    "create": {
+      "title": "Créer un projet",
+      "card": "Créer un projet",
+      "name": "Nom du projet",
+      "placeholder": "Ex. La crypte oubliée",
+      "submit": "Créer"
+    },
+    "loadError": "Impossible de charger les projets.",
+    "notFound": "Ce projet est introuvable : il a peut-être été supprimé.",
+    "backToProjects": "Retour aux projets",
+    "editMode": "Mode Édition",
+    "presentMode": "Mode Présentation",
+    "editAction": "Éditer « {{ name }} »",
+    "presentAction": "Présenter « {{ name }} »"
   },
   "scene": {
     "title": "Scènes",
@@ -36,7 +58,14 @@
     "next": "Scènes suivantes",
     "battlemaps": "Battlemaps",
     "setFirst": "Définir comme première scène",
-    "current": "scène actuelle"
+    "current": "scène actuelle",
+    "defaultName": "Première scène",
+    "first": "Première scène",
+    "firstBadge": "1re",
+    "noScene": "Ce projet n’a pas encore de scène.",
+    "createFirst": "Créer la première scène",
+    "treeLabel": "Scènes du projet",
+    "textPlaceholder": "Décrivez ce que voient et entendent les joueurs en arrivant dans la scène…"
   },
   "action": {
     "title": "Actions",
@@ -49,7 +78,8 @@
       "wait": "Attente",
       "click": "Clic de l'utilisateur",
       "scene": "Scène"
-    }
+    },
+    "sceneText": "Texte de scène"
   },
   "presentation": {
     "nextScene": "Scène suivante",
@@ -57,7 +87,11 @@
     "continue": "Continuer",
     "restart": "Recommencer",
     "goToScene": "Aller à une scène",
-    "playerWindowOpen": "Fenêtre joueurs ouverte"
+    "playerWindowOpen": "Fenêtre joueurs ouverte",
+    "feed": "Fil d’actualité",
+    "emptyFeed": "Aucun texte pour cette scène.",
+    "missingText": "Ce texte a été supprimé du projet.",
+    "noScene": "Ce projet n’a pas encore de scène à présenter."
   },
   "sound": {
     "library": "Bibliothèque de sons",

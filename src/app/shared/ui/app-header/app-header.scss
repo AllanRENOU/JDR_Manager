@@ -1,0 +1,44 @@
+@use 'functions' as *;
+
+:host {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: space(16);
+  height: layout(header);
+  padding: 0 space(24);
+  border-bottom: 1px solid color(border-subtle);
+  background: color(bg-panel);
+}
+
+:host(.app-header--play) {
+  height: layout(header-play);
+}
+
+.header__start,
+.header__end {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: space(12);
+}
+
+.header__start:empty,
+.header__end:empty {
+  display: none;
+}
+
+.header__title {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: space(12);
+  min-width: 0;
+}
+
+.header__end {
+  margin-left: auto;
+}

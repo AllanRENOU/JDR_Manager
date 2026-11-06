@@ -6,7 +6,7 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideLucideConfig } from '@lucide/angular';
 import { provideTransloco } from '@jsverse/transloco';
 
@@ -14,12 +14,16 @@ import { routes } from './app.routes';
 import { DATA_REPOSITORY } from './core/data/data-repository';
 import { IndexedDbRepository } from './core/data/indexed-db-repository';
 import { StoragePersistence } from './core/data/storage-persistence';
+import { provideFrenchLocale } from './core/i18n/locale';
 import { TranslocoHttpLoader } from './core/i18n/transloco-loader';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    // Paramètres de route (ex. :projectId) reçus comme inputs des écrans.
+    provideRouter(routes, withComponentInputBinding()),
+    // Dates et nombres au format français.
+    provideFrenchLocale(),
     provideHttpClient(),
     // Couche de données (TEC-22) : seul endroit où l'implémentation est choisie.
     // Pour passer à l'API : remplacer IndexedDbRepository par l'implémentation API.

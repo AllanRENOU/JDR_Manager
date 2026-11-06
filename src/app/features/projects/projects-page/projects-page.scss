@@ -1,0 +1,107 @@
+@use 'functions' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.logo {
+  color: color(accent-text);
+  font-family: font-family(title);
+  font-size: font-size(section);
+  font-weight: font-weight(bold);
+  letter-spacing: letter-spacing(logo);
+}
+
+.page {
+  width: 100%;
+  padding: space(32);
+}
+
+.page__title {
+  margin-bottom: space(24);
+  font-size: font-size(page);
+}
+
+.page__empty {
+  margin-bottom: space(16);
+  color: color(text-tertiary);
+  font-style: italic;
+}
+
+// Grille adaptative, alignée à gauche (TEC-93).
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(#{layout(card-min)}, 1fr));
+  gap: space(20);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid color(border-subtle);
+  border-radius: radius(xl);
+  background: color(bg-card);
+}
+
+.card__thumb {
+  height: layout(card-thumb);
+}
+
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: space(4);
+  padding: space(16) space(20);
+}
+
+.card__name {
+  overflow: hidden;
+  font-size: font-size(section);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card__meta {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+.card__actions {
+  display: flex;
+  gap: space(8);
+  margin-top: auto;
+  padding: 0 space(20) space(16);
+}
+
+// Carte « Créer un projet » : contour pointillé, toujours en dernier (Brief §6.4).
+.card--create {
+  min-height: layout(card-create-min);
+  border: 2px dashed color(border-strong);
+  background: transparent;
+}
+
+.card__create {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: space(10);
+  border: 0;
+  background: transparent;
+  color: color(accent-text);
+  font-size: font-size(input);
+  font-weight: font-weight(semibold);
+  cursor: pointer;
+  transition: transition(background-color);
+
+  &:hover {
+    background: color(accent-tint);
+  }
+}

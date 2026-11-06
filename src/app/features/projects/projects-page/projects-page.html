@@ -1,1 +1,59 @@
-<p>projects-page works!</p>
+<app-header>
+  <span headerStart class="logo">JDR Manager</span>
+</app-header>
+
+<main class="page">
+  <h1 class="page__title">{{ 'project.title' | transloco }}</h1>
+
+  @if (projects.error()) {
+    <app-alert>{{ 'project.loadError' | transloco }}</app-alert>
+  } @else if (projects.hasValue()) {
+    @if (projects.value().length === 0) {
+      <p class="page__empty">{{ 'project.empty' | transloco }}</p>
+    }
+    <ul class="grid">
+      @for (project of projects.value(); track project.id) {
+        <li class="card">
+          <app-placeholder
+            class="card__thumb"
+            grid="fine"
+            [variant]="$index % 2 ? 'alt' : 'default'"
+          />
+          <div class="card__body">
+            <h2 class="card__name">{{ project.name }}</h2>
+            <p class="card__meta">
+              {{
+                'project.updatedAt'
+                  | transloco: { date: (project.updatedAt | date: 'd MMMM y, HH:mm') }
+              }}
+            </p>
+          </div>
+          <div class="card__actions">
+            <a
+              appButton="secondary"
+              size="sm"
+              [routerLink]="['/projects', project.id, 'edit']"
+              [attr.aria-label]="'project.editAction' | transloco: { name: project.name }"
+            >
+              <svg lucidePencil aria-hidden="true"></svg>{{ 'project.edit' | transloco }}
+            </a>
+            <a
+              appButton
+              size="sm"
+              [routerLink]="['/projects', project.id, 'play']"
+              [attr.aria-label]="'project.presentAction' | transloco: { name: project.name }"
+            >
+              <svg lucidePlay aria-hidden="true"></svg>{{ 'project.present' | transloco }}
+            </a>
+          </div>
+        </li>
+      }
+      <li class="card card--create">
+        <button class="card__create" type="button" (click)="createProject()">
+          <svg lucidePlus [size]="28" aria-hidden="true"></svg>
+          {{ 'project.create.card' | transloco }}
+        </button>
+      </li>
+    </ul>
+  }
+</main>

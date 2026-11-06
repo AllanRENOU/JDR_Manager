@@ -1,0 +1,89 @@
+@use 'functions' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.title {
+  overflow: hidden;
+  font-size: font-size(section);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mode {
+  flex-shrink: 0;
+  color: color(accent-text);
+}
+
+.editor {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.editor__missing {
+  margin: space(32);
+}
+
+.editor__tree {
+  flex-shrink: 0;
+  width: layout(sidebar-left);
+  padding: space(12) space(8);
+  overflow-y: auto;
+  border-right: 1px solid color(border-subtle);
+  background: color(bg-panel);
+}
+
+.editor__content {
+  flex: 1;
+  min-width: 0;
+  padding: space(32);
+  overflow-y: auto;
+}
+
+.scene-item {
+  display: flex;
+  align-items: center;
+  gap: space(8);
+  min-width: 0;
+
+  svg {
+    flex-shrink: 0;
+    color: color(text-tertiary);
+  }
+}
+
+.scene-item__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scene-title {
+  margin-bottom: space(20);
+  font-size: font-size(screen);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: space(16);
+  margin-top: space(64);
+  color: color(text-secondary);
+}
+
+.scene-text {
+  max-width: layout(feed-max);
+}
+
+.save-state {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+.save-state--error {
+  color: color(danger-text);
+}

@@ -1,1 +1,102 @@
-<p>editor-page works!</p>
+@let project = store.project();
+<app-header>
+  <a
+    headerStart
+    appButton="icon"
+    size="header"
+    routerLink="/projects"
+    [attr.aria-label]="'project.backToProjects' | transloco"
+  >
+    <svg lucideArrowLeft aria-hidden="true"></svg>
+  </a>
+  @if (project) {
+    <h1 class="title">{{ project.name }}</h1>
+    <svg
+      lucidePencilRuler
+      class="mode"
+      role="img"
+      [attr.aria-label]="'project.editMode' | transloco"
+    ></svg>
+  }
+  @if (store.saveState() !== 'idle') {
+    <span
+      headerEnd
+      class="save-state"
+      [class.save-state--error]="store.saveState() === 'error'"
+      role="status"
+    >
+      {{ 'common.saveState.' + store.saveState() | transloco }}
+    </span>
+  }
+  @if (project) {
+    <a headerEnd appButton size="header" [routerLink]="['/projects', project.id, 'play']">
+      <svg lucidePlay aria-hidden="true"></svg>{{ 'project.present' | transloco }}
+    </a>
+  }
+</app-header>
+
+<main class="editor">
+  @switch (store.status()) {
+    @case ('missing') {
+      <app-alert class="editor__missing">
+        {{ 'project.notFound' | transloco }}
+        <a alertAction routerLink="/projects">{{ 'project.backToProjects' | transloco }}</a>
+      </app-alert>
+    }
+    @case ('ready') {
+      <aside class="editor__tree" [attr.aria-label]="'scene.treeLabel' | transloco">
+        @if (store.hasScenes()) {
+          <app-tree
+            [nodes]="store.sceneNodes()"
+            [editable]="false"
+            [ariaLabel]="'scene.treeLabel' | transloco"
+            [selectedId]="store.selectedSceneId()"
+            (selectedIdChange)="openScene($event)"
+          >
+            <ng-template #item let-node>
+              <span class="scene-item">
+                <svg lucideClapperboard aria-hidden="true"></svg>
+                <span class="scene-item__name">{{ node.name }}</span>
+                @if (store.isFirstScene(node.id)) {
+                  <app-pill tone="accent" [attr.title]="'scene.first' | transloco">
+                    {{ 'scene.firstBadge' | transloco }}
+                  </app-pill>
+                }
+              </span>
+            </ng-template>
+          </app-tree>
+        }
+      </aside>
+
+      <section class="editor__content">
+        @if (!store.hasScenes()) {
+          <div class="empty">
+            <p>{{ 'scene.noScene' | transloco }}</p>
+            <button appButton type="button" (click)="createFirstScene()">
+              <svg lucidePlus aria-hidden="true"></svg>{{ 'scene.createFirst' | transloco }}
+            </button>
+          </div>
+        } @else if (store.selectedNode(); as node) {
+          <h2 class="scene-title">{{ node.name }}</h2>
+          <app-field
+            class="scene-text"
+            [label]="'scene.text' | transloco"
+            [hiddenLabel]="true"
+            #textField
+          >
+            <textarea
+              appInput
+              surface="card"
+              rows="8"
+              [id]="textField.controlId"
+              [placeholder]="'scene.textPlaceholder' | transloco"
+              [value]="store.initialSceneText()"
+              (input)="onSceneTextInput($any($event.target).value)"
+              (blur)="onSceneTextBlur()"
+            ></textarea>
+          </app-field>
+        }
+      </section>
+    }
+  }
+</main>
