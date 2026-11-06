@@ -1,0 +1,126 @@
+@use 'functions' as *;
+
+// La hauteur maximale de la fenêtre descend jusqu'à <app-modal>, dont le contenu défile.
+:host,
+.editor {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: inherit;
+}
+
+// Nom et déclencheur côte à côte (maquette « Édition — action »).
+.head {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: space(20);
+  align-items: start;
+}
+
+.trigger {
+  display: flex;
+  flex-direction: column;
+  gap: space(8);
+}
+
+.trigger__label {
+  color: color(text-secondary);
+  font-size: font-size(small);
+  font-weight: font-weight(medium);
+}
+
+.trigger__hint {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+.elements {
+  display: flex;
+  flex-direction: column;
+  gap: space(12);
+  margin-top: space(24);
+}
+
+.elements__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.elements__title {
+  color: color(text-secondary);
+  font-family: font-family(ui);
+  font-size: font-size(small);
+  font-weight: font-weight(semibold);
+}
+
+.elements__hint {
+  color: color(text-tertiary);
+  font-size: font-size(label);
+}
+
+.elements__empty {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+  font-style: italic;
+}
+
+.elements__list {
+  display: flex;
+  flex-direction: column;
+  gap: space(8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.elements__add {
+  align-self: flex-start;
+}
+
+.footer-error {
+  color: color(danger-text);
+  font-size: font-size(small);
+}
+
+// Glissement (CDK) : la carte suit la souris, sa place reste marquée.
+.cdk-drag-preview {
+  box-shadow: shadow(popover);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
+.cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
+  transition: transform duration(normal) easing(out);
+}
+
+// Menu des types sur deux colonnes. Rendu dans l'overlay du CDK, il vient quand même du modèle
+// de ce composant : ses styles s'appliquent.
+.types-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: layout(modal-sm);
+}
+
+.types-menu__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: space(24);
+  height: space(24);
+  border-radius: radius(sm);
+
+  svg {
+    width: space(14);
+    height: space(14);
+  }
+}
+
+@each $tone in battlemap, sound, stop-all, text, wait, click, scene {
+  .types-menu__icon--#{$tone} {
+    background: color(el-#{$tone}-bg);
+    color: color(el-#{$tone}-fg);
+  }
+}

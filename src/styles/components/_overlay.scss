@@ -7,6 +7,15 @@
   background: color(bg-backdrop);
 }
 
+// Fenêtre ouverte depuis une autre (choix d'un son, confirmation) : le fond opaque ne couvre
+// que la première, qui reste visible derrière.
+.cdk-overlay-container
+  > :has(.app-dialog-backdrop)
+  ~ :has(.app-dialog-backdrop)
+  > .app-dialog-backdrop {
+  background: transparent;
+}
+
 .app-dialog-panel {
   display: flex;
   flex-direction: column;

@@ -1,0 +1,94 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+  border: 1px solid color(border-subtle);
+  border-radius: radius(lg);
+  background: color(bg-raised);
+}
+
+:host(.expanded) {
+  border-color: color(accent);
+}
+
+:host(.invalid) {
+  border-color: color(danger-border);
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  gap: space(12);
+  min-height: control-height(xl);
+  padding: 0 space(8) 0 space(12);
+}
+
+.card__grip {
+  flex-shrink: 0;
+  width: space(16);
+  height: space(16);
+  color: color(text-tertiary);
+  cursor: grab;
+}
+
+.card__index {
+  flex-shrink: 0;
+  width: space(20);
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+// Pastille de type : couleurs « élément » du Brief §2.6.
+.card__icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: control-height(sm);
+  height: control-height(sm);
+  border-radius: radius(sm);
+
+  svg {
+    width: space(16);
+    height: space(16);
+  }
+}
+
+@each $tone in battlemap, sound, stop-all, text, wait, click, scene {
+  .card__icon--#{$tone} {
+    background: color(el-#{$tone}-bg);
+    color: color(el-#{$tone}-fg);
+  }
+}
+
+.card__type {
+  flex-shrink: 0;
+  font-weight: font-weight(semibold);
+}
+
+.card__detail {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: color(text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card__detail--missing {
+  color: color(text-tertiary);
+  font-style: italic;
+}
+
+.card__chevron {
+  transition: transform duration(fast) easing(out);
+}
+
+:host(.expanded) .card__chevron {
+  transform: rotate(180deg);
+}
+
+.card__body {
+  padding: space(4) space(16) space(16)
+    calc(#{space(12)} * 2 + #{space(16)} + #{space(20)} + #{space(12)});
+}

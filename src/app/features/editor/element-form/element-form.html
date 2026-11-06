@@ -1,0 +1,205 @@
+@let el = element();
+@switch (el.type) {
+  @case ('show-battlemap') {
+    <fieldset class="group">
+      <legend class="label">{{ 'action.form.battlemap' | transloco }}</legend>
+      @if (context().battlemaps.length === 0) {
+        <p class="help">{{ 'action.form.noBattlemap' | transloco }}</p>
+      } @else {
+        @if (el.battlemapId && !context().battlemaps.some((b) => b.id === el.battlemapId)) {
+          <p class="warning">
+            <svg lucideTriangleAlert aria-hidden="true"></svg>
+            {{ 'action.form.battlemapMissing' | transloco }}
+          </p>
+        }
+        <div class="maps">
+          @for (map of context().battlemaps; track map.id) {
+            <label class="map" [class.map--checked]="map.id === el.battlemapId">
+              <app-battlemap-card [battlemap]="map" />
+              <span class="map__name">
+                <input
+                  type="radio"
+                  [name]="'battlemap-' + el.id"
+                  [checked]="map.id === el.battlemapId"
+                  (change)="chooseBattlemap(map.id)"
+                />
+                {{ map.name }}
+              </span>
+            </label>
+          }
+        </div>
+      }
+      @if (choiceError()) {
+        <p class="error">{{ choiceError() | transloco }}</p>
+      }
+    </fieldset>
+  }
+
+  @case ('play-sound') {
+    <div class="grid">
+      <div class="group">
+        <span class="label">{{ 'action.form.sound' | transloco }}</span>
+        <ng-container *ngTemplateOutlet="soundChoice" />
+      </div>
+      <app-field
+        [label]="'action.form.volume' | transloco: { value: fields().volume ?? 0 }"
+        [error]="error('volume') ? (error('volume') | transloco) : ''"
+        #volumeField
+      >
+        <input
+          class="range"
+          type="range"
+          step="5"
+          [id]="volumeField.controlId"
+          [formField]="form.volume"
+        />
+      </app-field>
+      <label class="app-check loop">
+        <input type="checkbox" [formField]="form.loop" />
+        {{ 'action.form.loop' | transloco }}
+      </label>
+      <app-field
+        [label]="'action.form.fadeIn' | transloco"
+        [error]="error('fadeIn') ? (error('fadeIn') | transloco) : ''"
+        #fadeInField
+      >
+        <input
+          appInput
+          type="number"
+          step="0.5"
+          [id]="fadeInField.controlId"
+          [formField]="form.fadeIn"
+        />
+      </app-field>
+      <app-field
+        [label]="'action.form.fadeOut' | transloco"
+        [error]="error('fadeOut') ? (error('fadeOut') | transloco) : ''"
+        #fadeOutField
+      >
+        <input
+          appInput
+          type="number"
+          step="0.5"
+          [id]="fadeOutField.controlId"
+          [formField]="form.fadeOut"
+        />
+      </app-field>
+    </div>
+  }
+
+  @case ('stop-sound') {
+    <div class="group">
+      <span class="label">{{ 'action.form.soundToStop' | transloco }}</span>
+      <ng-container *ngTemplateOutlet="soundChoice" />
+      <p class="help">{{ 'action.form.stopHelp' | transloco }}</p>
+    </div>
+  }
+
+  @case ('stop-all-sounds') {
+    <p class="help">{{ 'action.form.stopAllHelp' | transloco }}</p>
+  }
+
+  @case ('add-text') {
+    <app-field [label]="'action.form.text' | transloco" #textField>
+      <textarea appInput rows="3" [id]="textField.controlId" [formField]="form.text"></textarea>
+    </app-field>
+  }
+
+  @case ('change-scene') {
+    @let scene = sceneLabel();
+    <div class="group">
+      <span class="label">{{ 'action.form.targetScene' | transloco }}</span>
+      <button
+        class="choice"
+        [class.choice--missing]="scene === false || !!choiceError()"
+        [attr.aria-invalid]="choiceError() ? true : null"
+        type="button"
+        (click)="chooseScene()"
+      >
+        <span class="choice__value">
+          @if (scene === false) {
+            <svg lucideTriangleAlert aria-hidden="true"></svg
+            >{{ 'action.form.sceneMissing' | transloco }}
+          } @else {
+            {{ scene ?? ('action.form.noScene' | transloco) }}
+          }
+        </span>
+        <span class="choice__action">
+          {{ (scene ? 'action.form.change' : 'action.form.choose') | transloco }}
+        </span>
+      </button>
+      @if (choiceError()) {
+        <p class="error">{{ choiceError() | transloco }}</p>
+      }
+      <p class="warning">
+        <svg lucideTriangleAlert aria-hidden="true"></svg
+        >{{ 'action.form.sceneWarning' | transloco }}
+      </p>
+    </div>
+  }
+
+  @case ('wait') {
+    <app-field
+      class="duration"
+      [label]="'action.form.duration' | transloco"
+      [error]="error('seconds') ? (error('seconds') | transloco) : ''"
+      #secondsField
+    >
+      <span class="duration__row">
+        <input
+          appInput
+          type="number"
+          step="0.5"
+          [id]="secondsField.controlId"
+          [formField]="form.seconds"
+        />
+        <span>{{ 'action.form.seconds' | transloco }}</span>
+      </span>
+    </app-field>
+  }
+
+  @case ('user-click') {
+    <app-field
+      [label]="'action.form.clickText' | transloco"
+      [required]="true"
+      [hint]="'action.form.clickHelp' | transloco"
+      [error]="error('text') ? (error('text') | transloco) : ''"
+      #clickField
+    >
+      <textarea
+        appInput
+        rows="2"
+        [id]="clickField.controlId"
+        [formField]="form.text"
+        [attr.aria-invalid]="error('text') ? true : null"
+      ></textarea>
+    </app-field>
+  }
+}
+
+<!-- Choix d'un son : emplacement du son, ou « Aucun son choisi » / « Son supprimé ». -->
+<ng-template #soundChoice>
+  @let sound = soundLabel();
+  <button
+    class="choice"
+    [class.choice--missing]="sound === false || !!choiceError()"
+    [attr.aria-invalid]="choiceError() ? true : null"
+    type="button"
+    (click)="chooseSound()"
+  >
+    <span class="choice__value">
+      @if (sound === false) {
+        <svg lucideTriangleAlert aria-hidden="true"></svg
+        >{{ 'action.form.soundMissing' | transloco }}
+      } @else {
+        {{ sound ?? ('action.form.notChosen' | transloco) }}
+      }
+    </span>
+    <span class="choice__action">
+      {{ (sound ? 'action.form.change' : 'action.form.choose') | transloco }}
+    </span>
+  </button>
+  @if (choiceError()) {
+    <p class="error">{{ choiceError() | transloco }}</p>
+  }
+</ng-template>

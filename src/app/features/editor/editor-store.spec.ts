@@ -474,4 +474,57 @@ describe('EditorStore', () => {
       expect(store.scene()?.defaultBattlemapId).toBeNull();
     });
   });
+
+  it('enregistre une action de l’éditeur d’action, ou en crée une nouvelle à la fin (8.1.1)', async () => {
+    const project = aProject();
+    const node = aSceneNode(project.id);
+    const existing = anAction(node.id, {
+      name: 'Bagarre',
+      order: 3,
+      elements: [{ id: 't', type: 'add-text', text: 'Avant' }],
+    });
+    await repository().saveProject({ ...project, firstSceneId: node.id });
+    await repository().saveSceneNodes([node]);
+    await repository().saveScene(aScene(project.id, node.id));
+    await repository().saveAction(existing);
+    await store.load(project.id);
+
+    await store.saveAction(existing, {
+      name: 'Grosse bagarre',
+      trigger: 'manual',
+      elements: [{ id: 't', type: 'add-text', text: 'Après' }],
+    });
+    expect(store.initialTexts()['t']).toBe('Après');
+    const created = await store.saveAction(null, {
+      name: 'Fuite',
+      trigger: 'manual',
+      elements: [],
+    });
+    expect(created).toMatchObject({ sceneId: node.id, order: 4, isSceneText: false });
+
+    const saved = await repository().listActions(node.id);
+    expect(saved.map((a) => [a.name, a.order])).toEqual([
+      ['Grosse bagarre', 3],
+      ['Fuite', 4],
+    ]);
+    expect(store.actionTexts()[0].element.text).toBe('Après');
+  });
+
+  it('supprime une action, jamais « Texte de scène » (8.1.2)', async () => {
+    const project = aProject();
+    const node = aSceneNode(project.id);
+    const text = anAction(node.id, { isSceneText: true, trigger: 'scene-open' });
+    const other = anAction(node.id, { name: 'Bagarre', order: 1 });
+    await repository().saveProject({ ...project, firstSceneId: node.id });
+    await repository().saveSceneNodes([node]);
+    await repository().saveScene(aScene(project.id, node.id));
+    await repository().saveAction(text);
+    await repository().saveAction(other);
+    await store.load(project.id);
+
+    await store.deleteAction(text.id);
+    await store.deleteAction(other.id);
+    expect(store.actions().map((a) => a.id)).toEqual([text.id]);
+    expect((await repository().listActions(node.id)).map((a) => a.id)).toEqual([text.id]);
+  });
 });

@@ -248,6 +248,55 @@ describe('EditorPage', () => {
     );
   });
 
+  it('après « Enregistrer » dans l’éditeur d’action, le centre et le volet se mettent à jour (8.4.2)', async () => {
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    const project = aProject();
+    const node = aSceneNode(project.id);
+    const action = anAction(node.id, { name: 'Bagarre', elements: [] });
+    await repository.saveProject({ ...project, firstSceneId: node.id });
+    await repository.saveSceneNodes([node]);
+    await repository.saveScene(aScene(project.id, node.id));
+    await repository.saveAction(action);
+    const el = await render(project.id);
+    await vi.waitFor(() => expect(el.querySelector('.action__name')).not.toBeNull());
+    expect(el.querySelector('.action-text')).toBeNull();
+    expect(el.querySelector('app-actions-panel')?.textContent).toContain('Aucun élément');
+
+    (el.querySelector('.action__name') as HTMLButtonElement).click();
+    await vi.waitFor(() => {
+      TestBed.tick();
+      expect(document.querySelector('app-action-editor')).not.toBeNull();
+    });
+    const dialog = document.querySelector('app-action-editor') as HTMLElement;
+    const buttons = () => [...dialog.querySelectorAll<HTMLButtonElement>('button')];
+    buttons()
+      .find((b) => b.textContent?.includes('Ajouter un élément'))!
+      .click();
+    TestBed.tick();
+    [...document.querySelectorAll<HTMLButtonElement>('.app-menu button')]
+      .find((b) => b.textContent?.includes('Ajouter un texte'))!
+      .click();
+    TestBed.tick();
+    const area = dialog.querySelector('app-element-form textarea') as HTMLTextAreaElement;
+    area.value = 'La table vole en éclats.';
+    area.dispatchEvent(new Event('input'));
+    TestBed.tick();
+    buttons()
+      .find((b) => b.textContent?.includes('Enregistrer'))!
+      .click();
+
+    await vi.waitFor(async () => {
+      TestBed.tick();
+      expect(el.querySelector('.action-text textarea')).not.toBeNull();
+    });
+    const block = el.querySelector('.action-text') as HTMLElement;
+    expect(block.querySelector('app-pill')?.textContent?.trim()).toBe('Bagarre');
+    expect((block.querySelector('textarea') as HTMLTextAreaElement).value).toBe(
+      'La table vole en éclats.',
+    );
+    expect(el.querySelector('app-actions-panel')?.textContent).toContain('1 élément · texte');
+  });
+
   it('mémorise l’état plié / déplié des parties du volet droit (7.3.8)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const project = aProject();

@@ -1,0 +1,117 @@
+<form class="editor" (submit)="save($event)" novalidate>
+  <app-modal
+    [title]="(isNew ? 'action.editor.newTitle' : 'action.editor.editTitle') | transloco"
+    [subtitle]="'action.editor.subtitle' | transloco: { scene: data.sceneName }"
+  >
+    <div class="head">
+      <app-field
+        [label]="'action.editor.name' | transloco"
+        [required]="true"
+        [error]="nameError() ? (nameError() | transloco) : ''"
+        #nameField
+      >
+        <input
+          appInput
+          cdkFocusInitial
+          type="text"
+          [id]="nameField.controlId"
+          [formField]="form.name"
+          [attr.aria-invalid]="nameError() ? true : null"
+          (blur)="form.name().markAsTouched()"
+        />
+      </app-field>
+      <div class="trigger">
+        <span class="trigger__label" id="action-trigger-label">
+          {{ 'action.editor.trigger' | transloco }}
+        </span>
+        <app-segmented-control
+          [label]="'action.editor.trigger' | transloco"
+          [options]="triggerOptions()"
+          [formField]="form.trigger"
+        />
+        @if (isSceneText) {
+          <p class="trigger__hint">{{ 'action.editor.sceneTextTrigger' | transloco }}</p>
+        }
+      </div>
+    </div>
+
+    <section class="elements" aria-labelledby="action-elements-title">
+      <div class="elements__head">
+        <h3 class="elements__title" id="action-elements-title">
+          {{ 'action.editor.elements' | transloco }}
+        </h3>
+        @if (draft().elements.length > 1) {
+          <span class="elements__hint">{{ 'action.editor.dragHint' | transloco }}</span>
+        }
+      </div>
+
+      @if (draft().elements.length === 0) {
+        <p class="elements__empty">{{ 'action.editor.noElement' | transloco }}</p>
+      } @else {
+        <ol
+          class="elements__list"
+          cdkDropList
+          cdkDropListLockAxis="y"
+          (cdkDropListDropped)="moveElement($event.previousIndex, $event.currentIndex)"
+        >
+          @for (element of draft().elements; track element.id; let i = $index) {
+            <li cdkDrag>
+              <app-element-card
+                [element]="element"
+                [index]="i + 1"
+                [context]="data.context"
+                [expanded]="expandedIds().has(element.id)"
+                [invalid]="invalidIds().has(element.id)"
+                (expandedChange)="setExpanded(element.id, $event)"
+                (removed)="removeElement(element.id)"
+              >
+                <app-element-form
+                  [element]="element"
+                  [context]="data.context"
+                  [sceneId]="data.sceneId"
+                  [projectId]="data.projectId"
+                  (elementChange)="updateElement($event)"
+                />
+              </app-element-card>
+            </li>
+          }
+        </ol>
+      }
+
+      <button class="elements__add" appButton="add" type="button" [cdkMenuTriggerFor]="typesMenu">
+        <svg lucidePlus aria-hidden="true"></svg>{{ 'action.editor.addElement' | transloco }}
+      </button>
+    </section>
+
+    @if (!isNew && !isSceneText) {
+      <button modalFooterStart appButton="danger" type="button" (click)="remove()">
+        <svg lucideTrash2 aria-hidden="true"></svg>{{ 'action.editor.delete' | transloco }}
+      </button>
+    }
+    @if (invalidIds().size > 0) {
+      <p modalFooterEnd class="footer-error" role="alert">
+        {{ 'action.editor.invalidElements' | transloco }}
+      </p>
+    }
+    <button modalFooterEnd appButton="secondary" type="button" (click)="cancel()">
+      {{ 'common.actions.cancel' | transloco }}
+    </button>
+    <button modalFooterEnd appButton type="submit">
+      {{ 'common.actions.save' | transloco }}
+    </button>
+  </app-modal>
+</form>
+
+<!-- Menu « Ajouter un élément » : les 8 types sur deux colonnes (maquette). -->
+<ng-template #typesMenu>
+  <div appMenu class="types-menu" [attr.aria-label]="'action.editor.elementTypes' | transloco">
+    @for (type of elementTypes; track type.type) {
+      <button appMenuItem (triggered)="addElement(type.type)">
+        <span [class]="'types-menu__icon types-menu__icon--' + type.tone" aria-hidden="true">
+          <svg [lucideIcon]="type.icon"></svg>
+        </span>
+        {{ type.labelKey | transloco }}
+      </button>
+    }
+  </div>
+</ng-template>

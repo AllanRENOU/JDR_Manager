@@ -1,0 +1,153 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: space(8);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.label {
+  padding: 0;
+  color: color(text-secondary);
+  font-size: font-size(small);
+  font-weight: font-weight(medium);
+}
+
+.help {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+.error {
+  color: color(danger-text);
+  font-size: font-size(small);
+}
+
+.warning {
+  display: flex;
+  align-items: center;
+  gap: space(6);
+  color: color(danger-text);
+  font-size: font-size(small);
+
+  svg {
+    flex-shrink: 0;
+    width: space(14);
+    height: space(14);
+  }
+}
+
+// « Lancer un son » : son, volume, boucle, puis les deux fondus (maquette « Éléments »).
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: space(14);
+  align-items: end;
+
+  > .group {
+    grid-column: 1 / -1;
+  }
+}
+
+.range {
+  width: 100%;
+  height: control-height(md);
+  accent-color: color(accent);
+}
+
+.loop {
+  min-height: control-height(md);
+}
+
+// Bouton de choix (son, scène) : valeur choisie + « Changer ».
+.choice {
+  display: flex;
+  align-items: center;
+  gap: space(12);
+  min-height: control-height(item);
+  padding: 0 space(12);
+  border: 1px solid color(border-default);
+  border-radius: radius(sm);
+  background: color(bg-app);
+  color: color(text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: color(border-strong);
+  }
+}
+
+.choice--missing {
+  border-color: color(danger-border);
+  color: color(danger-text);
+}
+
+.choice__value {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: space(6);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  svg {
+    flex-shrink: 0;
+    width: space(14);
+    height: space(14);
+  }
+}
+
+.choice__action {
+  flex-shrink: 0;
+  color: color(accent-text);
+  font-size: font-size(small);
+  font-weight: font-weight(semibold);
+}
+
+// « Afficher une battlemap » : miniatures choisies par bouton radio.
+.maps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: space(12);
+}
+
+.map {
+  padding: space(6);
+  border: 2px solid transparent;
+  border-radius: radius(lg);
+  cursor: pointer;
+}
+
+.map--checked {
+  border-color: color(accent);
+}
+
+.map__name {
+  display: flex;
+  align-items: center;
+  gap: space(6);
+  margin-top: space(6);
+  font-size: font-size(small);
+}
+
+.duration__row {
+  display: flex;
+  align-items: center;
+  gap: space(8);
+
+  input {
+    width: layout(menu-min);
+  }
+}

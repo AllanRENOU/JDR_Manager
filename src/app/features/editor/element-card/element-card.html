@@ -1,0 +1,44 @@
+@let type = info().labelKey | transloco;
+<div class="card__head">
+  <svg
+    lucideGripVertical
+    cdkDragHandle
+    class="card__grip"
+    role="img"
+    [attr.aria-label]="'action.editor.moveElement' | transloco: { index: index() }"
+  ></svg>
+  <span class="card__index">{{ index() }}</span>
+  <span class="card__icon" [class]="'card__icon card__icon--' + info().tone" aria-hidden="true">
+    <svg [lucideIcon]="info().icon"></svg>
+  </span>
+  <span class="card__type">{{ type }}</span>
+  @let d = detail();
+  <span class="card__detail" [class.card__detail--missing]="d.missing">
+    {{ d.raw ?? (d.key ? (d.key | transloco: d.params) : '') }}
+  </span>
+  <button
+    appButton="icon"
+    size="sm"
+    type="button"
+    [attr.aria-label]="'action.editor.removeElement' | transloco: { index: index(), type }"
+    (click)="removed.emit()"
+  >
+    <svg lucideTrash2 aria-hidden="true"></svg>
+  </button>
+  <button
+    appButton="icon"
+    size="sm"
+    type="button"
+    [attr.aria-expanded]="expanded()"
+    [attr.aria-controls]="bodyId"
+    [attr.aria-label]="'action.editor.toggleElement' | transloco: { index: index(), type }"
+    (click)="expanded.set(!expanded())"
+  >
+    <svg lucideChevronDown class="card__chevron" aria-hidden="true"></svg>
+  </button>
+</div>
+@if (expanded()) {
+  <div class="card__body" [id]="bodyId">
+    <ng-content />
+  </div>
+}

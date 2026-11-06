@@ -3,14 +3,13 @@
   [summary]="'· ' + store.actions().length"
   preferenceKey="editor.actions"
 >
-  <!-- La création ouvrira l'éditeur d'action (lot 8). -->
   <button
     sectionAction
     appButton="add"
     size="sm"
     type="button"
-    disabled
-    [attr.title]="'action.newSoon' | transloco"
+    [attr.aria-label]="'action.new' | transloco"
+    (click)="edit(null)"
   >
     <svg lucidePlus aria-hidden="true"></svg>{{ 'common.new' | transloco }}
   </button>
@@ -40,7 +39,9 @@
             } @else {
               <svg lucideHand class="action__icon" aria-hidden="true"></svg>
             }
-            <span class="action__name">{{ row.action.name }}</span>
+            <button class="action__name" type="button" (click)="edit(row.action)">
+              {{ row.action.name }}
+            </button>
             @if (row.action.isSceneText) {
               <svg
                 lucideLock

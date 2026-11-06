@@ -13,6 +13,7 @@ import {
   Project,
   Scene,
   SceneNode,
+  SoundNode,
   TreeNodeKind,
   Trigger,
   newId,
@@ -42,6 +43,13 @@ export interface BattlemapImportResult {
   rejected: File[];
   /** Erreur qui a interrompu l'import (ex. quota dépassé) ; les images déjà importées restent. */
   failure?: unknown;
+}
+
+/** Contenu modifiable d'une action (éditeur d'action). */
+export interface ActionDraftData {
+  name: string;
+  trigger: Trigger;
+  elements: ActionElement[];
 }
 
 interface PendingText {
@@ -75,8 +83,16 @@ export class EditorStore {
 
   /** Battlemaps de la scène ouverte, par `order`. */
   readonly battlemaps = signal<Battlemap[]>([]);
+  /** Nœuds des bibliothèques de sons (projet puis globale), pour choisir et nommer les sons. */
+  readonly soundNodes = signal<readonly SoundNode[]>([]);
   /** Noms des sons (bibliothèque du projet et globale), pour résumer les actions. */
-  readonly soundNames = signal<Readonly<Record<Id, string>>>({});
+  readonly soundNames = computed<Readonly<Record<Id, string>>>(() =>
+    Object.fromEntries(
+      this.soundNodes()
+        .filter((n) => n.kind === 'item')
+        .map((n) => [n.id, n.name]),
+    ),
+  );
 
   /** Actions de la scène ouverte : ouverture de la scène puis clic du MJ, chacune par `order`. */
   readonly actions = signal<Action[]>([]);
@@ -139,13 +155,7 @@ export class EditorStore {
     ]);
     this.project.set(project);
     this.sceneNodes.set(nodes);
-    this.soundNames.set(
-      Object.fromEntries(
-        [...projectSounds, ...globalSounds]
-          .filter((n) => n.kind === 'item')
-          .map((n) => [n.id, n.name]),
-      ),
-    );
+    this.soundNodes.set([...projectSounds, ...globalSounds]);
     const firstItem = nodes.find((n) => n.kind === 'item');
     const initial = project.firstSceneId ?? firstItem?.id ?? null;
     await this.openScene(initial);
@@ -349,6 +359,52 @@ export class EditorStore {
     const updated = { ...scene, nextSceneIds };
     await this.repository.saveScene(updated);
     this.scene.set(updated);
+    await this.touchProject();
+  }
+
+  /**
+   * Enregistre une action modifiée dans l'éditeur d'action, ou crée une nouvelle action à la fin
+   * des actions de la scène (ACT-01). Les champs de texte de la zone centrale reprennent les
+   * textes enregistrés.
+   */
+  async saveAction(existing: Action | null, draft: ActionDraftData): Promise<Action> {
+    const scene = this.scene();
+    if (!scene) {
+      throw new Error('EditorStore : aucune scène ouverte');
+    }
+    await this.flush();
+    const actions = this.actions();
+    const action: Action = existing
+      ? { ...existing, ...draft, trigger: existing.isSceneText ? 'scene-open' : draft.trigger }
+      : {
+          id: newId(),
+          sceneId: scene.id,
+          ...draft,
+          order: actions.length === 0 ? 0 : Math.max(...actions.map((a) => a.order)) + 1,
+          isSceneText: false,
+        };
+    await this.repository.saveAction(action);
+    this.replaceAction(action);
+    this.initialSceneText.set(this.sceneText());
+    this.initialTexts.update((texts) => ({
+      ...texts,
+      ...Object.fromEntries(
+        action.elements.flatMap((e) => (e.type === 'add-text' ? [[e.id, e.text]] : [])),
+      ),
+    }));
+    await this.touchProject();
+    return action;
+  }
+
+  /** Supprime une action (sauf « Texte de scène », SCN-06). */
+  async deleteAction(id: Id): Promise<void> {
+    const action = this.actions().find((a) => a.id === id);
+    if (!action || action.isSceneText) {
+      return;
+    }
+    await this.flush();
+    await this.repository.deleteAction(id);
+    this.actions.update((actions) => actions.filter((a) => a.id !== id));
     await this.touchProject();
   }
 

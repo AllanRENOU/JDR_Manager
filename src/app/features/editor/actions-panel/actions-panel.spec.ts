@@ -10,6 +10,7 @@ import {
 import { useTestRepository } from '../../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
+import { Modals } from '../../../shared/ui/modal/modals';
 import { EditorStore } from '../editor-store';
 import { ActionsPanel } from './actions-panel';
 
@@ -20,6 +21,8 @@ describe('ActionsPanel', () => {
       providers: [EditorStore, ...useTestRepository()],
     });
   });
+
+  afterEach(() => TestBed.inject(Modals).closeAll());
 
   it('range les actions par déclencheur, résume leurs éléments et verrouille « Texte de scène » (7.3.1)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
@@ -73,8 +76,39 @@ describe('ActionsPanel', () => {
     ).toBe('2 éléments · texte, lancer « Taverne animée »');
     expect(rows[1].classList).toContain('action--missing');
     expect(rows[1].querySelector('.action__summary')?.textContent).toContain('scène supprimée');
-    expect((el.querySelector('button[sectionAction]') as HTMLButtonElement | null)?.disabled).toBe(
-      true,
-    );
+    expect(el.querySelector('button[sectionAction]')?.textContent).toContain('Nouvelle');
+  });
+
+  it('« Nouvelle » ouvre l’éditeur d’action et enregistre la nouvelle action (8.1.1)', async () => {
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    const project = aProject();
+    const node = aSceneNode(project.id, { name: 'Taverne' });
+    await repository.saveProject({ ...project, firstSceneId: node.id });
+    await repository.saveSceneNodes([node]);
+    await repository.saveScene(aScene(project.id, node.id));
+    await TestBed.inject(EditorStore).load(project.id);
+    const fixture = TestBed.createComponent(ActionsPanel);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    (el.querySelector('button[sectionAction]') as HTMLButtonElement).click();
+    await vi.waitFor(() => {
+      TestBed.tick();
+      expect(document.querySelector('app-action-editor input')).not.toBeNull();
+    });
+    const dialog = document.querySelector('app-action-editor') as HTMLElement;
+    expect(dialog.textContent).toContain('Scène : Taverne');
+    const input = dialog.querySelector('input') as HTMLInputElement;
+    input.value = 'Bagarre';
+    input.dispatchEvent(new Event('input'));
+    [...dialog.querySelectorAll<HTMLButtonElement>('button')]
+      .find((b) => b.textContent?.includes('Enregistrer'))!
+      .click();
+
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.querySelector('.action__name')?.textContent).toContain('Bagarre');
+    });
+    expect((await repository.listActions(node.id)).map((a) => a.name)).toEqual(['Bagarre']);
   });
 });

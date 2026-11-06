@@ -1,8 +1,10 @@
-import { Action, ActionElement, Battlemap, Id, SceneNode } from '../../core/models';
+import { Action, ActionElement, Battlemap, Id, SceneNode, SoundNode } from '../../core/models';
 
 /** Données nécessaires pour nommer ce que vise un élément. */
 export interface SummaryContext {
   soundNames: Readonly<Record<Id, string>>;
+  /** Bibliothèques de sons (projet et globale) : choix d'un son dans l'éditeur d'action. */
+  soundNodes?: readonly SoundNode[];
   battlemaps: readonly Battlemap[];
   sceneNodes: readonly SceneNode[];
 }
@@ -52,4 +54,51 @@ export function summarizeElement(element: ActionElement, context: SummaryContext
 /** Vrai si un élément de l'action vise un objet supprimé (signalé à l'écran, PRS-07). */
 export function hasMissingTarget(action: Action, context: SummaryContext): boolean {
   return action.elements.some((e) => summarizeElement(e, context).missing);
+}
+
+/**
+ * Détail d'un élément replié dans l'éditeur d'action (maquette « Édition — action ») :
+ * texte saisi, nom de la cible, durée. `key` est une clé de traduction, sauf si `raw` est fourni.
+ */
+export interface ElementDetail {
+  /** Texte à afficher tel quel (texte saisi, nom d'une cible). */
+  raw?: string;
+  key?: string;
+  params?: Record<string, string | number>;
+  /** Cible choisie mais introuvable, ou pas encore choisie. */
+  missing: boolean;
+}
+
+export function describeElement(element: ActionElement, context: SummaryContext): ElementDetail {
+  switch (element.type) {
+    case 'add-text':
+    case 'user-click':
+      return element.text.trim()
+        ? { raw: element.text, missing: false }
+        : { key: 'action.detail.noText', missing: true };
+    case 'play-sound':
+    case 'stop-sound':
+      return target(element.soundId, context.soundNames[element.soundId]);
+    case 'show-battlemap':
+      return target(
+        element.battlemapId,
+        context.battlemaps.find((b) => b.id === element.battlemapId)?.name,
+      );
+    case 'change-scene':
+      return target(
+        element.sceneId,
+        context.sceneNodes.find((n) => n.id === element.sceneId && n.kind === 'item')?.name,
+      );
+    case 'wait':
+      return { key: 'action.detail.seconds', params: { count: element.seconds }, missing: false };
+    case 'stop-all-sounds':
+      return { missing: false };
+  }
+}
+
+function target(id: Id, name: string | undefined): ElementDetail {
+  if (!id) {
+    return { key: 'action.detail.notChosen', missing: true };
+  }
+  return name ? { raw: name, missing: false } : { key: 'action.detail.deleted', missing: true };
 }

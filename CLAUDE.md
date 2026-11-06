@@ -181,13 +181,21 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Pluriels : `pluralKey('project.stats.scenes', n)` choisit `.one` / `.other` (règle française : 0 et 1 au singulier).
 - Paramètres : route `/settings` (`features/settings/settings-page`), ouverte par l'icône réglages de l'accueil. Thèmes présentés par `ThemePreview` (`data-theme` sur l'hôte) dans un groupe radio (clic ou flèches → `Theme.setTheme`).
 
+## Éditeur d'action (lot 8)
+
+- `ActionEditor` (`features/editor/action-editor`) : fenêtre `Modals.open(ActionEditor, { size: 'lg', closable: false, data })`, ouverte depuis `ActionsPanel.edit()`. Elle travaille sur une **copie** (`draft`) et **renvoie** `{ kind: 'save', draft }` ou `{ kind: 'delete' }` ; c'est le panneau qui enregistre (`EditorStore.saveAction` / `deleteAction`).
+- Signal Forms (TEC-06) : `form(draft, schema)`, `[formField]="form.name"` ; validation dans le schéma (`validate`, `maxLength`, `disabled`) ; **pas d'attribut `maxlength`** sur un champ `[formField]` (NG8022) ; messages = clés de traduction ; poser `aria-invalid` soi-même ; erreurs après `markAsTouched()`.
+- Éléments : `ElementCard` (carte dépliable, poignée `cdkDragHandle`, formulaire projeté), `element-types.ts` (`ELEMENT_TYPE_INFOS` : libellé, icône Lucide pour `[lucideIcon]`, couleur ; `newElement(type)`), `describeElement` (résumé replié).
+- Formulaires d'éléments : `ElementForm` (`features/editor/element-form`), un `@switch` par type ; entrée `element`, sortie `elementChange` (élément complet). Champs saisis dans un `linkedSignal` (`toFields`) + `form()` ; un `effect` reporte les champs dans l'élément (`applyFields` : volume % → 0–1, secondes → ms ; une valeur invalide n'est **pas** reportée). Cibles choisies hors formulaire : miniatures radio (battlemap), `Selections.select({ mode: 'single' })` (son : `soundChoiceNodes` / `soundPath` de `sound-choice.ts`, deux racines « Ce projet » / « Bibliothèque globale » ; scène : `disabledIds: [sceneId]`). Cible supprimée : bouton `.choice--missing` (PRS-07).
+- Validation globale (8.4.1) : `elementProblem(element)` (`features/editor/element-validation.ts`) + `ElementForm.invalid()` ; à « Enregistrer », `revealErrors()` sur chaque formulaire (`viewChildren`), cartes à corriger dépliées (`ElementCard` `[invalid]`), focus sur la première erreur. Une cible **supprimée** ne bloque pas (PRS-07). Renvoyer une copie `structuredClone` du brouillon : Signal Forms pose une clé `Symbol` sur les objets des listes.
+- Fenêtre ouverte depuis une autre : seul le premier fond est opaque (`_overlay.scss`) ; la première fenêtre reste visible.
+
 ## Éditeur de scène (lot 7)
 
 - `EditorStore` porte tout l'état de l'éditeur : `sceneNodes` (création `createNode`, `renameNode`, `removeNode`, `moveNode`, `duplicateScene`, `setFirstScene`), scène ouverte (`scene`, `actions` triées par `sortActions`, `battlemaps`, `soundNames`), textes (`sceneText`, `actionTexts`, `editSceneText` / `editActionText` avec une seule temporisation et `flush()`), actions (`reorderAction`), battlemaps (`importBattlemaps`, `setDefaultBattlemap`, `renameBattlemap`, `deleteBattlemap`, `battlemapUsage`), enchaînement (`setNextScenes`).
 - Volet droit : un composant par partie (`ActionsPanel`, `BattlemapsPanel`, `SequencePanel`) qui injecte l'`EditorStore` de l'écran et contient sa propre `app-collapsible-section` (avec `preferenceKey` `editor.*`).
 - Résumé d'une action et cibles supprimées : `summarizeElement` / `hasMissingTarget` (`features/editor/action-summary.ts`). Toute cible supprimée (son, battlemap, scène) est **signalée** en rouge (PRS-07) ; toute suppression d'un objet utilisé par des actions **avertit**.
 - Champs à enregistrement automatique : lier `[value]` à une valeur **figée à l'ouverture** (`initialSceneText`, `initialTexts`), jamais à la valeur enregistrée.
-- Le bouton « Nouvelle » des actions est désactivé jusqu'au lot 8 (éditeur d'action).
 - Budget du bundle initial : 600 ko (les icônes Lucide utilisées partout sont regroupées dans le bundle principal).
 
 ## Bibliothèques de sons (lot 6)
