@@ -1,0 +1,83 @@
+// Thème « Nuit dorée » — thème par défaut, sombre, accent or.
+// Valeurs : Brief UI/UX §11.3 (colonne « Nuit dorée »). Rôles des jetons : Brief §2.
+$theme: (
+  color-scheme: dark,
+  // Fonds et surfaces
+  bg-app: #15161b,
+  bg-backdrop: #0d0e11,
+  bg-panel: #1a1b21,
+  bg-card: #1e2028,
+  bg-raised: #24252d,
+  bg-control: #272a34,
+  bg-control-hover: #33363f,
+  overlay-drop: rgba(13, 14, 17, 0.86),
+  // Bordures
+  border-subtle: #343844,
+  border-default: #3e4350,
+  border-strong: #4a4f5d,
+  // Texte
+  text-primary: #ece6d9,
+  text-secondary: #a8a090,
+  text-tertiary: #8e887b,
+  text-on-accent: #1a1408,
+  text-on-danger: #fff,
+  // Accent
+  accent: #d4a94f,
+  accent-hover: #e8c377,
+  accent-text: #f2d79a,
+  accent-tint: #2e2a1f,
+  accent-tint-strong: #3a3220,
+  accent-surface: #2a2517,
+  // États
+  active-text: #8fd3c8,
+  active-bg: #233436,
+  active-border: #2f5a55,
+  danger-text: #eba9a0,
+  danger-bg: #3a2626,
+  danger-border: #5a3a36,
+  danger-strong: #b04436,
+  // Types d'éléments d'action
+  el-battlemap-fg: #e3a9c4,
+  el-battlemap-bg: #33282e,
+  el-sound-fg: #8fd3c8,
+  el-sound-bg: #233436,
+  el-stop-all-fg: #eba9a0,
+  el-stop-all-bg: #3a2626,
+  el-text-fg: #a9c2e8,
+  el-text-bg: #2b3140,
+  el-wait-fg: #c8c2b5,
+  el-wait-bg: #2c2c33,
+  el-click-fg: #e8c377,
+  el-click-bg: #3a3220,
+  el-scene-fg: #e8c377,
+  el-scene-bg: #2e2a1f,
+  // Dossiers et visuels de remplacement
+  folder-project: #c9a55c,
+  folder-global: #8fb5c9,
+  placeholder-bg: #2a2822,
+  placeholder-grid: rgba(212, 169, 79, 0.16),
+  placeholder-alt-bg: #262a2c,
+  placeholder-alt-grid: rgba(150, 170, 170, 0.14),
+  // Ombres
+  shadow-float: (
+      0 8px 22px rgba(0, 0, 0, 0.45),
+    ),
+  shadow-popover: (
+    0 10px 28px rgba(0, 0, 0, 0.5),
+  ),
+  // Polices
+  font-title: (
+      'Cinzel',
+      serif,
+    ),
+  font-ui: (
+    'Inter',
+    system-ui,
+    sans-serif,
+  ),
+  font-narrative: (
+    'Lora',
+    georgia,
+    serif,
+  ),
+);

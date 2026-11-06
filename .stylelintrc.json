@@ -1,21 +1,10 @@
 {
-  "extends": [
-    "stylelint-config-standard-scss"
-  ],
-  "ignoreFiles": [
-    "dist/**",
-    ".angular/**",
-    "node_modules/**"
-  ],
+  "extends": ["stylelint-config-standard-scss"],
+  "ignoreFiles": ["dist/**", ".angular/**", "node_modules/**"],
   "rules": {
     "color-no-hex": true,
     "color-named": "never",
-    "function-disallowed-list": [
-      "rgb",
-      "rgba",
-      "hsl",
-      "hsla"
-    ],
+    "function-disallowed-list": ["rgb", "rgba", "hsl", "hsla"],
     "declaration-property-unit-disallowed-list": {
       "/^(margin|padding|gap|row-gap|column-gap|font-size|border-radius|top|right|bottom|left|inset)/": [
         "px",
@@ -24,10 +13,7 @@
       ]
     },
     "declaration-property-value-disallowed-list": {
-      "box-shadow": [
-        "/rgba?\\(/",
-        "/#/"
-      ]
+      "box-shadow": ["/rgba?\\(/", "/#/"]
     },
     "selector-class-pattern": null,
     "scss/at-mixin-pattern": null,
@@ -47,7 +33,10 @@
         "color-no-hex": null,
         "function-disallowed-list": null,
         "declaration-property-unit-disallowed-list": null,
-        "declaration-property-value-disallowed-list": null
+        "declaration-property-value-disallowed-list": null,
+        "color-function-notation": null,
+        "color-function-alias-notation": null,
+        "alpha-value-notation": null
       }
     }
   ]

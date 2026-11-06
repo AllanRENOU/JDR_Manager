@@ -34,5 +34,11 @@ export const routes: Routes = [
         (m) => m.PlayerScreenPage,
       ),
   },
+  // Page temporaire du lot 1 (démonstration des thèmes) : à supprimer avec la page.
+  {
+    path: 'dev/themes',
+    loadComponent: () =>
+      import('./features/dev/theme-demo-page/theme-demo-page').then((m) => m.ThemeDemoPage),
+  },
   { path: '**', redirectTo: 'projects' },
 ];

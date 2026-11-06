@@ -1,1 +1,15 @@
-/* You can add global styles to this file, and also import other style files */
+// Point d'entrée des styles globaux (TRD §10.1).
+// Ordre : jetons communs → thèmes → thème Material → styles de base.
+@use 'styles/theme-engine' as engine;
+@use 'styles/themes/nuit-doree';
+@use 'styles/themes/automne';
+@use 'styles/material';
+@use 'styles/base';
+
+// Jetons communs à tous les thèmes (espacements, rayons, typographie…).
+@include engine.common-tokens;
+
+// Thèmes disponibles (TEC-17). Le premier est le thème par défaut, appliqué à :root.
+// Pour ajouter un thème : créer `styles/themes/_<id>.scss`, l'inclure ici et le déclarer dans THEMES (core/theme/theme.ts).
+@include engine.theme('nuit-doree', nuit-doree.$theme, $default: true);
+@include engine.theme('automne', automne.$theme);

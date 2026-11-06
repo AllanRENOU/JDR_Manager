@@ -1,0 +1,129 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: color(bg-app);
+}
+
+.demo {
+  max-width: layout(feed-max);
+  margin: 0 auto;
+  padding: space(32) space(24);
+  display: flex;
+  flex-direction: column;
+  gap: space(24);
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: space(12);
+    align-items: flex-start;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: space(10);
+    margin: 0;
+    font-size: font-size(page);
+    color: color(accent-text);
+  }
+
+  &__intro {
+    margin: 0;
+    color: color(text-secondary);
+  }
+
+  &__section {
+    padding: space(20);
+    border: 1px solid color(border-subtle);
+    border-radius: radius(lg);
+    background: color(bg-panel);
+  }
+
+  &__section-title {
+    margin: 0 0 space(16);
+    font-size: font-size(section);
+  }
+
+  &__field {
+    margin-top: space(16);
+    width: 100%;
+  }
+}
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: space(12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  gap: space(6);
+
+  &__color {
+    height: control-height(lg);
+    border: 1px solid color(border-default);
+    border-radius: radius(md);
+  }
+
+  &__name {
+    font-size: font-size(label);
+    color: color(text-secondary);
+  }
+}
+
+.type-title {
+  font-family: font-family(title);
+  font-size: font-size(screen);
+  color: color(accent-text);
+}
+
+.type-narrative {
+  font-family: font-family(narrative);
+  font-size: font-size(narrative);
+  line-height: line-height(narrative);
+}
+
+.elements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space(8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.element {
+  display: inline-flex;
+  align-items: center;
+  gap: space(6);
+  padding: space(6) space(12);
+  border-radius: radius(pill);
+  font-size: font-size(small);
+
+  @each $type in battlemap, sound, stop-all, text, wait, click, scene {
+    &--#{$type} {
+      color: color(el-#{$type}-fg);
+      background: color(el-#{$type}-bg);
+    }
+  }
+}
+
+.material-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: space(12);
+}
+
+// Icône Lucide à côté du libellé d'un bouton Material.
+.material-row button {
+  gap: space(6);
+}

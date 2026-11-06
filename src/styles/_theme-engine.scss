@@ -1,0 +1,130 @@
+// Moteur de thèmes (TRD §10.3, TEC-12, TEC-13).
+// Chaque thème est une map qui doit donner une valeur à TOUS les jetons de `$required-tokens`.
+// Le mixin `theme()` contrôle la map puis génère les variables CSS sous `[data-theme="<nom>"]`.
+@use 'sass:list';
+@use 'sass:map';
+@use 'sass:meta';
+@use 'tokens';
+
+// Jetons obligatoires d'un thème. Rôles : Brief UI/UX §2 ; valeurs : Brief §11.3.
+$required-tokens: (
+  // Schéma de couleurs du navigateur (barres de défilement, contrôles natifs) : light | dark
+  color-scheme,
+  // Fonds et surfaces (§2.1)
+  bg-app,
+  bg-backdrop,
+  bg-panel,
+  bg-card,
+  bg-raised,
+  bg-control,
+  bg-control-hover,
+  overlay-drop,
+  // Bordures (§2.2)
+  border-subtle,
+  border-default,
+  border-strong,
+  // Texte (§2.3)
+  text-primary,
+  text-secondary,
+  text-tertiary,
+  text-on-accent,
+  text-on-danger,
+  // Accent (§2.4)
+  accent,
+  accent-hover,
+  accent-text,
+  accent-tint,
+  accent-tint-strong,
+  accent-surface,
+  // États (§2.5)
+  active-text,
+  active-bg,
+  active-border,
+  danger-text,
+  danger-bg,
+  danger-border,
+  danger-strong,
+  // Types d'éléments d'action (§2.6)
+  el-battlemap-fg,
+  el-battlemap-bg,
+  el-sound-fg,
+  el-sound-bg,
+  el-stop-all-fg,
+  el-stop-all-bg,
+  el-text-fg,
+  el-text-bg,
+  el-wait-fg,
+  el-wait-bg,
+  el-click-fg,
+  el-click-bg,
+  el-scene-fg,
+  el-scene-bg,
+  // Dossiers et visuels de remplacement (§2.7)
+  folder-project,
+  folder-global,
+  placeholder-bg,
+  placeholder-grid,
+  placeholder-alt-bg,
+  placeholder-alt-grid,
+  // Ombres (§4)
+  shadow-float,
+  shadow-popover,
+  // Polices (§3)
+  font-title,
+  font-ui,
+  font-narrative
+);
+
+/// Vérifie qu'une map de thème est complète et ne contient pas de jeton inconnu.
+@mixin validate($name, $tokens) {
+  @if meta.type-of($tokens) != 'map' {
+    @error 'Thème « #{$name} » : la valeur doit être une map SCSS.';
+  }
+
+  @each $key in $required-tokens {
+    @if not map.has-key($tokens, $key) {
+      @error 'Thème « #{$name} » : jeton manquant « #{$key} » (Brief UI/UX §11.3).';
+    }
+  }
+
+  @each $key, $value in $tokens {
+    @if not list.index($required-tokens, $key) {
+      @error 'Thème « #{$name} » : jeton inconnu « #{$key} ». Le déclarer d’abord dans $required-tokens et dans le Brief UI/UX §2.';
+    }
+  }
+}
+
+/// Génère les variables CSS d'un thème.
+/// @param {String} $name - identifiant du thème (valeur de l'attribut data-theme)
+/// @param {Map} $tokens - valeurs de tous les jetons
+/// @param {Boolean} $default - applique aussi le thème à :root (thème par défaut)
+@mixin theme($name, $tokens, $default: false) {
+  @include validate($name, $tokens);
+
+  $selector: '[data-theme="#{$name}"]';
+
+  @if $default {
+    $selector: ':root, #{$selector}';
+  }
+
+  #{$selector} {
+    color-scheme: map.get($tokens, color-scheme);
+
+    @each $key, $value in $tokens {
+      @if $key != color-scheme {
+        --#{$key}: #{meta.inspect($value)};
+      }
+    }
+  }
+}
+
+/// Génère les variables CSS des jetons communs (espacements, rayons, typographie…).
+@mixin common-tokens {
+  :root {
+    @each $prefix, $values in tokens.$all {
+      @each $key, $value in $values {
+        --#{$prefix}-#{$key}: #{$value};
+      }
+    }
+  }
+}

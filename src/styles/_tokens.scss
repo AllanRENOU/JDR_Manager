@@ -1,0 +1,107 @@
+// Jetons communs à tous les thèmes : espacements, rayons, typographie, mouvements.
+// Brief UI/UX §3 et §4. Les couleurs, ombres et familles de polices sont dans les thèmes (§11.3).
+// Ne pas utiliser ces maps directement dans un composant : passer par les fonctions de `_functions.scss`.
+
+// Grille de base 4 px (Brief §4). La clé est la valeur en pixels : `space(16)` → 16px.
+$spacing: (
+  0: 0,
+  4: 4px,
+  6: 6px,
+  8: 8px,
+  10: 10px,
+  12: 12px,
+  14: 14px,
+  16: 16px,
+  20: 20px,
+  24: 24px,
+  28: 28px,
+  32: 32px,
+  40: 40px,
+  48: 48px,
+  56: 56px,
+  64: 64px,
+);
+
+// Rayons (Brief §4).
+$radius: (
+  sm: 8px,
+  md: 10px,
+  lg: 12px,
+  xl: 14px,
+  2xl: 18px,
+  pill: 999px,
+);
+
+// Tailles de texte (Brief §3, échelle).
+$font-size: (
+  overline: 11px,
+  label: 12px,
+  small: 13px,
+  body: 14px,
+  input: 15px,
+  lead: 17px,
+  narrative: 20px,
+  section: 18px,
+  dialog: 22px,
+  screen: 28px,
+  page: 34px,
+);
+$font-weight: (
+  regular: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700,
+);
+$line-height: (
+  tight: 1.2,
+  normal: 1.4,
+  input: 1.55,
+  narrative: 1.6,
+);
+$letter-spacing: (
+  logo: 0.04em,
+  overline: 0.08em,
+);
+
+// Hauteurs de contrôles (Brief §6.1).
+$control-height: (
+  sm: 32px,
+  md: 36px,
+  lg: 44px,
+  xl: 54px,
+  touch: 48px,
+);
+
+// Mouvements (Brief §8).
+$duration: (
+  fast: 150ms,
+  normal: 200ms,
+);
+$easing: (
+  out: cubic-bezier(0.2, 0, 0, 1),
+);
+
+// Largeurs de mise en page (Brief §7).
+$layout: (
+  header: 64px,
+  header-play: 60px,
+  sidebar-left: 290px,
+  sidebar-right: 380px,
+  sidebar-play: 420px,
+  feed-max: 760px,
+  card-min: 320px,
+);
+
+// Toutes les maps exposées en variables CSS, avec leur préfixe.
+$all: (
+  space: $spacing,
+  radius: $radius,
+  font-size: $font-size,
+  font-weight: $font-weight,
+  line-height: $line-height,
+  letter-spacing: $letter-spacing,
+  control-height: $control-height,
+  duration: $duration,
+  easing: $easing,
+  layout: $layout,
+);

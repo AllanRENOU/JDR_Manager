@@ -1,0 +1,83 @@
+// Thème « Automne » — thème clair, chaleureux, accent rouille.
+// Valeurs : Brief UI/UX §11.3 (colonne « Automne »). Rôles des jetons : Brief §2.
+$theme: (
+  color-scheme: light,
+  // Fonds et surfaces
+  bg-app: #f6eee3,
+  bg-backdrop: #cbb89e,
+  bg-panel: #efe3d2,
+  bg-card: #fffaf2,
+  bg-raised: #fbf1e4,
+  bg-control: #e8d8c3,
+  bg-control-hover: #dfcbb2,
+  overlay-drop: rgba(246, 238, 227, 0.92),
+  // Bordures
+  border-subtle: #e0cfb8,
+  border-default: #cdb79c,
+  border-strong: #b49a7c,
+  // Texte
+  text-primary: #2e1f14,
+  text-secondary: #6b5240,
+  text-tertiary: #7a5f4a,
+  text-on-accent: #fff,
+  text-on-danger: #fff,
+  // Accent
+  accent: #a84a14,
+  accent-hover: #8f3d0f,
+  accent-text: #8a3a0c,
+  accent-tint: #f6dcc4,
+  accent-tint-strong: #efcba8,
+  accent-surface: #fce9d6,
+  // États
+  active-text: #4f6b2a,
+  active-bg: #e3ead2,
+  active-border: #b9c79a,
+  danger-text: #9a3a2a,
+  danger-bg: #f4d9d2,
+  danger-border: #e3b3a6,
+  danger-strong: #a8402f,
+  // Types d'éléments d'action
+  el-battlemap-fg: #8e3b5c,
+  el-battlemap-bg: #f2dde5,
+  el-sound-fg: #4f6b2a,
+  el-sound-bg: #e3ead2,
+  el-stop-all-fg: #9a3a2a,
+  el-stop-all-bg: #f4d9d2,
+  el-text-fg: #3e5675,
+  el-text-bg: #dce4ee,
+  el-wait-fg: #6b5240,
+  el-wait-bg: #ede3d6,
+  el-click-fg: #8a5a0c,
+  el-click-bg: #f6e4be,
+  el-scene-fg: #a84a14,
+  el-scene-bg: #f6dcc4,
+  // Dossiers et visuels de remplacement
+  folder-project: #b87a2a,
+  folder-global: #5b7a9a,
+  placeholder-bg: #eadcc6,
+  placeholder-grid: rgba(168, 74, 20, 0.18),
+  placeholder-alt-bg: #e3e3cf,
+  placeholder-alt-grid: rgba(110, 130, 70, 0.2),
+  // Ombres
+  shadow-float: (
+      0 8px 22px rgba(46, 31, 20, 0.22),
+    ),
+  shadow-popover: (
+    0 10px 28px rgba(46, 31, 20, 0.25),
+  ),
+  // Polices
+  font-title: (
+      'Cinzel',
+      serif,
+    ),
+  font-ui: (
+    'Inter',
+    system-ui,
+    sans-serif,
+  ),
+  font-narrative: (
+    'Lora',
+    georgia,
+    serif,
+  ),
+);

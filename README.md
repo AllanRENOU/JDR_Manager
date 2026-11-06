@@ -17,14 +17,21 @@ ng serve           # serveur de développement : http://localhost:4200
 
 ## Commandes
 
-| Commande | Rôle |
-|---|---|
-| `ng serve` | Serveur de développement |
-| `ng build` | Build de production (`dist/jdr-manager`) |
-| `ng test` | Tests unitaires (Vitest) ; `ng test --watch=false` pour une exécution unique |
-| `ng lint` | ESLint (TypeScript et templates) |
-| `npm run lint:styles` | Stylelint (SCSS) : interdit les couleurs, tailles et ombres en dur hors jetons et thèmes |
-| `npm run format` / `npm run format:check` | Prettier |
+| Commande                                  | Rôle                                                                                            |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `ng serve`                                | Serveur de développement                                                                        |
+| `ng build`                                | Build de production (`dist/jdr-manager`)                                                        |
+| `ng test`                                 | Tests unitaires (Vitest) ; `ng test --watch=false` pour une exécution unique                    |
+| `ng lint`                                 | ESLint (TypeScript et templates)                                                                |
+| `npm run lint:styles`                     | Stylelint (SCSS) : interdit les couleurs, tailles et ombres en dur hors jetons et thèmes        |
+| `npm run check:themes`                    | Vérifie que chaque thème compile et qu'un jeton manquant ou inconnu fait échouer la compilation |
+| `npm run format` / `npm run format:check` | Prettier                                                                                        |
+
+## Thèmes et styles
+
+- Jetons communs : `src/styles/_tokens.scss` ; fonctions d'accès (`color()`, `space()`, `radius()`, `font-size()`…) : `src/styles/_functions.scss`, à importer avec `@use 'functions' as *;`.
+- Un thème = une map SCSS dans `src/styles/themes/_<id>.scss`, incluse dans `src/styles.scss` et déclarée dans `THEMES` (`src/app/core/theme/theme.ts`).
+- Page de démonstration temporaire : `http://localhost:4200/dev/themes`.
 
 ## Règles de développement
 

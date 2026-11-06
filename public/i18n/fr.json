@@ -1,0 +1,93 @@
+{
+  "common": {
+    "appName": "JDR Manager",
+    "actions": {
+      "add": "Ajouter",
+      "cancel": "Annuler",
+      "close": "Fermer",
+      "confirm": "Confirmer",
+      "delete": "Supprimer",
+      "duplicate": "Dupliquer",
+      "edit": "Modifier",
+      "rename": "Renommer",
+      "save": "Enregistrer",
+      "back": "Retour",
+      "play": "Lecture",
+      "pause": "Pause"
+    },
+    "search": "Rechercher",
+    "empty": "Aucun élément"
+  },
+  "project": {
+    "title": "Mes projets",
+    "new": "Nouveau projet",
+    "edit": "Éditer",
+    "present": "Présenter",
+    "import": "Importer un projet",
+    "export": "Exporter"
+  },
+  "scene": {
+    "title": "Scènes",
+    "new": "Nouvelle scène",
+    "newFolder": "Nouveau dossier",
+    "text": "Texte de la scène",
+    "next": "Scènes suivantes",
+    "battlemaps": "Battlemaps"
+  },
+  "action": {
+    "title": "Actions",
+    "new": "Nouvelle action",
+    "elements": {
+      "battlemap": "Battlemap",
+      "sound": "Son",
+      "stopAll": "Arrêter tous les sons",
+      "text": "Texte",
+      "wait": "Attente",
+      "click": "Clic de l'utilisateur",
+      "scene": "Scène"
+    }
+  },
+  "presentation": {
+    "nextScene": "Scène suivante",
+    "clickToContinue": "Cliquer pour continuer",
+    "continue": "Continuer",
+    "restart": "Recommencer",
+    "goToScene": "Aller à une scène",
+    "playerWindowOpen": "Fenêtre joueurs ouverte"
+  },
+  "sound": {
+    "library": "Bibliothèque de sons",
+    "launch": "Lancer un son",
+    "volume": "Volume",
+    "playAll": "Tout reprendre",
+    "pauseAll": "Tout mettre en pause"
+  },
+  "error": {
+    "generic": "Une erreur est survenue.",
+    "storageUnavailable": "Le stockage du navigateur est indisponible.",
+    "missingMedia": "Média introuvable : {{ name }}"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "theme": "Thème",
+    "themes": {
+      "nuitDoree": "Nuit dorée",
+      "automne": "Automne"
+    }
+  },
+  "dev": {
+    "themeDemo": {
+      "title": "Démonstration des thèmes",
+      "intro": "Page temporaire du lot 1 : vérifie les jetons de couleur, la typographie, les icônes et les composants Material dans chaque thème.",
+      "colors": "Couleurs",
+      "typography": "Typographie",
+      "titleSample": "La crypte oubliée",
+      "narrativeSample": "La porte grince et une odeur de terre humide envahit la pièce. Au loin, une goutte tombe dans l'obscurité.",
+      "uiSample": "Texte d'interface en Inter.",
+      "elements": "Couleurs des éléments",
+      "material": "Composants Material",
+      "inputLabel": "Nom de la scène",
+      "toggle": "Option"
+    }
+  }
+}

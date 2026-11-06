@@ -1,0 +1,84 @@
+// Styles de base globaux (Brief UI/UX §3, §8). Uniquement des jetons, via les fonctions.
+@use 'functions' as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: color(bg-app);
+  color: color(text-primary);
+  font-family: font-family(ui);
+  font-size: font-size(body);
+  font-weight: font-weight(regular);
+  line-height: line-height(normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: font-family(title);
+  font-weight: font-weight(bold);
+  line-height: line-height(tight);
+}
+
+h1 {
+  font-size: font-size(screen);
+}
+
+h2 {
+  font-size: font-size(section);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: color(accent);
+
+  &:hover {
+    color: color(accent-hover);
+  }
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+// Focus clavier toujours visible (Brief §8).
+:focus-visible {
+  outline: 2px solid color(accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background-color: color(accent-tint-strong);
+  color: color(text-primary);
+}
+
+// Respect de la préférence « réduire les animations » (Brief §8).
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

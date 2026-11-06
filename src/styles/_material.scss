@@ -1,0 +1,59 @@
+// Thème Angular Material branché sur les jetons de l'application (TEC-15).
+// `mat.theme()` génère les variables système M3 ; `mat.theme-overrides()` les redirige
+// vers nos variables CSS : les composants Material suivent donc le thème actif.
+@use '@angular/material' as mat;
+@use 'functions' as *;
+
+html {
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$orange-palette,
+        tertiary: mat.$yellow-palette,
+        theme-type: color-scheme,
+      ),
+      typography: (
+        brand-family: 'Cinzel',
+        plain-family: 'Inter',
+      ),
+      density: 0,
+    )
+  );
+  @include mat.theme-overrides(
+    (
+      primary: color(accent),
+      on-primary: color(text-on-accent),
+      primary-container: color(accent-tint),
+      on-primary-container: color(accent-text),
+      secondary: color(accent),
+      on-secondary: color(text-on-accent),
+      secondary-container: color(accent-tint),
+      on-secondary-container: color(accent-text),
+      tertiary: color(active-text),
+      on-tertiary: color(bg-app),
+      tertiary-container: color(active-bg),
+      on-tertiary-container: color(active-text),
+      error: color(danger-text),
+      on-error: color(text-on-danger),
+      error-container: color(danger-bg),
+      on-error-container: color(danger-text),
+      background: color(bg-app),
+      on-background: color(text-primary),
+      surface: color(bg-card),
+      on-surface: color(text-primary),
+      surface-variant: color(bg-raised),
+      on-surface-variant: color(text-secondary),
+      surface-container-lowest: color(bg-app),
+      surface-container-low: color(bg-panel),
+      surface-container: color(bg-card),
+      surface-container-high: color(bg-raised),
+      surface-container-highest: color(bg-control),
+      inverse-surface: color(text-primary),
+      inverse-on-surface: color(bg-app),
+      outline: color(border-strong),
+      outline-variant: color(border-subtle),
+      scrim: color(bg-backdrop),
+      shadow: color(bg-backdrop),
+    )
+  );
+}

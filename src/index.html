@@ -1,11 +1,30 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
-    <title>JdrManager</title>
+    <title>JDR Manager</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!--
+      Applique le thème mémorisé avant le chargement d'Angular, pour éviter un flash
+      du thème par défaut (TEC-16). La clé et le format doivent rester identiques à
+      UiPreferences (préfixe « jdr-manager: », valeur JSON) et Theme (core/theme).
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('jdr-manager:theme');
+          var theme = stored ? JSON.parse(stored) : null;
+          // Un identifiant inconnu est sans effet : le thème par défaut (:root) s'applique.
+          if (typeof theme === 'string' && /^[a-z0-9-]+$/.test(theme)) {
+            document.documentElement.setAttribute('data-theme', theme);
+          }
+        } catch (e) {
+          /* stockage indisponible : thème par défaut */
+        }
+      })();
+    </script>
   </head>
   <body>
     <app-root></app-root>

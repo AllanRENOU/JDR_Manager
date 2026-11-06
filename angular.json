@@ -3,7 +3,10 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "schematicCollections": ["angular-eslint"]
+    "schematicCollections": [
+      "angular-eslint"
+    ],
+    "analytics": "2f848828-b283-445c-86cc-809ef37d67b3"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -35,13 +38,28 @@
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src/styles"
+              ]
+            },
             "assets": [
               {
                 "glob": "**/*",
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.scss"]
+            "styles": [
+              "node_modules/@fontsource/cinzel/600.css",
+              "node_modules/@fontsource/cinzel/700.css",
+              "node_modules/@fontsource/inter/400.css",
+              "node_modules/@fontsource/inter/500.css",
+              "node_modules/@fontsource/inter/600.css",
+              "node_modules/@fontsource/lora/400.css",
+              "node_modules/@fontsource/lora/400-italic.css",
+              "node_modules/@fontsource/lora/500.css",
+              "src/styles.scss"
+            ]
           },
           "configurations": {
             "production": {

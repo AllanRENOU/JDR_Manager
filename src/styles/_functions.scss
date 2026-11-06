@@ -1,0 +1,123 @@
+// Fonctions d'accès aux jetons (TRD §10.4, TEC-14).
+// Elles renvoient toujours une variable CSS : la valeur réelle dépend du thème actif.
+// Une clé inconnue provoque une erreur de compilation.
+@use 'sass:list';
+@use 'sass:map';
+@use 'tokens';
+@use 'theme-engine';
+
+@function check-key($group, $map, $key) {
+  @if not map.has-key($map, $key) {
+    @error '#{$group}(#{$key}) : clé inconnue. Valeurs possibles : #{map.keys($map)}';
+  }
+
+  @return true;
+}
+
+/// Couleur du thème actif. Ex. : color(bg-card), color(accent).
+@function color($name) {
+  @if not list.index(theme-engine.$required-tokens, $name) {
+    @error 'color(#{$name}) : jeton de couleur inconnu (Brief UI/UX §2).';
+  }
+
+  @return var(--#{$name});
+}
+
+/// Espacement, nommé par sa valeur en pixels. Ex. : space(16).
+@function space($key) {
+  $_: check-key('space', tokens.$spacing, $key);
+
+  @return var(--space-#{$key});
+}
+
+/// Rayon. Ex. : radius(md), radius(pill).
+@function radius($key) {
+  $_: check-key('radius', tokens.$radius, $key);
+
+  @return var(--radius-#{$key});
+}
+
+/// Ombre d'un élément flottant. Ex. : shadow(float), shadow(popover).
+@function shadow($key) {
+  @if not list.index((float, popover), $key) {
+    @error 'shadow(#{$key}) : valeurs possibles : float, popover.';
+  }
+
+  @return var(--shadow-#{$key});
+}
+
+/// Famille de polices. Ex. : font-family(title), font-family(ui), font-family(narrative).
+@function font-family($key) {
+  @if not list.index((title, ui, narrative), $key) {
+    @error 'font-family(#{$key}) : valeurs possibles : title, ui, narrative.';
+  }
+
+  @return var(--font-#{$key});
+}
+
+/// Taille de texte. Ex. : font-size(body), font-size(narrative).
+@function font-size($key) {
+  $_: check-key('font-size', tokens.$font-size, $key);
+
+  @return var(--font-size-#{$key});
+}
+
+/// Graisse. Ex. : font-weight(semibold).
+@function font-weight($key) {
+  $_: check-key('font-weight', tokens.$font-weight, $key);
+
+  @return var(--font-weight-#{$key});
+}
+
+/// Interligne. Ex. : line-height(narrative).
+@function line-height($key) {
+  $_: check-key('line-height', tokens.$line-height, $key);
+
+  @return var(--line-height-#{$key});
+}
+
+/// Espacement des lettres. Ex. : letter-spacing(overline).
+@function letter-spacing($key) {
+  $_: check-key('letter-spacing', tokens.$letter-spacing, $key);
+
+  @return var(--letter-spacing-#{$key});
+}
+
+/// Hauteur de contrôle (bouton, champ). Ex. : control-height(lg).
+@function control-height($key) {
+  $_: check-key('control-height', tokens.$control-height, $key);
+
+  @return var(--control-height-#{$key});
+}
+
+/// Durée d'animation. Ex. : duration(fast).
+@function duration($key) {
+  $_: check-key('duration', tokens.$duration, $key);
+
+  @return var(--duration-#{$key});
+}
+
+/// Courbe d'animation. Ex. : easing(out).
+@function easing($key) {
+  $_: check-key('easing', tokens.$easing, $key);
+
+  @return var(--easing-#{$key});
+}
+
+/// Dimension de mise en page. Ex. : layout(sidebar-left).
+@function layout($key) {
+  $_: check-key('layout', tokens.$layout, $key);
+
+  @return var(--layout-#{$key});
+}
+
+/// Transition standard sur une ou plusieurs propriétés. Ex. : transition(background-color, color).
+@function transition($properties...) {
+  $result: ();
+
+  @each $property in $properties {
+    $result: list.append($result, $property duration(fast) easing(out), $separator: comma);
+  }
+
+  @return $result;
+}

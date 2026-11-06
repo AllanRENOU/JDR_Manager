@@ -1,0 +1,81 @@
+<main class="demo" *transloco="let t">
+  <header class="demo__header">
+    <h1 class="demo__title">
+      <svg lucidePalette aria-hidden="true"></svg>
+      {{ t('dev.themeDemo.title') }}
+    </h1>
+    <p class="demo__intro">{{ t('dev.themeDemo.intro') }}</p>
+
+    <mat-button-toggle-group
+      [attr.aria-label]="t('settings.theme')"
+      [value]="theme.theme()"
+      (change)="onThemeChange($event.value)"
+    >
+      @for (item of theme.themes; track item.id) {
+        <mat-button-toggle [value]="item.id">{{ t(item.labelKey) }}</mat-button-toggle>
+      }
+    </mat-button-toggle-group>
+  </header>
+
+  <section class="demo__section">
+    <h2 class="demo__section-title">{{ t('dev.themeDemo.colors') }}</h2>
+    <ul class="swatches">
+      @for (token of colorTokens; track token) {
+        <li class="swatch">
+          <span class="swatch__color" [style.background]="'var(--' + token + ')'"></span>
+          <code class="swatch__name">{{ token }}</code>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section class="demo__section">
+    <h2 class="demo__section-title">{{ t('dev.themeDemo.typography') }}</h2>
+    <p class="type-title">{{ t('dev.themeDemo.titleSample') }}</p>
+    <p class="type-narrative">{{ t('dev.themeDemo.narrativeSample') }}</p>
+    <p>{{ t('dev.themeDemo.uiSample') }}</p>
+  </section>
+
+  <section class="demo__section">
+    <h2 class="demo__section-title">{{ t('dev.themeDemo.elements') }}</h2>
+    <ul class="elements">
+      <li class="element element--battlemap">
+        <svg lucideMap aria-hidden="true"></svg>{{ t('action.elements.battlemap') }}
+      </li>
+      <li class="element element--sound">
+        <svg lucideAudioLines aria-hidden="true"></svg>{{ t('action.elements.sound') }}
+      </li>
+      <li class="element element--stop-all">
+        <svg lucideVolumeX aria-hidden="true"></svg>{{ t('action.elements.stopAll') }}
+      </li>
+      <li class="element element--text">
+        <svg lucideType aria-hidden="true"></svg>{{ t('action.elements.text') }}
+      </li>
+      <li class="element element--wait">
+        <svg lucideHourglass aria-hidden="true"></svg>{{ t('action.elements.wait') }}
+      </li>
+      <li class="element element--click">
+        <svg lucideMousePointerClick aria-hidden="true"></svg>{{ t('action.elements.click') }}
+      </li>
+      <li class="element element--scene">
+        <svg lucideClapperboard aria-hidden="true"></svg>{{ t('action.elements.scene') }}
+      </li>
+    </ul>
+  </section>
+
+  <section class="demo__section">
+    <h2 class="demo__section-title">{{ t('dev.themeDemo.material') }}</h2>
+    <div class="material-row">
+      <button matButton="filled" type="button">{{ t('common.actions.save') }}</button>
+      <button matButton="outlined" type="button">
+        <svg lucidePencil aria-hidden="true"></svg>{{ t('common.actions.edit') }}
+      </button>
+      <button matButton type="button">{{ t('common.actions.cancel') }}</button>
+      <mat-slide-toggle>{{ t('dev.themeDemo.toggle') }}</mat-slide-toggle>
+    </div>
+    <mat-form-field appearance="outline" class="demo__field">
+      <mat-label>{{ t('dev.themeDemo.inputLabel') }}</mat-label>
+      <input matInput />
+    </mat-form-field>
+  </section>
+</main>
