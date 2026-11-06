@@ -1,0 +1,20 @@
+@let map = battlemap();
+<figure class="card">
+  <div class="card__thumb">
+    @if (image.url(); as url) {
+      <img [src]="url" [alt]="'battlemap.thumbnail' | transloco: { name: map.name }" />
+    } @else {
+      <app-placeholder grid="fine" />
+      @if (image.missing()) {
+        <span class="card__missing">{{ 'battlemap.missing' | transloco }}</span>
+      }
+    }
+    @if (isDefault()) {
+      <app-pill class="card__badge" variant="badge">{{ 'battlemap.default' | transloco }}</app-pill>
+    }
+  </div>
+  <figcaption class="card__caption">
+    <ng-content select="[cardName]" />
+    <ng-content select="[cardActions]" />
+  </figcaption>
+</figure>

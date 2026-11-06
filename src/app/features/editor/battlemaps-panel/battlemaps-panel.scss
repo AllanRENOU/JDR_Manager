@@ -1,0 +1,44 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+}
+
+// Miniatures sur deux colonnes (maquette « Édition — scène »).
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: space(12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name-input {
+  flex: 1;
+  min-width: 0;
+  padding: space(2) space(6);
+  border: 1px solid color(accent);
+  border-radius: radius(sm);
+  background: color(bg-card);
+  color: color(text-primary);
+  font: inherit;
+}
+
+.empty {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+  font-style: italic;
+}
+
+.file-input {
+  display: none;
+}

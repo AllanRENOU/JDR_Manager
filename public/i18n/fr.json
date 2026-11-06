@@ -24,7 +24,8 @@
       "saving": "Enregistrement…",
       "saved": "Enregistré",
       "error": "Échec de l’enregistrement"
-    }
+    },
+    "new": "Nouvelle"
   },
   "project": {
     "title": "Mes projets",
@@ -89,7 +90,27 @@
     "noScene": "Ce projet n’a pas encore de scène.",
     "createFirst": "Créer la première scène",
     "treeLabel": "Scènes du projet",
-    "textPlaceholder": "Décrivez ce que voient et entendent les joueurs en arrivant dans la scène…"
+    "textPlaceholder": "Décrivez ce que voient et entendent les joueurs en arrivant dans la scène…",
+    "sections": {
+      "actions": "Actions",
+      "battlemaps": "Battlemaps",
+      "sequence": "Enchaînement"
+    },
+    "settingsLabel": "Configuration de la scène",
+    "contentLabel": "Textes de la scène",
+    "newScene": "Nouvelle scène",
+    "newFolderAction": "Nouveau dossier",
+    "newSceneName": "Nouvelle scène",
+    "copyName": "{{ name }} (copie)",
+    "nameField": "Nom de la scène",
+    "actionTextLabel": "Texte de l’action « {{ name }} »",
+    "firstCheckbox": "Première scène du projet",
+    "addNext": "Ajouter",
+    "addNextLabel": "Ajouter des scènes suivantes",
+    "noNext": "Aucune scène suivante.",
+    "nextDialogTitle": "Scènes suivantes",
+    "nextDialogSubtitle": "Après « {{ name }} »",
+    "missingNext": "Scène supprimée"
   },
   "action": {
     "title": "Actions",
@@ -103,7 +124,34 @@
       "click": "Clic de l'utilisateur",
       "scene": "Scène"
     },
-    "sceneText": "Texte de scène"
+    "sceneText": "Texte de scène",
+    "triggers": {
+      "scene-open": "À l’ouverture de la scène",
+      "manual": "Sur clic du MJ"
+    },
+    "elementCount": {
+      "one": "{{ count }} élément",
+      "other": "{{ count }} éléments"
+    },
+    "empty": "Aucun élément",
+    "locked": "Action liée au texte de scène : elle ne peut pas être supprimée",
+    "missingTarget": "Un élément vise un objet supprimé",
+    "noAction": "Aucune action pour cette scène.",
+    "newSoon": "La création d’actions arrive avec l’éditeur d’action.",
+    "summary": {
+      "text": "texte",
+      "play": "lancer « {{ name }} »",
+      "playMissing": "lancer un son supprimé",
+      "stop": "arrêter « {{ name }} »",
+      "stopMissing": "arrêter un son supprimé",
+      "stopAll": "arrêter tous les sons",
+      "battlemap": "battlemap « {{ name }} »",
+      "battlemapMissing": "battlemap supprimée",
+      "scene": "aller à « {{ name }} »",
+      "sceneMissing": "scène supprimée",
+      "wait": "attente {{ seconds }} s",
+      "click": "clic"
+    }
   },
   "presentation": {
     "nextScene": "Scène suivante",
@@ -249,5 +297,27 @@
     "images": "images",
     "sounds": "sons",
     "rejected": "{{ count }} fichier(s) ignoré(s), format non pris en charge : {{ names }}. Formats acceptés : {{ formats }}."
+  },
+  "battlemap": {
+    "default": "Par défaut",
+    "none": "Aucune battlemap. Importez une image ou déposez-la sur l’éditeur.",
+    "thumbnail": "Aperçu de « {{ name }} »",
+    "missing": "Image introuvable",
+    "moreActions": "Plus d’actions pour « {{ name }} »",
+    "import": "Importer",
+    "importLabel": "Importer des battlemaps",
+    "imported": {
+      "one": "{{ count }} battlemap ajoutée à « {{ scene }} ».",
+      "other": "{{ count }} battlemaps ajoutées à « {{ scene }} »."
+    },
+    "dropDestination": "Scène « {{ scene }} »",
+    "setDefault": "Définir par défaut",
+    "nameField": "Nouveau nom de « {{ name }} »",
+    "deleteTitle": "Supprimer « {{ name }} » ?",
+    "deleteMessage": "La battlemap sera retirée de la scène. Cette action est irréversible.",
+    "deleteUsedMessage": {
+      "one": "Cette battlemap est affichée par {{ count }} action, qui la signalera comme introuvable. Cette action est irréversible.",
+      "other": "Cette battlemap est affichée par {{ count }} actions, qui la signaleront comme introuvable. Cette action est irréversible."
+    }
   }
 }

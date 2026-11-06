@@ -1,0 +1,86 @@
+<app-collapsible-section
+  [title]="'scene.sections.actions' | transloco"
+  [summary]="'· ' + store.actions().length"
+  preferenceKey="editor.actions"
+>
+  <!-- La création ouvrira l'éditeur d'action (lot 8). -->
+  <button
+    sectionAction
+    appButton="add"
+    size="sm"
+    type="button"
+    disabled
+    [attr.title]="'action.newSoon' | transloco"
+  >
+    <svg lucidePlus aria-hidden="true"></svg>{{ 'common.new' | transloco }}
+  </button>
+
+  @for (group of groups(); track group.trigger) {
+    <h3 class="group">{{ 'action.triggers.' + group.trigger | transloco }}</h3>
+    <ul
+      class="actions"
+      cdkDropList
+      cdkDropListLockAxis="y"
+      [cdkDropListData]="group.trigger"
+      (cdkDropListDropped)="drop(group.trigger, $event)"
+    >
+      @for (row of group.rows; track row.action.id) {
+        <li
+          class="action"
+          cdkDrag
+          [cdkDragDisabled]="row.action.isSceneText"
+          [class.action--missing]="row.missing"
+        >
+          <div class="action__head">
+            @if (!row.action.isSceneText) {
+              <svg lucideGripVertical cdkDragHandle class="action__grip" aria-hidden="true"></svg>
+            }
+            @if (row.action.trigger === 'scene-open') {
+              <svg lucidePlay class="action__icon" aria-hidden="true"></svg>
+            } @else {
+              <svg lucideHand class="action__icon" aria-hidden="true"></svg>
+            }
+            <span class="action__name">{{ row.action.name }}</span>
+            @if (row.action.isSceneText) {
+              <svg
+                lucideLock
+                class="action__lock"
+                role="img"
+                [attr.aria-label]="'action.locked' | transloco"
+                [attr.title]="'action.locked' | transloco"
+              ></svg>
+            }
+            @if (row.missing) {
+              <svg
+                lucideTriangleExclamationPoint
+                class="action__warning"
+                role="img"
+                [attr.aria-label]="'action.missingTarget' | transloco"
+                [attr.title]="'action.missingTarget' | transloco"
+              ></svg>
+            }
+          </div>
+          <p class="action__summary">
+            @if (row.parts.length === 0) {
+              {{ 'action.empty' | transloco }}
+            } @else {
+              {{
+                pluralKey('action.elementCount', row.parts.length)
+                  | transloco: { count: row.parts.length }
+              }}
+              ·
+              @for (part of row.parts; track $index; let last = $last) {
+                <span [class.action__part--missing]="part.missing">{{
+                  part.key | transloco: part.params
+                }}</span
+                >{{ last ? '' : ', ' }}
+              }
+            }
+          </p>
+        </li>
+      }
+    </ul>
+  } @empty {
+    <p class="empty">{{ 'action.noAction' | transloco }}</p>
+  }
+</app-collapsible-section>

@@ -1,0 +1,41 @@
+@let sceneId = store.selectedSceneId();
+<app-collapsible-section
+  [title]="'scene.sections.sequence' | transloco"
+  preferenceKey="editor.sequence"
+>
+  <label class="app-check first">
+    <input
+      type="checkbox"
+      [checked]="sceneId !== null && store.isFirstScene(sceneId)"
+      (change)="toggleFirst($any($event.target).checked)"
+    />
+    {{ 'scene.firstCheckbox' | transloco }}
+  </label>
+
+  <h3 class="label" id="next-scenes-label">{{ 'scene.next' | transloco }}</h3>
+  <ul class="next" aria-labelledby="next-scenes-label">
+    @for (next of nextScenes(); track next.id) {
+      <li>
+        <app-pill
+          [tone]="next.name ? 'neutral' : 'stop-all'"
+          [removable]="true"
+          [removeLabel]="next.name ?? ('scene.missingNext' | transloco)"
+          (remove)="removeNext(next.id)"
+        >
+          {{ next.name ?? ('scene.missingNext' | transloco) }}
+        </app-pill>
+      </li>
+    }
+    <li>
+      <button
+        appButton="add"
+        size="sm"
+        type="button"
+        [attr.aria-label]="'scene.addNextLabel' | transloco"
+        (click)="addNext()"
+      >
+        <svg lucidePlus aria-hidden="true"></svg>{{ 'scene.addNext' | transloco }}
+      </button>
+    </li>
+  </ul>
+</app-collapsible-section>

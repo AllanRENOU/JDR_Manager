@@ -3,6 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { DATA_REPOSITORY } from '../../core/data/data-repository';
 import { AudioDuration } from '../../core/media/audio-duration';
 import { resolveMediaType } from '../../core/media/media-types';
+import { baseName } from '../../shared/util/file-name';
 import {
   GLOBAL_SOUND_LIBRARY,
   Id,
@@ -294,7 +295,4 @@ export class SoundLibraryStore {
 }
 
 /** Nom par défaut d'un son importé : nom du fichier sans son extension. */
-export function soundName(fileName: string): string {
-  const dot = fileName.lastIndexOf('.');
-  return (dot > 0 ? fileName.slice(0, dot) : fileName).trim() || fileName;
-}
+export const soundName = baseName;

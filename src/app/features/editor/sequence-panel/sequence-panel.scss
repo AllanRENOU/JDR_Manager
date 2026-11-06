@@ -1,0 +1,28 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+}
+
+.first {
+  margin-bottom: space(16);
+}
+
+.label {
+  margin-bottom: space(8);
+  color: color(text-secondary);
+  font-family: font-family(ui);
+  font-size: font-size(small);
+  font-weight: font-weight(semibold);
+}
+
+// Pastilles des scènes suivantes, puis le bouton « + Ajouter » (maquette).
+.next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: space(8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

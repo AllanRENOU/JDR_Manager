@@ -1,0 +1,108 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+}
+
+// Surtitre de groupe (Brief §3) : « À l'ouverture de la scène », « Sur clic du MJ ».
+.group {
+  margin: space(12) 0 space(8);
+  color: color(text-secondary);
+  font-family: font-family(ui);
+  font-size: font-size(overline);
+  font-weight: font-weight(semibold);
+  letter-spacing: letter-spacing(overline);
+  text-transform: uppercase;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: space(8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.action {
+  padding: space(10) space(12);
+  border: 1px solid color(border-subtle);
+  border-radius: radius(lg);
+  background: color(bg-card);
+}
+
+.action__grip {
+  flex-shrink: 0;
+  width: space(14);
+  height: space(14);
+  margin-left: calc(-1 * #{space(4)});
+  color: color(text-tertiary);
+  cursor: grab;
+}
+
+// Pendant le glissement (CDK) : la carte suit la souris, sa place reste marquée.
+.cdk-drag-preview {
+  box-shadow: shadow(popover);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
+.cdk-drop-list-dragging .action:not(.cdk-drag-placeholder) {
+  transition: transform duration(normal) easing(out);
+}
+
+.action--missing {
+  border-color: color(danger-border);
+}
+
+.action__head {
+  display: flex;
+  align-items: center;
+  gap: space(8);
+}
+
+.action__icon {
+  flex-shrink: 0;
+  width: space(16);
+  height: space(16);
+  color: color(text-tertiary);
+}
+
+.action__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: font-weight(semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action__lock,
+.action__warning {
+  flex-shrink: 0;
+  width: space(14);
+  height: space(14);
+  color: color(text-tertiary);
+}
+
+.action__warning,
+.action__part--missing {
+  color: color(danger-text);
+}
+
+.action__summary {
+  margin-top: space(4);
+  overflow: hidden;
+  color: color(text-secondary);
+  font-size: font-size(small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+  font-style: italic;
+}

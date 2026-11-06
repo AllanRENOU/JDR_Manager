@@ -1,0 +1,86 @@
+<app-collapsible-section
+  [title]="'scene.sections.battlemaps' | transloco"
+  [summary]="'· ' + store.battlemaps().length"
+  preferenceKey="editor.battlemaps"
+>
+  <button
+    sectionAction
+    appButton="add"
+    size="sm"
+    type="button"
+    [attr.aria-label]="'battlemap.importLabel' | transloco"
+    (click)="fileInput.click()"
+  >
+    <svg lucideUpload aria-hidden="true"></svg>{{ 'battlemap.import' | transloco }}
+  </button>
+  <input
+    #fileInput
+    class="file-input"
+    type="file"
+    multiple
+    tabindex="-1"
+    aria-hidden="true"
+    [accept]="accept"
+    (change)="onFilesChosen(fileInput)"
+  />
+
+  @if (store.battlemaps().length === 0) {
+    <p class="empty">{{ 'battlemap.none' | transloco }}</p>
+  } @else {
+    <ul class="grid">
+      @for (map of store.battlemaps(); track map.id) {
+        <li>
+          <app-battlemap-card
+            [battlemap]="map"
+            [isDefault]="store.scene()?.defaultBattlemapId === map.id"
+          >
+            @if (editingId() === map.id) {
+              <input
+                #nameInput
+                cardName
+                class="name-input"
+                type="text"
+                maxlength="120"
+                [value]="map.name"
+                [attr.aria-label]="'battlemap.nameField' | transloco: { name: map.name }"
+                (keydown.enter)="commitRename(map, nameInput.value)"
+                (keydown.escape)="editingId.set(null)"
+                (blur)="commitRename(map, nameInput.value)"
+              />
+            } @else {
+              <span cardName class="name">{{ map.name }}</span>
+            }
+            <button
+              cardActions
+              appButton="icon"
+              size="sm"
+              type="button"
+              [attr.aria-label]="'battlemap.moreActions' | transloco: { name: map.name }"
+              [cdkMenuTriggerFor]="menu"
+              [cdkMenuTriggerData]="{ $implicit: map }"
+            >
+              <svg lucideEllipsis aria-hidden="true"></svg>
+            </button>
+          </app-battlemap-card>
+        </li>
+      }
+    </ul>
+  }
+</app-collapsible-section>
+
+<ng-template #menu let-map>
+  <div appMenu>
+    @if (store.scene()?.defaultBattlemapId !== map.id) {
+      <button appMenuItem (triggered)="run(store.setDefaultBattlemap(map.id))">
+        <svg lucideStar aria-hidden="true"></svg>{{ 'battlemap.setDefault' | transloco }}
+      </button>
+    }
+    <button appMenuItem (triggered)="editingId.set(map.id)">
+      <svg lucidePencil aria-hidden="true"></svg>{{ 'common.actions.rename' | transloco }}
+    </button>
+    <div class="app-menu-separator" role="separator"></div>
+    <button appMenuItem tone="danger" (triggered)="remove(map)">
+      <svg lucideTrash2 aria-hidden="true"></svg>{{ 'common.actions.delete' | transloco }}
+    </button>
+  </div>
+</ng-template>

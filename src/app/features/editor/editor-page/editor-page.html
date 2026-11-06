@@ -36,7 +36,14 @@
   }
 </app-header>
 
-<main class="editor">
+<main
+  class="editor"
+  appFileDrop
+  #drop="appFileDrop"
+  [appFileDropKinds]="imageKinds"
+  [appFileDropDisabled]="!store.selectedNode()"
+  (filesDropped)="importImages($event)"
+>
   @switch (store.status()) {
     @case ('missing') {
       <app-alert class="editor__missing">
@@ -46,22 +53,54 @@
     }
     @case ('ready') {
       <aside class="editor__tree" [attr.aria-label]="'scene.treeLabel' | transloco">
-        @if (store.hasScenes()) {
+        <div class="tree-header">
+          <span class="tree-header__title">{{ 'scene.title' | transloco }}</span>
+          <button
+            appButton="icon"
+            size="sm"
+            type="button"
+            [attr.aria-label]="'scene.newFolderAction' | transloco"
+            [attr.title]="'scene.newFolderAction' | transloco"
+            (click)="create({ parentId: store.creationParent(), kind: 'folder' })"
+          >
+            <svg lucideFolderPlus aria-hidden="true"></svg>
+          </button>
+          <button
+            appButton="icon"
+            size="sm"
+            type="button"
+            [attr.aria-label]="'scene.newScene' | transloco"
+            [attr.title]="'scene.newScene' | transloco"
+            (click)="create({ parentId: store.creationParent(), kind: 'item' })"
+          >
+            <svg lucidePlus aria-hidden="true"></svg>
+          </button>
+        </div>
+        @if (store.sceneNodes().length > 0) {
           <app-tree
+            #tree
             [nodes]="store.sceneNodes()"
-            [editable]="false"
+            [labels]="treeLabels"
+            [extraMenuItems]="menuItems"
             [ariaLabel]="'scene.treeLabel' | transloco"
             [selectedId]="store.selectedSceneId()"
             (selectedIdChange)="openScene($event)"
+            (create)="create($event)"
+            (rename)="rename($event)"
+            (remove)="remove($event)"
+            (move)="move($event)"
           >
             <ng-template #item let-node>
               <span class="scene-item">
                 <svg lucideClapperboard aria-hidden="true"></svg>
                 <span class="scene-item__name">{{ node.name }}</span>
                 @if (store.isFirstScene(node.id)) {
-                  <app-pill tone="accent" [attr.title]="'scene.first' | transloco">
-                    {{ 'scene.firstBadge' | transloco }}
-                  </app-pill>
+                  <svg
+                    lucideStar
+                    class="scene-item__first"
+                    role="img"
+                    [attr.aria-label]="'scene.first' | transloco"
+                  ></svg>
                 }
               </span>
             </ng-template>
@@ -69,7 +108,7 @@
         }
       </aside>
 
-      <section class="editor__content">
+      <section class="editor__content" [attr.aria-label]="'scene.contentLabel' | transloco">
         @if (!store.hasScenes()) {
           <div class="empty">
             <p>{{ 'scene.noScene' | transloco }}</p>
@@ -78,7 +117,20 @@
             </button>
           </div>
         } @else if (store.selectedNode(); as node) {
-          <h2 class="scene-title">{{ node.name }}</h2>
+          <h2 class="scene-heading">
+            <!-- Titre modifiable sur place (7.2.1) : Entrée ou sortie du champ enregistre, Échap annule. -->
+            <input
+              #titleInput
+              class="scene-title"
+              type="text"
+              maxlength="120"
+              [value]="node.name"
+              [attr.aria-label]="'scene.nameField' | transloco"
+              (keydown.enter)="titleInput.blur()"
+              (keydown.escape)="titleInput.value = node.name; titleInput.blur()"
+              (blur)="renameScene(node, titleInput)"
+            />
+          </h2>
           <app-field
             class="scene-text"
             [label]="'scene.text' | transloco"
@@ -96,8 +148,52 @@
               (blur)="onSceneTextBlur()"
             ></textarea>
           </app-field>
+
+          <!-- Textes ajoutés par les actions (SCN-07) : même présentation, pastille du nom de l'action. -->
+          @for (item of store.actionTexts(); track item.element.id) {
+            <div class="action-text">
+              <app-pill tone="text" aria-hidden="true">{{ item.action.name }}</app-pill>
+              <app-field
+                class="scene-text"
+                [label]="'scene.actionTextLabel' | transloco: { name: item.action.name }"
+                [hiddenLabel]="true"
+                #actionField
+              >
+                <textarea
+                  appInput
+                  surface="card"
+                  rows="3"
+                  [id]="actionField.controlId"
+                  [value]="store.initialTexts()[item.element.id] ?? item.element.text"
+                  (input)="
+                    store.editActionText(
+                      { actionId: item.action.id, elementId: item.element.id },
+                      $any($event.target).value
+                    )
+                  "
+                  (blur)="onSceneTextBlur()"
+                ></textarea>
+              </app-field>
+            </div>
+          }
         }
       </section>
+
+      @if (store.selectedNode()) {
+        <aside class="editor__settings" [attr.aria-label]="'scene.settingsLabel' | transloco">
+          <app-actions-panel />
+          <app-battlemaps-panel (filesChosen)="importImages($event)" />
+          <app-sequence-panel />
+        </aside>
+      }
     }
   }
 </main>
+
+@if (drop.active()) {
+  <app-file-drop-overlay
+    [fileCount]="drop.fileCount()"
+    [kinds]="imageKinds"
+    [destination]="'battlemap.dropDestination' | transloco: { scene: store.selectedNode()?.name }"
+  />
+}
