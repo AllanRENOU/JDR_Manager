@@ -1,0 +1,54 @@
+{
+  "extends": [
+    "stylelint-config-standard-scss"
+  ],
+  "ignoreFiles": [
+    "dist/**",
+    ".angular/**",
+    "node_modules/**"
+  ],
+  "rules": {
+    "color-no-hex": true,
+    "color-named": "never",
+    "function-disallowed-list": [
+      "rgb",
+      "rgba",
+      "hsl",
+      "hsla"
+    ],
+    "declaration-property-unit-disallowed-list": {
+      "/^(margin|padding|gap|row-gap|column-gap|font-size|border-radius|top|right|bottom|left|inset)/": [
+        "px",
+        "rem",
+        "em"
+      ]
+    },
+    "declaration-property-value-disallowed-list": {
+      "box-shadow": [
+        "/rgba?\\(/",
+        "/#/"
+      ]
+    },
+    "selector-class-pattern": null,
+    "scss/at-mixin-pattern": null,
+    "scss/dollar-variable-pattern": null,
+    "no-empty-source": null
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/styles/_tokens.scss",
+        "src/styles/_functions.scss",
+        "src/styles/_theme-engine.scss",
+        "src/styles/themes/**/*.scss",
+        "src/styles/_fonts.scss"
+      ],
+      "rules": {
+        "color-no-hex": null,
+        "function-disallowed-list": null,
+        "declaration-property-unit-disallowed-list": null,
+        "declaration-property-value-disallowed-list": null
+      }
+    }
+  ]
+}
