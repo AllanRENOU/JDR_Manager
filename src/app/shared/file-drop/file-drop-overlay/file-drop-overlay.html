@@ -1,0 +1,15 @@
+<div class="drop">
+  <div class="drop__icon"><svg lucideUpload [size]="40" aria-hidden="true"></svg></div>
+  <p class="drop__title">{{ 'fileDrop.title' | transloco }}</p>
+  @if (fileCount() > 0 || destination()) {
+    <p class="drop__details">
+      @if (fileCount() > 0) {
+        <span>{{ 'fileDrop.count' | transloco: { count: fileCount() } }}</span>
+      }
+      @if (destination()) {
+        <span>{{ 'fileDrop.destination' | transloco: { destination: destination() } }}</span>
+      }
+    </p>
+  }
+  <p class="drop__formats">{{ 'fileDrop.formats' | transloco: { formats: formats() } }}</p>
+</div>

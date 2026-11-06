@@ -1,0 +1,40 @@
+@use 'functions' as *;
+
+.selection__search {
+  position: relative;
+  margin-bottom: space(12);
+
+  .app-input {
+    padding-left: space(40);
+  }
+}
+
+.selection__search-icon {
+  position: absolute;
+  top: 50%;
+  left: space(14);
+  color: color(text-tertiary);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.selection__tree {
+  height: calc(#{layout(modal-sm)} * 0.6);
+  padding: space(6);
+  overflow-y: auto;
+  border: 1px solid color(border-subtle);
+  border-radius: radius(md);
+  background: color(bg-app);
+}
+
+.selection__empty {
+  padding: space(16);
+  color: color(text-tertiary);
+  font-style: italic;
+  text-align: center;
+}
+
+.selection__count {
+  color: color(text-secondary);
+  font-size: font-size(small);
+}

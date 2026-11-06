@@ -111,5 +111,19 @@
     "moreActions": "Plus d’actions pour « {{ name }} »",
     "renameField": "Nouveau nom de « {{ name }} »",
     "disabled": "indisponible"
+  },
+  "selection": {
+    "count": "{{ count }} sélectionné(s)",
+    "validate": "Valider",
+    "noResult": "Aucun résultat"
+  },
+  "fileDrop": {
+    "title": "Déposez vos fichiers",
+    "count": "{{ count }} fichier(s)",
+    "destination": "Destination : {{ destination }}",
+    "formats": "Formats acceptés : {{ formats }}",
+    "images": "images",
+    "sounds": "sons",
+    "rejected": "{{ count }} fichier(s) ignoré(s), format non pris en charge : {{ names }}. Formats acceptés : {{ formats }}."
   }
 }

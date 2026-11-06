@@ -1,0 +1,62 @@
+@use 'functions' as *;
+
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  padding: space(20);
+  background: color(overlay-drop);
+  pointer-events: none;
+  animation: drop-in duration(fast) easing(out);
+}
+
+.drop {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: space(12);
+  border: 3px dashed color(accent);
+  border-radius: radius(xxxl);
+  background: color-mix(in srgb, #{color(accent)} 6%, transparent);
+  text-align: center;
+}
+
+.drop__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(#{control-height(xl)} * 1.6);
+  height: calc(#{control-height(xl)} * 1.6);
+  margin-bottom: space(8);
+  border-radius: radius(pill);
+  background: color(accent-tint);
+  color: color(accent-text);
+}
+
+.drop__title {
+  color: color(text-primary);
+  font-family: font-family(title);
+  font-size: font-size(drop);
+  font-weight: font-weight(bold);
+}
+
+.drop__details {
+  display: flex;
+  gap: space(16);
+  color: color(text-primary);
+  font-size: font-size(lead);
+}
+
+.drop__formats {
+  color: color(text-secondary);
+  font-size: font-size(small);
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+  }
+}

@@ -1,5 +1,5 @@
 <!-- Page de démonstration technique : textes en dur volontaires, page supprimée avant la V1. -->
-<main class="demo">
+<main class="demo" appFileDrop #drop="appFileDrop" (filesDropped)="onFiles($event)">
   <header class="demo__header">
     <h1>Composants partagés</h1>
     <button appButton="secondary" size="sm" type="button" (click)="toggleTheme()">
@@ -66,6 +66,15 @@
       />
     </div>
     <p>Scènes suivantes : {{ checkedNext().join(', ') || 'aucune' }}</p>
+    <div class="demo__row">
+      <button appButton="secondary" size="sm" type="button" (click)="chooseNextScenes()">
+        Fenêtre de sélection (multiple)
+      </button>
+      <button appButton="secondary" size="sm" type="button" (click)="chooseTarget()">
+        Fenêtre de sélection (unique)
+      </button>
+      <span>Cible : {{ targetScene() ?? '—' }}</span>
+    </div>
   </section>
 
   <section class="demo__section" aria-labelledby="demo-buttons">
@@ -232,4 +241,22 @@ La porte grince et une odeur de terre humide envahit la pièce.</textarea>
       </div>
     </ng-template>
   </section>
+
+  <section class="demo__section" aria-labelledby="demo-drop">
+    <h2 id="demo-drop">Dépôt de fichiers</h2>
+    <p>Glissez des fichiers depuis le disque n’importe où sur la page.</p>
+    <p class="demo__drop-state">
+      Glisser en cours : {{ drop.active() ? 'oui (' + drop.fileCount() + ')' : 'non' }} · Dernier
+      dépôt :
+      {{ droppedNames() || '—' }}
+    </p>
+  </section>
 </main>
+
+@if (drop.active()) {
+  <app-file-drop-overlay
+    [fileCount]="drop.fileCount()"
+    [kinds]="drop.kinds()"
+    destination="Scène : La taverne du Sanglier"
+  />
+}

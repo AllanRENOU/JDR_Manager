@@ -15,6 +15,9 @@ import {
 
 import { Id, SceneNode, newId } from '../../../core/models';
 import { Theme } from '../../../core/theme/theme';
+import { FileDrop } from '../../../shared/file-drop/file-drop';
+import { FileDropOverlay } from '../../../shared/file-drop/file-drop-overlay/file-drop-overlay';
+import { Selections } from '../../../shared/selection-dialog/selections';
 import { Tree, TreeCreateEvent, TreeMenuItem, TreeRenameEvent } from '../../../shared/tree/tree';
 import { TreeMoveEvent, applyMove, descendantIds } from '../../../shared/tree/tree-model';
 import { DEMO_SCENES } from './demo-data';
@@ -45,6 +48,8 @@ import {
   imports: [
     Button,
     Alert,
+    FileDrop,
+    FileDropOverlay,
     Tree,
     LucideClapperboard,
     Placeholder,
@@ -73,6 +78,9 @@ export class ComponentsDemoPage {
   private readonly transloco = inject(TranslocoService);
   private readonly sceneTree = viewChild.required<Tree<SceneNode>>('sceneTree');
   private readonly modals = inject(Modals);
+  private readonly selections = inject(Selections);
+  protected readonly targetScene = signal<Id | null>(null);
+  protected readonly droppedNames = signal('');
   protected readonly notifications = inject(Notifications);
   protected readonly modalResult = signal('—');
   protected readonly scenes = signal(DEMO_SCENES);
@@ -147,6 +155,37 @@ export class ComponentsDemoPage {
   protected onRemove(id: Id): void {
     const removed = descendantIds(this.scenes(), id).add(id);
     this.scenes.update((nodes) => nodes.filter((n) => !removed.has(n.id)));
+  }
+
+  protected onFiles(files: File[]): void {
+    this.droppedNames.set(files.map((f) => f.name).join(', '));
+  }
+
+  protected async chooseNextScenes(): Promise<void> {
+    const ids = await this.selections.select({
+      title: 'Choisir les scènes suivantes',
+      subtitle: 'Scène : La taverne du Sanglier',
+      nodes: this.scenes(),
+      mode: 'multiple',
+      checkedIds: this.checkedNext(),
+      disabledIds: ['taverne'],
+      labels: { disabled: 'scene.current' },
+    });
+    if (ids) {
+      this.checkedNext.set(ids);
+    }
+  }
+
+  protected async chooseTarget(): Promise<void> {
+    const ids = await this.selections.select({
+      title: 'Scène cible',
+      nodes: this.scenes(),
+      mode: 'single',
+      checkedIds: this.targetScene() ? [this.targetScene()!] : [],
+    });
+    if (ids) {
+      this.targetScene.set(ids[0]);
+    }
   }
 
   protected async openConfirm(destructive: boolean): Promise<void> {

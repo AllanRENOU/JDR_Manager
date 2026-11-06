@@ -170,3 +170,40 @@ export function applyMove<T extends TreeNode>(nodes: readonly T[], move: TreeMov
   }
   return [...changed.values()];
 }
+
+/** Texte normalisé pour la recherche : minuscules, sans accents. */
+export function normalizeSearch(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Filtre l'arborescence pour la recherche (fenêtre de sélection) : garde les nœuds dont le nom
+ * contient le texte (sans tenir compte des accents ni des majuscules), leurs ancêtres pour
+ * le contexte, et tout le contenu d'un dossier trouvé.
+ */
+export function filterNodes<T extends TreeNode>(nodes: readonly T[], query: string): T[] {
+  const search = normalizeSearch(query);
+  if (!search) {
+    return [...nodes];
+  }
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const kept = new Set<Id>();
+  for (const node of nodes) {
+    if (normalizeSearch(node.name).includes(search)) {
+      kept.add(node.id);
+      if (node.kind === 'folder') {
+        descendantIds(nodes, node.id).forEach((id) => kept.add(id));
+      }
+      let parent = node.parentId ? byId.get(node.parentId) : undefined;
+      while (parent && !kept.has(parent.id)) {
+        kept.add(parent.id);
+        parent = parent.parentId ? byId.get(parent.parentId) : undefined;
+      }
+    }
+  }
+  return nodes.filter((n) => kept.has(n.id));
+}

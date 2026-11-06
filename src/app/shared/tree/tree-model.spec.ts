@@ -3,6 +3,7 @@ import {
   applyMove,
   computeMove,
   descendantIds,
+  filterNodes,
   groupByParent,
   pathTo,
   visibleRows,
@@ -141,5 +142,28 @@ describe('tree-model : déplacements (3.2.5)', () => {
       parentId: null,
       order: 4,
     });
+  });
+});
+
+describe('tree-model : recherche (3.3.1)', () => {
+  const tree: TreeNode[] = [
+    { id: 'acte1', parentId: null, order: 0, kind: 'folder', name: 'Acte 1' },
+    { id: 'taverne', parentId: 'acte1', order: 0, kind: 'item', name: 'La Taverne' },
+    { id: 'nuit', parentId: 'acte1', order: 1, kind: 'folder', name: 'La nuit' },
+    { id: 'embuscade', parentId: 'nuit', order: 0, kind: 'item', name: 'Embuscade' },
+    { id: 'entree', parentId: null, order: 1, kind: 'item', name: 'Entrée de la crypte' },
+  ];
+  const ids = (query: string) => filterNodes(tree, query).map((n) => n.id);
+
+  it('garde les éléments trouvés avec leurs ancêtres, sans tenir compte des accents ni des majuscules', () => {
+    expect(ids('embus')).toEqual(['acte1', 'nuit', 'embuscade']);
+    expect(ids('ENTREE')).toEqual(['entree']);
+    expect(ids('taverne')).toEqual(['acte1', 'taverne']);
+  });
+
+  it('garde tout le contenu d’un dossier trouvé ; texte vide = tout', () => {
+    expect(ids('nuit')).toEqual(['acte1', 'nuit', 'embuscade']);
+    expect(ids('  ')).toHaveLength(5);
+    expect(ids('dragon')).toEqual([]);
   });
 });

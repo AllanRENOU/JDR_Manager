@@ -72,3 +72,9 @@ export function resolveMediaType(file: Pick<File, 'name' | 'type'>): MediaType |
   }
   return BY_EXTENSION[extension] ?? null;
 }
+
+/** Libellés des formats acceptés, pour les messages (ex. « PNG, JPG, WebP »). */
+export const FORMAT_LABELS: Record<MediaKind, readonly string[]> = {
+  image: ['PNG', 'JPG', 'WebP'],
+  sound: ['MP3', 'OGG', 'WAV', 'M4A'],
+};

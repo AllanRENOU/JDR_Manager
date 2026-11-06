@@ -1,0 +1,42 @@
+<app-modal [title]="options.title" [subtitle]="options.subtitle ?? ''">
+  <div class="selection__search">
+    <svg lucideSearch class="selection__search-icon" aria-hidden="true"></svg>
+    <input
+      appInput
+      cdkFocusInitial
+      type="search"
+      [attr.aria-label]="'common.search' | transloco"
+      [placeholder]="'common.search' | transloco"
+      [value]="query()"
+      (input)="query.set($any($event.target).value)"
+    />
+  </div>
+
+  <div class="selection__tree">
+    @if (filtered().length > 0) {
+      <app-tree
+        [nodes]="filtered()"
+        [editable]="false"
+        [selectionMode]="options.mode"
+        [disabledIds]="options.disabledIds ?? []"
+        [labels]="options.labels ?? {}"
+        [ariaLabel]="options.title"
+        [collapsedIds]="visibleCollapsed()"
+        (collapsedIdsChange)="onCollapsedChange($event)"
+        [(checkedIds)]="checked"
+      />
+    } @else {
+      <p class="selection__empty">{{ 'selection.noResult' | transloco }}</p>
+    }
+  </div>
+
+  <p modalFooterStart class="selection__count" aria-live="polite">
+    {{ 'selection.count' | transloco: { count: checked().length } }}
+  </p>
+  <button modalFooterEnd appButton="secondary" type="button" (click)="ref.close()">
+    {{ 'common.actions.cancel' | transloco }}
+  </button>
+  <button modalFooterEnd appButton type="button" [disabled]="!canConfirm()" (click)="confirm()">
+    {{ options.confirmLabel ?? ('selection.validate' | transloco) }}
+  </button>
+</app-modal>
