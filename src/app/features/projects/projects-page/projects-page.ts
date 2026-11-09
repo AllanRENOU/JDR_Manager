@@ -1,5 +1,5 @@
 import { Component, inject, resource } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { LucideMusic, LucidePlus, LucideSettings } from '@lucide/angular';
 import { firstValueFrom } from 'rxjs';
@@ -40,6 +40,7 @@ export class ProjectsPage {
   private readonly modals = inject(Modals);
   private readonly notifications = inject(Notifications);
   private readonly transloco = inject(TranslocoService);
+  private readonly router = inject(Router);
 
   /** Projets (du plus récemment modifié au plus ancien) avec les informations de leur carte. */
   protected readonly projects = resource({
@@ -49,7 +50,7 @@ export class ProjectsPage {
     },
   });
 
-  /** Demande un nom puis crée le projet. */
+  /** Demande un nom, crée le projet puis l'ouvre en mode Édition. */
   async createProject(): Promise<Project | null> {
     const name = await firstValueFrom(this.modals.open<string>(CreateProjectDialog).closed);
     if (!name) {
@@ -65,12 +66,12 @@ export class ProjectsPage {
     };
     try {
       await this.repository.saveProject(project);
-      this.projects.reload();
-      return project;
     } catch (error) {
       this.notifications.fromError(error);
       return null;
     }
+    await this.router.navigate(['/projects', project.id, 'edit']);
+    return project;
   }
 
   /** Demande un nouveau nom puis renomme le projet (PRJ-01). */

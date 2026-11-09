@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { aPlaySession, aProject, aSceneNode } from '../../../../testing/data-builders';
 import { useTestRepository } from '../../../../testing/test-repository';
@@ -54,8 +54,9 @@ describe('ProjectsPage (4.1)', () => {
     expect(el.querySelector('.grid > li:last-child')?.textContent).toContain('Créer un projet');
   });
 
-  it('crée un projet avec le nom saisi', async () => {
-    const { fixture, el, names } = await render();
+  it('crée un projet avec le nom saisi puis l’ouvre en mode Édition', async () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const { el } = await render();
     (el.querySelector('.card__create') as HTMLButtonElement).click();
     TestBed.tick();
 
@@ -69,12 +70,10 @@ describe('ProjectsPage (4.1)', () => {
     expect(submit.disabled).toBe(false);
     submit.click();
 
-    await vi.waitFor(async () => {
-      await fixture.whenStable();
-      expect(names()).toEqual(['La crypte oubliée']);
-    });
+    await vi.waitFor(() => expect(navigate).toHaveBeenCalled());
     const [saved] = await TestBed.inject(DATA_REPOSITORY).listProjects();
     expect(saved).toMatchObject({ name: 'La crypte oubliée', firstSceneId: null });
+    expect(navigate).toHaveBeenCalledWith(['/projects', saved.id, 'edit']);
   });
 
   it('n’enregistre rien si la création est annulée', async () => {
