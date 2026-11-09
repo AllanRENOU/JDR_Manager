@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LucideArrowLeft, LucideCheck } from '@lucide/angular';
 
+import { StorageUsage } from '../storage-usage/storage-usage';
 import { Theme, ThemeId } from '../../../core/theme/theme';
 import { AppHeader } from '../../../shared/ui/app-header/app-header';
 import { Button } from '../../../shared/ui/button/button';
@@ -12,6 +13,7 @@ import { ThemePreview } from '../theme-preview/theme-preview';
 @Component({
   selector: 'app-settings-page',
   imports: [
+    StorageUsage,
     AppHeader,
     Button,
     ThemePreview,

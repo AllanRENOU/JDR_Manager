@@ -16,7 +16,7 @@ import {
 } from '../models';
 import { resolveMediaType } from '../media/media-types';
 import { DataError, isQuotaExceededError } from './data-error';
-import { DataRepository, MediaDetails, SceneLink } from './data-repository';
+import { DataRepository, MediaDetails, SceneLink, StorageUsage } from './data-repository';
 import { DB_NAME, JdrDb, openJdrDb } from './jdr-db';
 import { ALL_STORES, collectSubtree, deleteScenes, deleteUnusedMedia } from './jdr-db-cascade';
 
@@ -232,6 +232,19 @@ export class IndexedDbRepository implements DataRepository {
       }
     }
     return links;
+  }
+
+  async getStorageUsage(): Promise<StorageUsage> {
+    const usage: StorageUsage = { images: { count: 0, bytes: 0 }, sounds: { count: 0, bytes: 0 } };
+    // Parcours par curseur : seuls le type et la taille sont lus, pas le contenu des fichiers.
+    let cursor = await (await this.db()).transaction('media').store.openCursor();
+    while (cursor) {
+      const kind = cursor.value.mimeType.startsWith('audio/') ? usage.sounds : usage.images;
+      kind.count += 1;
+      kind.bytes += cursor.value.size;
+      cursor = await cursor.continue();
+    }
+    return usage;
   }
 
   async countSoundUsages(): Promise<Record<Id, number>> {

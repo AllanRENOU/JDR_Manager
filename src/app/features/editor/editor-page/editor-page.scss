@@ -121,6 +121,12 @@
     background: color(bg-card);
     outline: none;
   }
+
+  // Au clavier, contour standard (Brief §8) en plus de la bordure.
+  &:focus-visible {
+    outline: 2px solid color(accent);
+    outline-offset: 2px;
+  }
 }
 
 .empty {

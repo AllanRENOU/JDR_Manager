@@ -1,4 +1,4 @@
-<header class="modal__header">
+<div class="modal__header">
   <div class="modal__heading">
     <ng-content select="[modalIcon]" />
     <div>
@@ -18,11 +18,11 @@
       <svg lucideX aria-hidden="true"></svg>
     </button>
   }
-</header>
+</div>
 <div class="modal__content">
   <ng-content />
 </div>
-<footer class="modal__footer">
+<div class="modal__footer">
   <div class="modal__footer-start"><ng-content select="[modalFooterStart]" /></div>
   <div class="modal__footer-end"><ng-content select="[modalFooterEnd]" /></div>
-</footer>
+</div>

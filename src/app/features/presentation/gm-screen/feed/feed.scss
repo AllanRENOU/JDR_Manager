@@ -37,6 +37,12 @@
 // Éléments précédents estompés (Brief §6.10).
 .item--past {
   opacity: 0.45;
+
+  // Relecture à la souris ou au clavier : l'élément redevient pleinement lisible.
+  &:hover,
+  &:focus-within {
+    opacity: 1;
+  }
 }
 
 // Miniature (FIL-03) : pas en pleine largeur, un clic l'agrandit.

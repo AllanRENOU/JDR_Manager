@@ -1,11 +1,13 @@
-@let v = view();
-@if (v.kind === 'battlemap') {
-  @if (image.url(); as url) {
-    <img class="map" [src]="url" alt="" />
+<main class="screen" [attr.aria-label]="'presentation.player.title' | transloco">
+  @let v = view();
+  @if (v.kind === 'battlemap') {
+    @if (image.url(); as url) {
+      <img class="map" [src]="url" alt="" />
+    }
+  } @else if (v.kind === 'waiting') {
+    <p class="waiting">
+      {{ 'presentation.player.waiting' | transloco }}
+      <span class="waiting__hint">{{ 'presentation.player.fullscreenHint' | transloco }}</span>
+    </p>
   }
-} @else if (v.kind === 'waiting') {
-  <p class="waiting">
-    {{ 'presentation.player.waiting' | transloco }}
-    <span class="waiting__hint">{{ 'presentation.player.fullscreenHint' | transloco }}</span>
-  </p>
-}
+</main>

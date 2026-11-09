@@ -10,6 +10,7 @@
       appButton="icon"
       size="sm"
       type="button"
+      aria-keyshortcuts="P"
       [attr.aria-label]="(engine.anyPlaying() ? 'sound.pauseAll' : 'sound.playAll') | transloco"
       [attr.title]="(engine.anyPlaying() ? 'sound.pauseAll' : 'sound.playAll') | transloco"
       (click)="toggleAll()"

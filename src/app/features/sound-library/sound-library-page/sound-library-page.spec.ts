@@ -374,7 +374,7 @@ describe('SoundLibraryPage', () => {
     expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
       'les sons qu’il contient (2) seront supprimés. Attention : 1 de ces sons est utilisé dans des actions',
     );
-    (document.querySelector('app-confirm-dialog footer button') as HTMLButtonElement).click();
+    (document.querySelector('app-confirm-dialog .modal__footer button') as HTMLButtonElement).click();
     await pending;
   });
 

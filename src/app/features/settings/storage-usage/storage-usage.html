@@ -1,0 +1,53 @@
+<section class="section" aria-labelledby="settings-storage">
+  <h2 class="section__title" id="settings-storage">{{ 'settings.storage.title' | transloco }}</h2>
+  <p class="section__hint">{{ 'settings.storage.hint' | transloco }}</p>
+
+  @if (usage.hasValue()) {
+    @let u = usage.value();
+    <dl class="usage">
+      <div class="usage__row">
+        <dt>{{ 'settings.storage.images' | transloco }}</dt>
+        <dd>
+          {{
+            plural('settings.storage.files', u.images.count) | transloco: { count: u.images.count }
+          }}
+          · {{ size(u.images.bytes) }}
+        </dd>
+      </div>
+      <div class="usage__row">
+        <dt>{{ 'settings.storage.sounds' | transloco }}</dt>
+        <dd>
+          {{
+            plural('settings.storage.files', u.sounds.count) | transloco: { count: u.sounds.count }
+          }}
+          · {{ size(u.sounds.bytes) }}
+        </dd>
+      </div>
+      <div class="usage__row usage__row--total">
+        <dt>{{ 'settings.storage.total' | transloco }}</dt>
+        <dd>{{ size(u.images.bytes + u.sounds.bytes) }}</dd>
+      </div>
+      @if (estimate.value(); as e) {
+        <div class="usage__row">
+          <dt>{{ 'settings.storage.available' | transloco }}</dt>
+          <dd>{{ size(e.quota) }}</dd>
+        </div>
+      }
+    </dl>
+  }
+
+  @switch (persistence.persisted()) {
+    @case (true) {
+      <p class="protection protection--on">
+        <svg lucideShieldCheck aria-hidden="true"></svg
+        >{{ 'settings.storage.persisted' | transloco }}
+      </p>
+    }
+    @case (false) {
+      <p class="protection protection--off">
+        <svg lucideShieldAlert aria-hidden="true"></svg
+        >{{ 'settings.storage.notPersisted' | transloco }}
+      </p>
+    }
+  }
+</section>

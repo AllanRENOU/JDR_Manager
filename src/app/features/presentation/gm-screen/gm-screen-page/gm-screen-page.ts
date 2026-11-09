@@ -7,12 +7,14 @@ import {
   input,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   LucideArrowLeft,
+  LucideKeyboard,
   LucideMap,
   LucideMonitor,
   LucideMonitorUp,
@@ -35,6 +37,7 @@ import { BattlemapSection } from '../battlemap-section/battlemap-section';
 import { Feed } from '../feed/feed';
 import { NextSceneButton } from '../next-scene-button/next-scene-button';
 import { PlayerWindow } from '../player-window';
+import { ShortcutsDialog } from '../shortcuts-dialog/shortcuts-dialog';
 import { SoundsSection } from '../sounds-section/sounds-section';
 import {
   DisplayMode,
@@ -62,6 +65,7 @@ import {
     SoundsSection,
     TranslocoPipe,
     LucideArrowLeft,
+    LucideKeyboard,
     LucideMap,
     LucideMonitor,
     LucideMonitorUp,
@@ -70,6 +74,7 @@ import {
   providers: [PresentationEngine, ActionRunner, PlaySessionStore, PlayerWindow],
   templateUrl: './gm-screen-page.html',
   styleUrl: './gm-screen-page.scss',
+  host: { '(document:keydown)': 'onShortcut($event)' },
 })
 export class GmScreenPage {
   protected readonly engine = inject(PresentationEngine);
@@ -78,6 +83,7 @@ export class GmScreenPage {
   private readonly router = inject(Router);
 
   private readonly selections = inject(Selections);
+  private readonly nextScene = viewChild(NextSceneButton);
   private readonly transloco = inject(TranslocoService);
 
   protected readonly playerWindow = inject(PlayerWindow);
@@ -118,6 +124,56 @@ export class GmScreenPage {
   protected openPlayerWindow(): void {
     if (!this.playerWindow.openWindow()) {
       this.notifications.error(this.transloco.translate('presentation.player.blocked'));
+    }
+  }
+
+  protected showShortcuts(): void {
+    this.modals.open(ShortcutsDialog, { size: 'sm' });
+  }
+
+  /**
+   * Raccourcis clavier (NF-32, liste dans `PRESENTATION_SHORTCUTS`) : ignorés pendant une saisie,
+   * avec une touche de modification, ou quand une fenêtre est ouverte.
+   */
+  protected onShortcut(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (
+      this.engine.status() !== 'ready' ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey ||
+      event.repeat ||
+      target?.closest('input, textarea, select, [contenteditable="true"]') ||
+      this.modals.isOpen()
+    ) {
+      return;
+    }
+    const key = event.key.toLowerCase();
+    const run = (action: () => unknown) => {
+      event.preventDefault();
+      Promise.resolve(action()).catch((error) => this.notifications.fromError(error));
+    };
+    if (key === 'c') {
+      const pending = [...this.engine.feed()]
+        .reverse()
+        .find((item) => item.type === 'user-click' && !item.validated);
+      if (pending) {
+        run(() => this.engine.continueClick(pending.id));
+      }
+    } else if (key === 's') {
+      run(() => this.nextScene()?.activate());
+    } else if (key === 'a') {
+      run(() => this.goToScene());
+    } else if (key === 'p') {
+      run(() => this.engine.togglePlayback());
+    } else if (key === '?') {
+      run(() => this.showShortcuts());
+    } else if (/^[1-9]$/.test(key)) {
+      const available = this.engine.manualActions().filter((a) => !a.done && !a.running);
+      const action = available[Number(key) - 1];
+      if (action) {
+        run(() => this.engine.runAction(action.action.id));
+      }
     }
   }
 

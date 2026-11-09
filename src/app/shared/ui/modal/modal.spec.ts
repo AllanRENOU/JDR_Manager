@@ -51,7 +51,7 @@ describe('Modals / Modal', () => {
     const first = open();
     let result: string | undefined = 'non fermée';
     first.ref.closed.subscribe((value) => (result = value));
-    (first.panel.querySelector('app-modal footer button') as HTMLButtonElement).click();
+    (first.panel.querySelector('app-modal .modal__footer button') as HTMLButtonElement).click();
     expect(result).toBe('ok');
 
     const second = open();

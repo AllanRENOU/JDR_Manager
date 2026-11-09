@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { aProject } from '../../../../../testing/data-builders';
+import { aProject, anAction } from '../../../../../testing/data-builders';
 import { seedPresentation, usePresentation } from '../../../../../testing/presentation-harness';
 import { DATA_REPOSITORY } from '../../../../core/data/data-repository';
 import { Notifications } from '../../../../shared/ui/notification-host/notifications';
@@ -137,5 +137,51 @@ describe('GmScreenPage', () => {
     await page.fixture.whenStable();
     expect(page.el.querySelector('.player-pill')?.textContent).toContain('Fenêtre joueurs ouverte');
     expect(button(page.el, 'Ouvrir la fenêtre joueurs')).toBeUndefined();
+  });
+
+  it('raccourcis clavier : action n°1, clic à continuer, aide ; ignorés pendant une saisie (13.4.3)', async () => {
+    await seedPresentation([
+      anAction('A', {
+        id: 'm1',
+        name: 'Le garde',
+        trigger: 'manual',
+        order: 2,
+        elements: [
+          { id: 'uc', type: 'user-click', text: 'Il approche.' },
+          { id: 't-m1', type: 'add-text', text: 'Il parle.' },
+        ],
+      }),
+    ]);
+    const page = await render('p1');
+    await launch('Commencer la partie', page);
+    const press = (key: string, target: EventTarget = document.body) =>
+      target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+
+    const input = document.body.appendChild(document.createElement('input'));
+    press('1', input);
+    await page.fixture.whenStable();
+    expect(page.el.querySelector('.click')).toBeNull();
+    input.remove();
+
+    press('1');
+    await vi.waitFor(async () => {
+      await page.fixture.whenStable();
+      expect(page.el.querySelector('.click')?.textContent).toContain('Il approche.');
+    });
+    press('c');
+    await vi.waitFor(async () => {
+      await page.fixture.whenStable();
+      expect(page.el.textContent).toContain('Il parle.');
+    });
+
+    press('?');
+    await vi.waitFor(() => {
+      TestBed.tick();
+      expect(document.querySelector('app-shortcuts-dialog')).not.toBeNull();
+    });
+    // Fenêtre ouverte : les raccourcis de l'écran sont ignorés.
+    const open = vi.spyOn(page.engine, 'togglePlayback');
+    press('p');
+    expect(open).not.toHaveBeenCalled();
   });
 });

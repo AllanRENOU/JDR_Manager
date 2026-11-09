@@ -12,6 +12,7 @@
     "format": "prettier --write \"src/**/*.{ts,html,scss,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\"",
     "check:themes": "node scripts/check-themes.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "test:coverage": "ng test --watch=false --coverage"
   },
   "private": true,

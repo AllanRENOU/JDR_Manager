@@ -62,10 +62,11 @@ npm run test:coverage
 ng lint                     # ESLint (TS + templates)
 npm run lint:styles         # Stylelint (SCSS)
 npm run check:themes        # jetons de thème complets + chaque thème branché (styles.scss, THEMES, fr.json)
+npm run check:i18n          # aucun texte en dur (templates, aria-label/title/placeholder/alt, chaînes du TS) ; clés présentes dans fr.json
 npm run format              # Prettier ; format:check pour vérifier
 ```
 
-**Avant de cocher une sous-tâche**, ces commandes doivent passer : `ng build`, `ng test --watch=false`, `ng lint`, `npm run lint:styles` et `npm run format:check`.
+**Avant de cocher une sous-tâche**, ces commandes doivent passer : `ng build`, `ng test --watch=false`, `ng lint`, `npm run lint:styles`, `npm run format:check`, `npm run check:themes` et `npm run check:i18n`.
 
 Pages de démonstration temporaires (à supprimer avant la V1) :
 
@@ -239,6 +240,14 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Tests audio : jsdom ne lit pas l'audio. Fournir un faux `AudioDuration`, et espionner `HTMLMediaElement.prototype.play` / `pause`.
 - Vérification dans Chromium : un script peut remplir IndexedDB (`jdr-manager`) une fois l'accueil chargé (la base doit d'abord être créée par l'application) ; `Storage.overrideQuotaForOrigin` (CDP) simule un petit quota. `navigator.storage.estimate()` sous-estime les `Blob`.
 
+## Robustesse, performance, accessibilité (lot 13)
+
+- Paramètres › Stockage : `StorageUsage` (`features/settings/storage-usage`), dépôt `getStorageUsage()`, `StoragePersistence.estimate()`, `formatFileSize()` (`shared/util/file-size.ts`).
+- Images de miniatures : `loading="lazy" decoding="async"`.
+- `app-modal` : en-tête et pied sont des `<div class="modal__header">` / `<div class="modal__footer">` (pas de repères `<header>` / `<footer>` en double) ; dans les tests, chercher `.modal__footer button`. `Modals.isOpen()` dit si une fenêtre est ouverte.
+- Raccourcis de la Présentation : liste `PRESENTATION_SHORTCUTS` (`gm-screen/shortcuts-dialog/shortcuts.ts`, affichée par `ShortcutsDialog`), traitement dans `GmScreenPage.onShortcut` (ignorés pendant une saisie, avec Ctrl / Alt / Cmd ou si une fenêtre est ouverte) ; poser `aria-keyshortcuts` sur le bouton concerné. Un nouveau raccourci = une entrée de la liste + une branche dans `onShortcut`.
+- Mesures (Chromium) : changement de scène < 20 ms, action < 15 ms, trois ambiances de 20 min sans coupure, URL de médias libérées (pas de fuite).
+
 ## Arborescence du code
 
 ```
@@ -261,7 +270,7 @@ src/app/
   app.config.ts  app.routes.ts (routes paresseuses)  app.html
 src/styles/         jetons, fonctions, moteur de thèmes, thèmes, styles globaux des directives
 src/testing/        utilitaires de test (exclus de tsconfig.app.json)
-scripts/            check-themes.mjs
+scripts/            check-themes.mjs, check-i18n.mjs
 public/i18n/fr.json
 ```
 

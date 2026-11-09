@@ -2,7 +2,12 @@
 <figure class="card">
   <div class="card__thumb">
     @if (image.url(); as url) {
-      <img [src]="url" [alt]="'battlemap.thumbnail' | transloco: { name: map.name }" />
+      <img
+        [src]="url"
+        [alt]="'battlemap.thumbnail' | transloco: { name: map.name }"
+        loading="lazy"
+        decoding="async"
+      />
     } @else {
       <app-placeholder grid="fine" />
       @if (image.missing()) {

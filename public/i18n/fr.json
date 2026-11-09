@@ -324,6 +324,16 @@
       "title": "Fenêtre joueurs",
       "waiting": "En attente de l’écran du MJ…",
       "fullscreenHint": "Double-cliquez pour passer en plein écran."
+    },
+    "shortcuts": {
+      "title": "Raccourcis clavier",
+      "subtitle": "Ignorés pendant une saisie ou quand une fenêtre est ouverte.",
+      "continue": "Cliquer pour continuer (dernier clic en attente)",
+      "nextScene": "Scène suivante",
+      "goToScene": "Aller à une scène",
+      "playPause": "Tout lire / tout mettre en pause",
+      "runAction": "Lancer la 1re à la 9e action disponible",
+      "help": "Afficher cette aide"
     }
   },
   "sound": {
@@ -415,6 +425,20 @@
       "title": "La crypte oubliée",
       "text": "Une odeur de terre humide envahit la pièce.",
       "button": "Présenter"
+    },
+    "storage": {
+      "title": "Stockage",
+      "hint": "Les projets, battlemaps et sons sont enregistrés dans ce navigateur, sur cet ordinateur.",
+      "images": "Images (battlemaps)",
+      "sounds": "Sons",
+      "total": "Total",
+      "available": "Place disponible pour l’application (estimation du navigateur)",
+      "files": {
+        "one": "{{ count }} fichier",
+        "other": "{{ count }} fichiers"
+      },
+      "persisted": "Données protégées : le navigateur ne les effacera pas de lui-même.",
+      "notPersisted": "Données non protégées : le navigateur peut les effacer si le disque manque de place. Pensez à garder vos fichiers d’origine."
     }
   },
   "dev": {

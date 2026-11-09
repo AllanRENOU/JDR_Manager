@@ -1,0 +1,76 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+  margin-top: space(40);
+}
+
+.section__title {
+  margin-bottom: space(4);
+  font-size: font-size(section);
+}
+
+.section__hint {
+  margin-bottom: space(16);
+  color: color(text-secondary);
+  font-size: font-size(small);
+}
+
+.usage {
+  display: flex;
+  flex-direction: column;
+  max-width: layout(modal-sm);
+  margin: 0;
+  border: 1px solid color(border-subtle);
+  border-radius: radius(lg);
+  background: color(bg-card);
+}
+
+.usage__row {
+  display: flex;
+  justify-content: space-between;
+  gap: space(16);
+  padding: space(12) space(16);
+
+  & + & {
+    border-top: 1px solid color(border-subtle);
+  }
+
+  dt {
+    color: color(text-secondary);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.usage__row--total {
+  font-weight: font-weight(semibold);
+
+  dt {
+    color: color(text-primary);
+  }
+}
+
+.protection {
+  display: flex;
+  align-items: center;
+  gap: space(8);
+  margin-top: space(12);
+  font-size: font-size(small);
+
+  svg {
+    flex-shrink: 0;
+    width: space(16);
+    height: space(16);
+  }
+}
+
+.protection--on {
+  color: color(active-text);
+}
+
+.protection--off {
+  color: color(danger-text);
+}

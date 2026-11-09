@@ -7,7 +7,7 @@
     (click)="open(map)"
   >
     @if (image.url(); as url) {
-      <img class="thumb__image" [src]="url" alt="" />
+      <img class="thumb__image" [src]="url" alt="" loading="lazy" decoding="async" />
     } @else {
       <app-placeholder class="thumb__image" grid="fine" />
     }

@@ -1,6 +1,13 @@
 @let next = engine.nextScenes();
 @if (next.length === 1) {
-  <button class="next" appButton size="lg" type="button" (click)="go(next[0].id)">
+  <button
+    class="next"
+    appButton
+    size="lg"
+    type="button"
+    aria-keyshortcuts="S"
+    (click)="go(next[0].id)"
+  >
     {{ 'presentation.nextScene' | transloco }}
     <svg lucideArrowRight aria-hidden="true"></svg>
   </button>
@@ -10,6 +17,7 @@
     appButton
     size="lg"
     type="button"
+    aria-keyshortcuts="S"
     [cdkMenuTriggerFor]="list"
     [cdkMenuPosition]="positions"
   >

@@ -213,7 +213,7 @@ describe('Tree', () => {
       const dialog = document.querySelector('app-confirm-dialog') as HTMLElement;
       expect(dialog.textContent).toContain('Supprimer « Acte 1 » ?');
       expect(dialog.textContent).toContain('tout son contenu (1 élément(s))');
-      const [cancel, confirm] = dialog.querySelectorAll<HTMLButtonElement>('footer button');
+      const [cancel, confirm] = dialog.querySelectorAll<HTMLButtonElement>('.modal__footer button');
       confirm.click();
       await pending;
       expect(host.removed).toEqual(['acte1']);
@@ -223,7 +223,7 @@ describe('Tree', () => {
       expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
         'Cette action est irréversible.',
       );
-      (document.querySelector('app-confirm-dialog footer button') as HTMLButtonElement).click();
+      (document.querySelector('app-confirm-dialog .modal__footer button') as HTMLButtonElement).click();
       await cancelled;
       expect(host.removed).toEqual(['acte1']);
       expect(cancel).toBeDefined();
@@ -242,7 +242,7 @@ describe('Tree', () => {
       expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
         'Attention : Acte 1',
       );
-      (document.querySelector('app-confirm-dialog footer button') as HTMLButtonElement).click();
+      (document.querySelector('app-confirm-dialog .modal__footer button') as HTMLButtonElement).click();
       await folder;
 
       const item = host.tree().requestRemove(NODES[2]);
@@ -250,7 +250,7 @@ describe('Tree', () => {
       expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
         'Cette action est irréversible.',
       );
-      (document.querySelector('app-confirm-dialog footer button') as HTMLButtonElement).click();
+      (document.querySelector('app-confirm-dialog .modal__footer button') as HTMLButtonElement).click();
       await item;
       expect(host.removed).toEqual([]);
     });

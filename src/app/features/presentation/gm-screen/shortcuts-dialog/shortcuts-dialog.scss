@@ -1,0 +1,35 @@
+@use 'functions' as *;
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: space(10);
+  margin: 0;
+}
+
+.list__row {
+  display: flex;
+  align-items: center;
+  gap: space(16);
+
+  dt {
+    width: space(64);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.key {
+  display: inline-block;
+  min-width: space(28);
+  padding: space(2) space(8);
+  border: 1px solid color(border-strong);
+  border-radius: radius(sm);
+  background: color(bg-raised);
+  font-family: font-family(ui);
+  font-size: font-size(small);
+  font-weight: font-weight(semibold);
+  text-align: center;
+}

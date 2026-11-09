@@ -89,6 +89,8 @@ export interface DataRepository {
    * @throws DataError `media-not-found`.
    */
   getMediaUrl(mediaId: Id): Promise<string>;
+  /** Nombre et taille des médias enregistrés, par type (place utilisée, NF-14). */
+  getStorageUsage(): Promise<StorageUsage>;
   /** Supprime le média, seulement s'il n'est plus référencé par une battlemap ou un son. */
   deleteMedia(id: Id): Promise<void>;
 
@@ -96,6 +98,12 @@ export interface DataRepository {
   getPlaySession(projectId: Id): Promise<PlaySession | undefined>;
   savePlaySession(session: PlaySession): Promise<void>;
   deletePlaySession(projectId: Id): Promise<void>;
+}
+
+/** Place occupée par les médias (images et sons), en octets. */
+export interface StorageUsage {
+  images: { count: number; bytes: number };
+  sounds: { count: number; bytes: number };
 }
 
 /** Action contenant des éléments « Changer de scène » : sa scène et les scènes visées. */

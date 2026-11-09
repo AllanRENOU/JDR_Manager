@@ -1,0 +1,15 @@
+<app-modal
+  [title]="'presentation.shortcuts.title' | transloco"
+  [subtitle]="'presentation.shortcuts.subtitle' | transloco"
+>
+  <dl class="list">
+    @for (shortcut of shortcuts; track shortcut.keys) {
+      <div class="list__row">
+        <dt>
+          <kbd class="key">{{ shortcut.keys }}</kbd>
+        </dt>
+        <dd>{{ shortcut.labelKey | transloco }}</dd>
+      </div>
+    }
+  </dl>
+</app-modal>

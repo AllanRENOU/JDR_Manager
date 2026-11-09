@@ -1,6 +1,6 @@
 import { CdkMenuTrigger } from '@angular/cdk/menu';
 import { ConnectedPosition } from '@angular/cdk/overlay';
-import { Component, inject } from '@angular/core';
+import { Component, inject, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LucideArrowRight, LucideChevronUp } from '@lucide/angular';
 
@@ -36,6 +36,18 @@ export class NextSceneButton {
   protected readonly positions: ConnectedPosition[] = [
     { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -8 },
   ];
+
+  private readonly menu = viewChild(CdkMenuTrigger);
+
+  /** Raccourci « S » : ouvre la seule scène suivante, ou la liste s'il y en a plusieurs. */
+  activate(): void {
+    const next = this.engine.nextScenes();
+    if (next.length === 1) {
+      this.go(next[0].id);
+    } else if (next.length > 1) {
+      this.menu()?.open();
+    }
+  }
 
   protected go(sceneId: string): void {
     this.engine.openScene(sceneId).catch((error) => this.notifications.fromError(error));

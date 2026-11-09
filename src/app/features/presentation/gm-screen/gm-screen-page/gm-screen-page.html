@@ -33,7 +33,28 @@
     </button>
   }
   @if (engine.status() === 'ready') {
-    <button headerEnd appButton="secondary" size="header" type="button" (click)="goToScene()">
+    <button
+      headerEnd
+      appButton="icon"
+      size="header"
+      type="button"
+      aria-keyshortcuts="?"
+      [attr.aria-label]="'presentation.shortcuts.title' | transloco"
+      [attr.title]="'presentation.shortcuts.title' | transloco"
+      (click)="showShortcuts()"
+    >
+      <svg lucideKeyboard aria-hidden="true"></svg>
+    </button>
+  }
+  @if (engine.status() === 'ready') {
+    <button
+      headerEnd
+      aria-keyshortcuts="A"
+      appButton="secondary"
+      size="header"
+      type="button"
+      (click)="goToScene()"
+    >
       <svg lucideMap aria-hidden="true"></svg>{{ 'presentation.goToScene' | transloco }}
     </button>
   }

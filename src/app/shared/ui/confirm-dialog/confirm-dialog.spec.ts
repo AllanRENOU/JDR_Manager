@@ -15,7 +15,7 @@ describe('Modals.confirm', () => {
 
   function buttons(): HTMLButtonElement[] {
     TestBed.tick();
-    return [...document.querySelectorAll<HTMLButtonElement>('app-confirm-dialog footer button')];
+    return [...document.querySelectorAll<HTMLButtonElement>('app-confirm-dialog .modal__footer button')];
   }
 
   it('renvoie true à la confirmation, avec les libellés par défaut', async () => {

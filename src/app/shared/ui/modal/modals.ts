@@ -55,6 +55,11 @@ export class Modals {
     return (await firstValueFrom(ref.closed)) === true;
   }
 
+  /** Vrai si une fenêtre est ouverte (ex. pour ignorer les raccourcis clavier de l'écran). */
+  isOpen(): boolean {
+    return this.dialog.openDialogs.length > 0;
+  }
+
   /** Ferme toutes les fenêtres ouvertes (changement d'écran). */
   closeAll(): void {
     this.dialog.closeAll();

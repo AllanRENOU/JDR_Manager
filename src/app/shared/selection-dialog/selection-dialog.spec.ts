@@ -31,7 +31,7 @@ describe('Selections / SelectionDialog', () => {
     [...dialog().querySelectorAll<HTMLElement>('.tree__row')].find((r) =>
       r.textContent?.includes(name),
     )!;
-  const footer = () => dialog().querySelectorAll<HTMLButtonElement>('footer button');
+  const footer = () => dialog().querySelectorAll<HTMLButtonElement>('.modal__footer button');
   const search = (text: string) => {
     const input = dialog().querySelector('input[type="search"]') as HTMLInputElement;
     input.value = text;

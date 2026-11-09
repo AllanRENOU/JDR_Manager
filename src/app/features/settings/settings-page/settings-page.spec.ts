@@ -2,6 +2,7 @@ import { ApplicationRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
+import { useTestRepository } from '../../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
 import { THEMES, Theme } from '../../../core/theme/theme';
 import { SettingsPage } from './settings-page';
@@ -10,7 +11,7 @@ describe('SettingsPage', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [getTranslocoTestingModule()],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), ...useTestRepository()],
     });
   });
 

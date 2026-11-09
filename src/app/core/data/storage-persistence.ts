@@ -17,6 +17,19 @@ export class StoragePersistence {
   readonly persisted = this.state.asReadonly();
 
   /**
+   * Estimation du navigateur (octets) : place utilisée et quota de l'application ; `null` si
+   * l'API est absente. Peut sous-estimer les fichiers (Blob) dans Chrome.
+   */
+  async estimate(): Promise<{ usage: number; quota: number } | null> {
+    try {
+      const estimate = await this.storage?.estimate?.();
+      return estimate?.quota ? { usage: estimate.usage ?? 0, quota: estimate.quota } : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Demande le stockage persistant s'il ne l'est pas déjà. Ne lève jamais d'erreur : en cas
    * de refus ou d'API absente, l'application continue normalement.
    */
