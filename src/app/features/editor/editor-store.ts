@@ -36,6 +36,12 @@ export interface ActionText {
   element: AddTextElement;
 }
 
+/** Textes d'une même action, affichés ensemble sous une seule pastille. */
+export interface ActionTextGroup {
+  action: Action;
+  elements: AddTextElement[];
+}
+
 /** Résultat d'un import d'images de battlemap. */
 export interface BattlemapImportResult {
   imported: Battlemap[];
@@ -138,6 +144,17 @@ export class EditorStore {
         .filter((e): e is AddTextElement => e.type === 'add-text' && e !== sceneTextElement)
         .map((element) => ({ action, element })),
     );
+  });
+
+  /** {@link actionTexts} regroupés par action (une pastille par action). */
+  readonly actionTextGroups = computed<ActionTextGroup[]>(() => {
+    const groups: ActionTextGroup[] = [];
+    for (const { action, element } of this.actionTexts()) {
+      const last = groups.at(-1);
+      if (last?.action.id === action.id) last.elements.push(element);
+      else groups.push({ action, elements: [element] });
+    }
+    return groups;
   });
 
   /**

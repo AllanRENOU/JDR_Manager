@@ -361,6 +361,32 @@ describe('EditorPage', () => {
     );
   });
 
+  it('n’affiche qu’une pastille avant les textes d’une même action', async () => {
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    const project = aProject();
+    const node = aSceneNode(project.id);
+    const action = anAction(node.id, {
+      name: 'Bagarre',
+      elements: [
+        { id: 't1', type: 'add-text', text: 'Une chope vole.' },
+        { id: 't2', type: 'add-text', text: 'Le tavernier crie.' },
+      ],
+    });
+    await repository.saveProject({ ...project, firstSceneId: node.id });
+    await repository.saveSceneNodes([node]);
+    await repository.saveScene(aScene(project.id, node.id));
+    await repository.saveAction(action);
+    const el = await render(project.id);
+    await vi.waitFor(() => expect(el.querySelector('.action-text')).not.toBeNull());
+
+    expect(el.querySelectorAll('.action-text')).toHaveLength(1);
+    const block = el.querySelector('.action-text') as HTMLElement;
+    expect(block.querySelectorAll('app-pill')).toHaveLength(1);
+    expect(
+      [...block.querySelectorAll('textarea')].map((t) => (t as HTMLTextAreaElement).value),
+    ).toEqual(['Une chope vole.', 'Le tavernier crie.']);
+  });
+
   it('après « Enregistrer » dans l’éditeur d’action, le centre et le volet se mettent à jour (8.4.2)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const project = aProject();

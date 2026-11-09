@@ -377,6 +377,37 @@ describe('EditorStore', () => {
       expect(store.initialTexts()).toEqual({ s2: 'Un murmure.', b1: 'Une chope vole.' });
     });
 
+    it('regroupe les textes d’une même action (une pastille par action)', async () => {
+      const project = aProject();
+      const node = aSceneNode(project.id);
+      await repository().saveProject({ ...project, firstSceneId: node.id });
+      await repository().saveSceneNodes([node]);
+      await repository().saveScene(aScene(project.id, node.id));
+      const text = (id: string, value: string) => ({ id, type: 'add-text' as const, text: value });
+      await repository().saveAction(
+        anAction(node.id, {
+          name: 'Bagarre',
+          order: 1,
+          elements: [
+            text('b1', 'Une chope vole.'),
+            { id: 'w', type: 'wait', seconds: 1 },
+            text('b2', 'Le tavernier crie.'),
+          ],
+        }),
+      );
+      await repository().saveAction(
+        anAction(node.id, { name: 'Fuite', order: 2, elements: [text('f1', 'Ils fuient.')] }),
+      );
+      await store.load(project.id);
+
+      expect(
+        store.actionTextGroups().map((g) => [g.action.name, g.elements.map((e) => e.id)]),
+      ).toEqual([
+        ['Bagarre', ['b1', 'b2']],
+        ['Fuite', ['f1']],
+      ]);
+    });
+
     it('enregistre la saisie d’un texte d’action avec le texte de scène, après un temps de calme', async () => {
       const project = aProject();
       const node = aSceneNode(project.id);
