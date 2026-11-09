@@ -54,7 +54,7 @@ describe('ActionEditor', () => {
     ]);
     expect(button(dialog, 'Supprimer l’action')).toBeUndefined();
 
-    nameInput(dialog).value = '  Bagarre ';
+    nameInput(dialog).value = '  bagarre ';
     nameInput(dialog).dispatchEvent(new Event('input'));
     segments(dialog)[0].click();
     TestBed.tick();

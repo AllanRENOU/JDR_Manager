@@ -55,6 +55,7 @@ export interface ActionEditorData {
 
 /** Résultat : action à enregistrer, ou à supprimer (confirmation déjà faite). */
 export type ActionEditorResult = { kind: 'save'; draft: ActionDraft } | { kind: 'delete' };
+import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
 
 /**
  * Éditeur d'action (Brief §7.2, ACT-01 à ACT-03) : fenêtre de 900 px avec nom, déclencheur et
@@ -64,6 +65,7 @@ export type ActionEditorResult = { kind: 'save'; draft: ActionDraft } | { kind: 
 @Component({
   selector: 'app-action-editor',
   imports: [
+    Capitalize,
     Modal,
     Field,
     Input,

@@ -34,12 +34,14 @@ import { SequencePanel } from '../sequence-panel/sequence-panel';
 
 /** Libellés de l'arborescence des scènes (TEC-61). */
 const SCENE_TREE_LABELS: Partial<TreeLabels> = { newItem: 'scene.newScene' };
+import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
 
 /** Mode Édition d'un projet (`/projects/:projectId/edit`, PRJ-03). */
 import { SettingsButton } from '../../settings/settings-button/settings-button';
 @Component({
   selector: 'app-editor-page',
   imports: [
+    Capitalize,
     SettingsButton,
     AppHeader,
     ActionsPanel,

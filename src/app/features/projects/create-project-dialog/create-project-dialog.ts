@@ -11,6 +11,7 @@ import { Modal } from '../../../shared/ui/modal/modal';
 export interface ProjectNameDialogData {
   name?: string;
 }
+import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
 
 /**
  * Fenêtre « Créer un projet » ou « Renommer le projet » (si `data.name` est fourni) :
@@ -18,7 +19,7 @@ export interface ProjectNameDialogData {
  */
 @Component({
   selector: 'app-create-project-dialog',
-  imports: [Modal, Field, Input, Button, TranslocoPipe],
+  imports: [Capitalize, Modal, Field, Input, Button, TranslocoPipe],
   templateUrl: './create-project-dialog.html',
 })
 export class CreateProjectDialog {

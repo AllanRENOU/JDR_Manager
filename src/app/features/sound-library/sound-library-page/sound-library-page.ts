@@ -53,6 +53,7 @@ import { SoundPreview } from '../sound-preview';
 const SOUND_TREE_LABELS: Partial<TreeLabels> = {
   deleteFolderMessage: 'sound.deleteFolderMessage',
 };
+import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
 
 /**
  * Bibliothèques de sons (SON-01, Brief §7.2).
@@ -63,6 +64,7 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
 @Component({
   selector: 'app-sound-library-page',
   imports: [
+    Capitalize,
     SettingsButton,
     AppHeader,
     Alert,

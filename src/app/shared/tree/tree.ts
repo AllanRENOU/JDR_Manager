@@ -67,6 +67,7 @@ export interface TreeRenameEvent {
   id: Id;
   name: string;
 }
+import { Capitalize } from '../ui/capitalize/capitalize';
 
 /**
  * Arborescence générique (TEC-60, TRD §8) : scènes, bibliothèques de sons, navigation libre et
@@ -76,6 +77,7 @@ export interface TreeRenameEvent {
 @Component({
   selector: 'app-tree',
   imports: [
+    Capitalize,
     NgTemplateOutlet,
     TranslocoPipe,
     CdkMenuTrigger,

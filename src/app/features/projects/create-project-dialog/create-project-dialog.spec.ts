@@ -9,7 +9,7 @@ describe('CreateProjectDialog', () => {
   beforeEach(() => TestBed.configureTestingModule({ imports: [getTranslocoTestingModule()] }));
   afterEach(() => TestBed.inject(Modals).closeAll());
 
-  it('valide à la touche Entrée et renvoie le nom sans espaces superflus ; nom vide refusé', async () => {
+  it('valide à la touche Entrée et renvoie le nom sans espaces superflus, avec une majuscule ; nom vide refusé', async () => {
     const ref = TestBed.inject(Modals).open<string>(CreateProjectDialog);
     TestBed.tick();
     const dialog = document.querySelector('app-create-project-dialog') as HTMLElement;
@@ -22,7 +22,7 @@ describe('CreateProjectDialog', () => {
     expect(document.querySelector('app-create-project-dialog')).not.toBeNull();
 
     const result = firstValueFrom(ref.closed);
-    input.value = ' La crypte ';
+    input.value = ' la crypte ';
     input.dispatchEvent(new Event('input'));
     form.dispatchEvent(new Event('submit', { cancelable: true }));
     expect(await result).toBe('La crypte');

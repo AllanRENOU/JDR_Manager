@@ -72,6 +72,7 @@
       @if (editingId() === node.id) {
         <input
           #renameInput
+          appCapitalize
           class="tree__rename"
           type="text"
           [value]="node.name"
