@@ -51,9 +51,11 @@ import {
  * scène et « Aller à une scène », fil d'actualité et « Scène suivante » au centre, panneau de
  * contrôle Battlemap / Actions / Sons à droite.
  */
+import { SettingsButton } from '../../../settings/settings-button/settings-button';
 @Component({
   selector: 'app-gm-screen-page',
   imports: [
+    SettingsButton,
     AppHeader,
     Alert,
     Button,

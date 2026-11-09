@@ -59,9 +59,11 @@ const SOUND_TREE_LABELS: Partial<TreeLabels> = {
  * - `/projects/:projectId/sounds` : sons du projet et bibliothèque globale (onglet « Sons » de l'Édition) ;
  * - `/sounds` : bibliothèque globale seule, ouverte depuis l'accueil.
  */
+import { SettingsButton } from '../../settings/settings-button/settings-button';
 @Component({
   selector: 'app-sound-library-page',
   imports: [
+    SettingsButton,
     AppHeader,
     Alert,
     Button,

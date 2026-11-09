@@ -36,9 +36,11 @@ import { SequencePanel } from '../sequence-panel/sequence-panel';
 const SCENE_TREE_LABELS: Partial<TreeLabels> = { newItem: 'scene.newScene' };
 
 /** Mode Édition d'un projet (`/projects/:projectId/edit`, PRJ-03). */
+import { SettingsButton } from '../../settings/settings-button/settings-button';
 @Component({
   selector: 'app-editor-page',
   imports: [
+    SettingsButton,
     AppHeader,
     ActionsPanel,
     BattlemapsPanel,

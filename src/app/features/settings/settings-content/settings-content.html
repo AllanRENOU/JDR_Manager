@@ -1,0 +1,32 @@
+<section class="section" aria-labelledby="settings-appearance">
+  <h2 class="section__title" id="settings-appearance">{{ 'settings.appearance' | transloco }}</h2>
+  <p class="section__hint">{{ 'settings.appearanceHint' | transloco }}</p>
+  <div class="themes" role="radiogroup" [attr.aria-label]="'settings.themeChoice' | transloco">
+    @for (option of theme.themes; track option.id) {
+      @let current = option.id === theme.theme();
+      <button
+        class="theme"
+        type="button"
+        role="radio"
+        [class.theme--current]="current"
+        [attr.aria-checked]="current"
+        [attr.data-theme-option]="option.id"
+        [tabindex]="current ? 0 : -1"
+        (click)="choose(option.id)"
+        (keydown)="onKeydown($event, $index)"
+      >
+        <app-theme-preview [theme]="option.id" />
+        <span class="theme__footer">
+          <span class="theme__name">{{ option.labelKey | transloco }}</span>
+          @if (current) {
+            <span class="theme__current">
+              <svg lucideCheck aria-hidden="true"></svg>{{ 'settings.current' | transloco }}
+            </span>
+          }
+        </span>
+      </button>
+    }
+  </div>
+</section>
+
+<app-storage-usage />
