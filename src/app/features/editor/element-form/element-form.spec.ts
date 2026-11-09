@@ -143,7 +143,7 @@ describe('ElementForm', () => {
     expect(el.querySelector('input, textarea, button')).toBeNull();
   });
 
-  it('Ajouter un texte : zone de texte (8.3.5)', () => {
+  it('Afficher un texte : zone de texte (8.3.5)', () => {
     const { el, emitted } = render({ id: 'e1', type: 'add-text', text: 'Bonjour' });
     const area = el.querySelector('textarea')!;
     expect(area.value).toBe('Bonjour');

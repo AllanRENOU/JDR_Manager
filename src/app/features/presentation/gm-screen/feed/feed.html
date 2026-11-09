@@ -16,7 +16,10 @@
       >
         @switch (item.type) {
           @case ('text') {
-            <article class="text">{{ engine.textOf(item) }}</article>
+            <article
+              class="text app-markdown"
+              [innerHTML]="engine.textOf(item) | markdown"
+            ></article>
           }
           @case ('battlemap') {
             <app-feed-battlemap

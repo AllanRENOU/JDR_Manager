@@ -25,6 +25,8 @@ import { Button } from '../../../shared/ui/button/button';
 import { CollapsibleSection } from '../../../shared/ui/collapsible-section/collapsible-section';
 import { DataError } from '../../../core/data/data-error';
 import { Alert } from '../../../shared/ui/alert/alert';
+import { MarkdownEditor } from '../../../shared/markdown/markdown-editor';
+import { MarkdownPipe } from '../../../shared/markdown/markdown-pipe';
 import { Field } from '../../../shared/ui/field/field';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { Menu } from '../../../shared/ui/menu/menu';
@@ -65,6 +67,8 @@ import {
     Pill,
     Field,
     Input,
+    MarkdownEditor,
+    MarkdownPipe,
     SegmentedControl,
     LucidePlus,
     LucidePause,
@@ -75,6 +79,10 @@ import {
 })
 export class ComponentsDemoPage {
   protected readonly theme = inject(Theme);
+  protected readonly markdownDemo = signal(
+    '## La crypte\nLa porte **grince** et une odeur de _terre humide_ envahit la pièce.\n\n' +
+      '- Une torche éteinte\n- Un coffre fermé\n\n> « Qui ose troubler mon repos ? »',
+  );
   private readonly transloco = inject(TranslocoService);
   private readonly sceneTree = viewChild.required<Tree<SceneNode>>('sceneTree');
   private readonly modals = inject(Modals);

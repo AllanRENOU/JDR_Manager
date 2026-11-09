@@ -101,7 +101,13 @@
 
   @case ('add-text') {
     <app-field [label]="'action.form.text' | transloco" #textField>
-      <textarea appInput rows="3" [id]="textField.controlId" [formField]="form.text"></textarea>
+      <textarea
+        appInput
+        appMarkdownEditor
+        rows="3"
+        [id]="textField.controlId"
+        [formField]="form.text"
+      ></textarea>
     </app-field>
   }
 

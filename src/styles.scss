@@ -9,6 +9,7 @@
 @use 'styles/components/form';
 @use 'styles/components/overlay';
 @use 'styles/components/menu';
+@use 'styles/components/markdown';
 
 // Jetons communs à tous les thèmes (espacements, rayons, typographie…).
 @include engine.common-tokens;

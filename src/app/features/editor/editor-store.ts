@@ -24,7 +24,7 @@ import { baseName } from '../../shared/util/file-name';
 
 export type EditorStatus = 'loading' | 'ready' | 'missing';
 
-/** Élément « Ajouter un texte » d'une action, désigné pour l'enregistrement. */
+/** Élément « Afficher un texte » d'une action, désigné pour l'enregistrement. */
 export interface TextTarget {
   actionId: Id;
   elementId: Id;
@@ -124,7 +124,7 @@ export class EditorStore {
   readonly actions = signal<Action[]>([]);
   /** Action « Texte de scène » de la scène ouverte (créée à la première saisie). */
   readonly sceneTextAction = computed(() => this.actions().find((a) => a.isSceneText) ?? null);
-  /** Texte de scène : texte du premier élément « Ajouter un texte » de cette action. */
+  /** Texte de scène : texte du premier élément « Afficher un texte » de cette action. */
   readonly sceneText = computed(() => firstTextElement(this.sceneTextAction())?.text ?? '');
 
   /**
@@ -236,7 +236,7 @@ export class EditorStore {
     }
   }
 
-  /** Met à jour le texte d'un élément « Ajouter un texte » d'une action de la scène ouverte. */
+  /** Met à jour le texte d'un élément « Afficher un texte » d'une action de la scène ouverte. */
   setActionText(target: TextTarget, text: string): Promise<void> {
     const run = this.writes.then(async () => {
       const action = this.actions().find((a) => a.id === target.actionId);

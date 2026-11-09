@@ -1,0 +1,110 @@
+// Texte Markdown interprété (pipe `markdown` + `[innerHTML]`) : `<div class="app-markdown">`.
+// Hérite de la police et de la taille du conteneur (ex. narration du fil d'actualité).
+@use '../functions' as *;
+
+.app-markdown {
+  overflow-wrap: anywhere;
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  p,
+  ul,
+  ol,
+  blockquote,
+  pre,
+  table {
+    margin: 0 0 space(12);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: space(18) 0 space(8);
+    color: color(accent-text);
+    font-family: font-family(title);
+    font-weight: font-weight(semibold);
+    line-height: line-height(tight);
+  }
+
+  h1 {
+    font-size: font-size(screen);
+  }
+
+  h2 {
+    font-size: font-size(dialog);
+  }
+
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-size: font-size(lead);
+  }
+
+  ul,
+  ol {
+    padding-left: space(24);
+  }
+
+  li + li {
+    margin-top: space(4);
+  }
+
+  strong {
+    font-weight: font-weight(bold);
+  }
+
+  blockquote {
+    padding: space(4) 0 space(4) space(16);
+    border-left: 3px solid color(accent);
+    color: color(text-secondary);
+    font-style: italic;
+  }
+
+  a {
+    color: color(accent-text);
+  }
+
+  hr {
+    margin: space(18) 0;
+    border: 0;
+    border-top: 1px solid color(border-default);
+  }
+
+  code {
+    padding: 0 space(4);
+    border-radius: radius(sm);
+    background: color(bg-control);
+    font-size: font-size(lead);
+  }
+
+  pre code {
+    display: block;
+    padding: space(12);
+    overflow-x: auto;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: space(6) space(10);
+    border: 1px solid color(border-subtle);
+    text-align: left;
+  }
+
+  img {
+    max-width: 100%;
+  }
+}

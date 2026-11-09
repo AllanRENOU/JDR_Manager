@@ -1,0 +1,12 @@
+@use 'functions' as *;
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space(2);
+}
+
+svg {
+  width: space(16);
+  height: space(16);
+}

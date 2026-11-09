@@ -1,5 +1,8 @@
-import { Component, input } from '@angular/core';
+import { Component, contentChild, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+
+import { MarkdownEditor } from '../../markdown/markdown-editor';
+import { MarkdownToolbar } from '../../markdown/markdown-toolbar/markdown-toolbar';
 
 let nextId = 0;
 
@@ -13,10 +16,13 @@ let nextId = 0;
  * ```
  * `controlId` relie le libellé au contrôle. `hiddenLabel` garde le libellé pour les lecteurs
  * d'écran seulement (ex. texte de scène).
+ *
+ * Un `<textarea appMarkdownEditor>` projeté ajoute la barre de mise en page Markdown
+ * (`MarkdownToolbar`) entre le libellé et le champ.
  */
 @Component({
   selector: 'app-field',
-  imports: [TranslocoPipe],
+  imports: [MarkdownToolbar, TranslocoPipe],
   templateUrl: './field.html',
   styleUrl: './field.scss',
 })
@@ -26,6 +32,9 @@ export class Field {
   readonly hint = input('');
   readonly error = input('');
   readonly hiddenLabel = input(false);
+
+  /** Champ Markdown projeté, s'il y en a un : affiche la barre d'outils. */
+  protected readonly markdownEditor = contentChild(MarkdownEditor);
 
   /** Identifiant à poser sur le contrôle projeté. */
   readonly controlId = `app-field-${++nextId}`;

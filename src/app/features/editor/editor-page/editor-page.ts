@@ -17,6 +17,7 @@ import { FORMAT_LABELS, MediaKind } from '../../../core/media/media-types';
 import { Id, SceneNode, TreeNodeKind } from '../../../core/models';
 import { FileDrop } from '../../../shared/file-drop/file-drop';
 import { FileDropOverlay } from '../../../shared/file-drop/file-drop-overlay/file-drop-overlay';
+import { MarkdownEditor } from '../../../shared/markdown/markdown-editor';
 import { ProjectNav } from '../../../shared/project-nav/project-nav';
 import { Tree, TreeCreateEvent, TreeMenuItem, TreeRenameEvent } from '../../../shared/tree/tree';
 import { TreeLabels } from '../../../shared/tree/tree-labels';
@@ -43,6 +44,7 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
   selector: 'app-editor-page',
   imports: [
     Capitalize,
+    MarkdownEditor,
     SettingsButton,
     AppHeader,
     ActionsPanel,

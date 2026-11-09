@@ -138,14 +138,14 @@ describe('ActionEditor', () => {
         'Lancer un son',
         'Arrêter un son',
         'Arrêter tous les sons',
-        'Ajouter un texte',
+        'Afficher un texte',
         'Changer de scène',
         'Attendre',
         'Clic de l’utilisateur',
       ]);
       items[6].click();
       TestBed.tick();
-      expect(titles(dialog)).toEqual(['Ajouter un texte Un', 'Attendre 1 s']);
+      expect(titles(dialog)).toEqual(['Afficher un texte Un', 'Attendre 1 s']);
       expect(dialog.querySelectorAll('app-element-card')[1].classList).toContain('expanded');
 
       button(dialog, 'Enregistrer').click();
@@ -167,9 +167,9 @@ describe('ActionEditor', () => {
       editor.moveElement(2, 0);
       TestBed.tick();
       expect(titles(dialog)).toEqual([
-        'Ajouter un texte Trois',
-        'Ajouter un texte Un',
-        'Ajouter un texte Deux',
+        'Afficher un texte Trois',
+        'Afficher un texte Un',
+        'Afficher un texte Deux',
       ]);
       expect(
         [...dialog.querySelectorAll('.card__index')].map((i) => i.textContent?.trim()),
@@ -181,7 +181,7 @@ describe('ActionEditor', () => {
           .querySelector('.card__head button') as HTMLButtonElement
       ).click();
       TestBed.tick();
-      expect(titles(dialog)).toEqual(['Ajouter un texte Trois', 'Ajouter un texte Deux']);
+      expect(titles(dialog)).toEqual(['Afficher un texte Trois', 'Afficher un texte Deux']);
 
       button(dialog, 'Enregistrer').click();
       const saved = await result;

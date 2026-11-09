@@ -21,6 +21,7 @@ import {
 
 import { pluralKey } from '../../../../core/i18n/plural';
 import { Id } from '../../../../core/models';
+import { MarkdownPipe } from '../../../../shared/markdown/markdown-pipe';
 import { Button } from '../../../../shared/ui/button/button';
 import { PresentationEngine } from '../../engine/presentation-engine';
 import { FeedBattlemap } from '../feed-battlemap/feed-battlemap';
@@ -38,6 +39,7 @@ const SCROLLED_UP_THRESHOLD = 48;
   imports: [
     Button,
     FeedBattlemap,
+    MarkdownPipe,
     TranslocoPipe,
     LucideArrowDown,
     LucideArrowRight,

@@ -1,0 +1,22 @@
+<div
+  class="toolbar"
+  role="toolbar"
+  [attr.aria-label]="'markdown.toolbar' | transloco"
+  [attr.aria-controls]="controlId() || null"
+>
+  @for (tool of tools; track tool.format) {
+    @let label = tool.labelKey | transloco;
+    <button
+      appButton="icon"
+      size="sm"
+      type="button"
+      [attr.aria-label]="label"
+      [title]="tool.shortcut ? label + ' (' + tool.shortcut.label + ')' : label"
+      [attr.aria-keyshortcuts]="tool.shortcut?.aria ?? null"
+      (mousedown)="$event.preventDefault()"
+      (click)="editor().apply(tool.format)"
+    >
+      <svg [lucideIcon]="tool.icon" aria-hidden="true"></svg>
+    </button>
+  }
+</div>

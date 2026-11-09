@@ -4,6 +4,9 @@
     <span class="field__required">({{ 'common.required' | transloco }})</span>
   }
 </label>
+@if (markdownEditor(); as editor) {
+  <app-markdown-toolbar [editor]="editor" [controlId]="controlId" />
+}
 <ng-content />
 @if (error()) {
   <p class="field__error" role="alert" [id]="messageId">{{ error() }}</p>

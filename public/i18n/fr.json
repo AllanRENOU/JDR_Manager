@@ -401,6 +401,15 @@
       "other": "Le dossier, ses sous-dossiers et les sons qu’il contient ({{ sounds }}) seront supprimés. Attention : {{ count }} de ces sons sont utilisés dans des actions, qui les signaleront comme introuvables. Cette action est irréversible."
     }
   },
+  "markdown": {
+    "toolbar": "Mise en page",
+    "bold": "Gras",
+    "italic": "Italique",
+    "heading": "Titre",
+    "bulletList": "Liste à puces",
+    "numberedList": "Liste numérotée",
+    "quote": "Citation"
+  },
   "error": {
     "generic": "Une erreur est survenue.",
     "storageUnavailable": "Le stockage du navigateur est indisponible.",

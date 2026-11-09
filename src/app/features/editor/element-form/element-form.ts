@@ -15,6 +15,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { LucideTriangleAlert } from '@lucide/angular';
 
 import { ActionElement, Id } from '../../../core/models';
+import { MarkdownEditor } from '../../../shared/markdown/markdown-editor';
 import { Selections } from '../../../shared/selection-dialog/selections';
 import { Field } from '../../../shared/ui/field/field';
 import { Input } from '../../../shared/ui/input/input';
@@ -94,6 +95,7 @@ const sameElement = (a: ActionElement, b: ActionElement) => JSON.stringify(a) ==
     Field,
     FormField,
     Input,
+    MarkdownEditor,
     NgTemplateOutlet,
     TranslocoPipe,
     LucideTriangleAlert,

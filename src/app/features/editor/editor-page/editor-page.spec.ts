@@ -387,7 +387,7 @@ describe('EditorPage', () => {
       .click();
     TestBed.tick();
     [...document.querySelectorAll<HTMLButtonElement>('.app-menu button')]
-      .find((b) => b.textContent?.includes('Ajouter un texte'))!
+      .find((b) => b.textContent?.includes('Afficher un texte'))!
       .click();
     TestBed.tick();
     const area = dialog.querySelector('app-element-form textarea') as HTMLTextAreaElement;

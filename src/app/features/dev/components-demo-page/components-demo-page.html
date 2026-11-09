@@ -125,9 +125,16 @@
       </app-field>
     </div>
     <app-field label="Texte de scène" [hiddenLabel]="true" #text>
-      <textarea appInput [id]="text.controlId">
-La porte grince et une odeur de terre humide envahit la pièce.</textarea>
+      <textarea
+        appInput
+        appMarkdownEditor
+        rows="6"
+        [id]="text.controlId"
+        [value]="markdownDemo()"
+        (input)="markdownDemo.set($any($event.target).value)"
+      ></textarea>
     </app-field>
+    <div class="app-markdown" [innerHTML]="markdownDemo() | markdown"></div>
     <app-field label="Nom du son" error="Ce nom est déjà utilisé." #err>
       <input appInput [id]="err.controlId" value="Taverne" />
     </app-field>
