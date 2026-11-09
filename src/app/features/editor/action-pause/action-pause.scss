@@ -1,0 +1,35 @@
+@use 'functions' as *;
+
+// Attente ou clic de l'utilisateur, en lecture seule : ligne discrète, en pointillés, pour la
+// distinguer des champs de texte éditables qui l'entourent.
+:host {
+  display: flex;
+  align-items: center;
+  gap: space(12);
+  width: 100%;
+  padding: space(10) space(16);
+  border: 1px dashed color(border-default);
+  border-radius: radius(lg);
+  color: color(text-secondary);
+}
+
+.pause__icon {
+  display: flex;
+  flex-shrink: 0;
+  color: color(el-wait-fg);
+
+  :host(.pause--click) & {
+    color: color(el-click-fg);
+  }
+
+  svg {
+    width: space(18);
+    height: space(18);
+  }
+}
+
+.pause__text {
+  margin: 0;
+  font-size: font-size(small);
+  white-space: pre-line;
+}

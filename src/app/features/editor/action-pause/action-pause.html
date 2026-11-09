@@ -1,0 +1,17 @@
+@let el = element();
+<span class="pause__icon" aria-hidden="true">
+  @if (el.type === 'wait') {
+    <svg lucideHourglass></svg>
+  } @else {
+    <svg lucideMousePointerClick></svg>
+  }
+</span>
+@if (el.type === 'wait') {
+  <p class="pause__text">
+    {{ 'scene.pause.wait' | transloco: { seconds: (el.seconds | number) } }}
+  </p>
+} @else {
+  <p class="pause__text">
+    <span class="visually-hidden">{{ 'action.types.user-click' | transloco }} : </span>{{ el.text }}
+  </p>
+}

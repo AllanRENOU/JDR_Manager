@@ -16,6 +16,8 @@ import {
   SoundNode,
   TreeNodeKind,
   Trigger,
+  UserClickElement,
+  WaitElement,
   newId,
 } from '../../core/models';
 import { TreeMoveEvent, applyMove, descendantIds } from '../../shared/tree/tree-model';
@@ -36,10 +38,16 @@ export interface ActionText {
   element: AddTextElement;
 }
 
-/** Textes d'une même action, affichés ensemble sous une seule pastille. */
+/**
+ * Élément montré sous le texte de scène : texte (éditable), attente ou clic de l'utilisateur
+ * (en lecture seule).
+ */
+export type ShownElement = AddTextElement | WaitElement | UserClickElement;
+
+/** Éléments montrés d'une même action, dans l'ordre de l'action, sous une seule pastille. */
 export interface ActionTextGroup {
   action: Action;
-  elements: AddTextElement[];
+  elements: ShownElement[];
 }
 
 /** Résultat d'un import d'images de battlemap. */
@@ -146,15 +154,24 @@ export class EditorStore {
     );
   });
 
-  /** {@link actionTexts} regroupés par action (une pastille par action). */
+  /**
+   * Contenu des actions sous le texte de scène, une entrée par action (une pastille) : ses textes
+   * ({@link actionTexts}), attentes et clics de l'utilisateur, dans l'ordre de l'action. Les
+   * actions sans aucun de ces éléments sont omises.
+   */
   readonly actionTextGroups = computed<ActionTextGroup[]>(() => {
-    const groups: ActionTextGroup[] = [];
-    for (const { action, element } of this.actionTexts()) {
-      const last = groups.at(-1);
-      if (last?.action.id === action.id) last.elements.push(element);
-      else groups.push({ action, elements: [element] });
-    }
-    return groups;
+    const sceneTextElement = firstTextElement(this.sceneTextAction());
+    return this.actions()
+      .map((action) => ({
+        action,
+        elements: action.elements.filter(
+          (e): e is ShownElement =>
+            (e.type === 'add-text' && e !== sceneTextElement) ||
+            e.type === 'wait' ||
+            e.type === 'user-click',
+        ),
+      }))
+      .filter((group) => group.elements.length > 0);
   });
 
   /**

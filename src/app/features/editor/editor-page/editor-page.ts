@@ -29,6 +29,7 @@ import { Field } from '../../../shared/ui/field/field';
 import { Input } from '../../../shared/ui/input/input';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { Pill } from '../../../shared/ui/pill/pill';
+import { ActionPause } from '../action-pause/action-pause';
 import { ActionsPanel } from '../actions-panel/actions-panel';
 import { BattlemapsPanel } from '../battlemaps-panel/battlemaps-panel';
 import { EditorStore } from '../editor-store';
@@ -47,6 +48,7 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
     MarkdownEditor,
     SettingsButton,
     AppHeader,
+    ActionPause,
     ActionsPanel,
     BattlemapsPanel,
     Alert,

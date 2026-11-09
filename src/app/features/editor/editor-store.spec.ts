@@ -377,7 +377,7 @@ describe('EditorStore', () => {
       expect(store.initialTexts()).toEqual({ s2: 'Un murmure.', b1: 'Une chope vole.' });
     });
 
-    it('regroupe les textes d’une même action (une pastille par action)', async () => {
+    it('regroupe par action ses textes, attentes et clics, dans l’ordre de l’action', async () => {
       const project = aProject();
       const node = aSceneNode(project.id);
       await repository().saveProject({ ...project, firstSceneId: node.id });
@@ -391,19 +391,28 @@ describe('EditorStore', () => {
           elements: [
             text('b1', 'Une chope vole.'),
             { id: 'w', type: 'wait', seconds: 1 },
+            { id: 's', type: 'stop-all-sounds' },
             text('b2', 'Le tavernier crie.'),
+            { id: 'c', type: 'user-click', text: 'Les joueurs réagissent ?' },
           ],
         }),
       );
       await repository().saveAction(
         anAction(node.id, { name: 'Fuite', order: 2, elements: [text('f1', 'Ils fuient.')] }),
       );
+      await repository().saveAction(
+        anAction(node.id, {
+          name: 'Calme',
+          order: 3,
+          elements: [{ id: 'x', type: 'stop-all-sounds' }],
+        }),
+      );
       await store.load(project.id);
 
       expect(
         store.actionTextGroups().map((g) => [g.action.name, g.elements.map((e) => e.id)]),
       ).toEqual([
-        ['Bagarre', ['b1', 'b2']],
+        ['Bagarre', ['b1', 'w', 'b2', 'c']],
         ['Fuite', ['f1']],
       ]);
     });

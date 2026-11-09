@@ -168,34 +168,38 @@
             ></textarea>
           </app-field>
 
-          <!-- Textes ajoutés par les actions (SCN-07) : même présentation, une pastille du nom de
-               l'action avant l'ensemble de ses textes. -->
+          <!-- Contenu des actions (SCN-07) : une pastille du nom de l'action, puis ses textes
+               (éditables), attentes et clics (lecture seule) dans l'ordre de l'action. -->
           @for (group of store.actionTextGroups(); track group.action.id) {
             <div class="action-text">
               <app-pill tone="text" aria-hidden="true">{{ group.action.name }}</app-pill>
               @for (element of group.elements; track element.id) {
-                <app-field
-                  class="scene-text"
-                  [label]="'scene.actionTextLabel' | transloco: { name: group.action.name }"
-                  [hiddenLabel]="true"
-                  #actionField
-                >
-                  <textarea
-                    appInput
-                    appMarkdownEditor
-                    surface="card"
-                    rows="3"
-                    [id]="actionField.controlId"
-                    [value]="store.initialTexts()[element.id] ?? element.text"
-                    (input)="
-                      store.editActionText(
-                        { actionId: group.action.id, elementId: element.id },
-                        $any($event.target).value
-                      )
-                    "
-                    (blur)="onSceneTextBlur()"
-                  ></textarea>
-                </app-field>
+                @if (element.type === 'add-text') {
+                  <app-field
+                    class="scene-text"
+                    [label]="'scene.actionTextLabel' | transloco: { name: group.action.name }"
+                    [hiddenLabel]="true"
+                    #actionField
+                  >
+                    <textarea
+                      appInput
+                      appMarkdownEditor
+                      surface="card"
+                      rows="3"
+                      [id]="actionField.controlId"
+                      [value]="store.initialTexts()[element.id] ?? element.text"
+                      (input)="
+                        store.editActionText(
+                          { actionId: group.action.id, elementId: element.id },
+                          $any($event.target).value
+                        )
+                      "
+                      (blur)="onSceneTextBlur()"
+                    ></textarea>
+                  </app-field>
+                } @else {
+                  <app-action-pause [element]="element" />
+                }
               }
             </div>
           }

@@ -361,7 +361,7 @@ describe('EditorPage', () => {
     );
   });
 
-  it('n’affiche qu’une pastille avant les textes d’une même action', async () => {
+  it('n’affiche qu’une pastille avant les textes, attentes et clics d’une même action', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const project = aProject();
     const node = aSceneNode(project.id);
@@ -369,7 +369,9 @@ describe('EditorPage', () => {
       name: 'Bagarre',
       elements: [
         { id: 't1', type: 'add-text', text: 'Une chope vole.' },
+        { id: 'w', type: 'wait', seconds: 3 },
         { id: 't2', type: 'add-text', text: 'Le tavernier crie.' },
+        { id: 'c', type: 'user-click', text: 'Les joueurs interviennent ?' },
       ],
     });
     await repository.saveProject({ ...project, firstSceneId: node.id });
@@ -385,6 +387,18 @@ describe('EditorPage', () => {
     expect(
       [...block.querySelectorAll('textarea')].map((t) => (t as HTMLTextAreaElement).value),
     ).toEqual(['Une chope vole.', 'Le tavernier crie.']);
+    const order = [...block.querySelectorAll('textarea, app-action-pause')].map((n) =>
+      n.tagName === 'TEXTAREA' ? 'texte' : n.textContent?.replace(/\s+/g, ' ').trim(),
+    );
+    expect(order).toEqual([
+      'texte',
+      'Attendre 3 s',
+      'texte',
+      'Clic de l’utilisateur : Les joueurs interviennent ?',
+    ]);
+    expect(
+      block.querySelectorAll('app-action-pause textarea, app-action-pause input'),
+    ).toHaveLength(0);
   });
 
   it('après « Enregistrer » dans l’éditeur d’action, le centre et le volet se mettent à jour (8.4.2)', async () => {

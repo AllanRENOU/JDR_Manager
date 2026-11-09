@@ -106,6 +106,9 @@
     "copyName": "{{ name }} (copie)",
     "nameField": "Nom de la scène",
     "actionTextLabel": "Texte de l’action « {{ name }} »",
+    "pause": {
+      "wait": "Attendre {{ seconds }} s"
+    },
     "firstCheckbox": "Première scène du projet",
     "addNext": "Ajouter",
     "addNextLabel": "Ajouter des scènes suivantes",
