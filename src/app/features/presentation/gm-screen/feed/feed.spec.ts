@@ -55,6 +55,33 @@ describe('Feed', () => {
     expect(el.querySelector('.click button')).toBeNull();
   });
 
+  it('Attendre : une ligne avec le temps restant sous le fil, retirée à la fin', async () => {
+    await seedPresentation([
+      anAction('A', {
+        id: 'pause',
+        name: 'Pause',
+        elements: [
+          { id: 'w', type: 'wait', seconds: 0.2 },
+          { id: 't', type: 'add-text', text: 'Après.' },
+        ],
+      }),
+    ]);
+    const engine = await startPresentation();
+    const { fixture, el } = await render();
+    void engine.runAction('pause');
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.querySelector('app-feed-wait [role="timer"]')?.textContent).toContain('0:01');
+    });
+    expect(el.querySelector('.column > app-feed-wait:last-of-type')).not.toBeNull();
+
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.querySelectorAll('.text')).toHaveLength(2);
+    });
+    expect(el.querySelector('app-feed-wait')).toBeNull();
+  });
+
   it('éléments précédents estompés et pastille « N éléments précédents » (10.3.4, 10.3.5)', async () => {
     await seedPresentation([
       anAction('A', {

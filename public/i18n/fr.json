@@ -280,6 +280,8 @@
     "goToSceneConfirm": "Ouvrir la scène",
     "chooseNextScene": "Choisir la scène suivante",
     "validated": "Validé",
+    "waiting": "Attente en cours",
+    "remainingTime": "Temps restant",
     "backToLatest": "Revenir au dernier élément",
     "previousItems": {
       "one": "{{ count }} élément précédent",

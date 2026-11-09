@@ -311,6 +311,46 @@ describe('PresentationEngine', () => {
     });
   });
 
+  describe('Attendre : ligne du fil avec le temps restant', () => {
+    beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] }));
+    afterEach(() => vi.useRealTimers());
+
+    it('l’attente est listée pendant sa durée, puis retirée ; rien n’est enregistré', async () => {
+      await seed([
+        anAction('A', {
+          id: 'pause',
+          name: 'Pause',
+          elements: [{ id: 'w', type: 'wait', seconds: 3 }, text('t-apres', 'Après.')],
+        }),
+      ]);
+      await startAt('A');
+      const start = Date.now();
+      void engine.runAction('pause');
+      await vi.waitFor(() => expect(engine.waits()).toHaveLength(1));
+      expect(engine.waits()[0]).toMatchObject({ durationMs: 3000, endsAt: start + 3000 });
+
+      await vi.advanceTimersByTimeAsync(3000);
+      await vi.waitFor(() => expect(feedTexts()).toContain('Après.'));
+      expect(engine.waits()).toEqual([]);
+      expect(JSON.stringify(await savedSession())).not.toContain('wait');
+    });
+
+    it('scène quittée pendant l’attente : la ligne disparaît', async () => {
+      await seed([
+        anAction('A', {
+          id: 'pause',
+          name: 'Pause',
+          elements: [{ id: 'w', type: 'wait', seconds: 60 }],
+        }),
+      ]);
+      await startAt('A');
+      void engine.runAction('pause');
+      await vi.waitFor(() => expect(engine.waits()).toHaveLength(1));
+      await engine.openScene('B');
+      await vi.waitFor(() => expect(engine.waits()).toEqual([]));
+    });
+  });
+
   describe('fermeture brutale pendant un clic (12.1)', () => {
     const clic = () =>
       anAction('A', {

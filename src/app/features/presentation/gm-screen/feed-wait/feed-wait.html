@@ -1,0 +1,11 @@
+<div class="wait">
+  <span class="wait__icon" aria-hidden="true"><svg lucideHourglass></svg></span>
+  <span class="wait__label">{{ 'presentation.waiting' | transloco }}</span>
+  <span
+    class="wait__time"
+    role="timer"
+    [attr.aria-label]="'presentation.remainingTime' | transloco"
+  >
+    {{ remaining() }}
+  </span>
+</div>

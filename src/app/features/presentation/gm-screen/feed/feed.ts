@@ -25,13 +25,14 @@ import { MarkdownPipe } from '../../../../shared/markdown/markdown-pipe';
 import { Button } from '../../../../shared/ui/button/button';
 import { PresentationEngine } from '../../engine/presentation-engine';
 import { FeedBattlemap } from '../feed-battlemap/feed-battlemap';
+import { FeedWait } from '../feed-wait/feed-wait';
 
 /** Écart (px) au-delà duquel le MJ est considéré comme remonté dans le fil. */
 const SCROLLED_UP_THRESHOLD = 48;
 
 /**
  * Fil d'actualité de la scène (Brief §6.10, FIL-01 à FIL-09) : textes, miniatures de battlemap,
- * blocs « Clic de l'utilisateur ». Chaque nouvel élément (ou le texte retrouvé à une relance)
+ * blocs « Clic de l'utilisateur », et en bas les attentes en cours (compte à rebours). Chaque nouvel élément (ou le texte retrouvé à une relance)
  * est amené en haut de la zone ; les éléments précédents sont estompés et restent relisibles.
  */
 @Component({
@@ -39,6 +40,7 @@ const SCROLLED_UP_THRESHOLD = 48;
   imports: [
     Button,
     FeedBattlemap,
+    FeedWait,
     MarkdownPipe,
     TranslocoPipe,
     LucideArrowDown,

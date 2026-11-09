@@ -1,0 +1,58 @@
+@use 'functions' as *;
+
+// Ligne « Attendre » du fil (ACT-10). Le fond (carte) se remplit de la teinte d'accent de gauche
+// à droite à mesure que le temps passe, comme une barre de chargement (`--wait-progress`, de 0
+// à 1, posé par le composant).
+:host {
+  position: relative;
+  display: block;
+  padding: space(12) space(18);
+  overflow: hidden;
+  border: 1px dashed color(border-default);
+  border-radius: radius(xl);
+  background: color(bg-card);
+  color: color(el-wait-fg);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: scaleX(var(--wait-progress, 0));
+    transform-origin: left;
+    background: color(accent-tint-strong);
+    transition: transform duration(normal) linear;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+}
+
+.wait {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: space(12);
+}
+
+.wait__icon {
+  display: flex;
+
+  svg {
+    width: space(18);
+    height: space(18);
+  }
+}
+
+.wait__label {
+  flex: 1;
+  font-size: font-size(small);
+  font-weight: font-weight(medium);
+}
+
+.wait__time {
+  color: color(text-primary);
+  font-size: font-size(click);
+  font-weight: font-weight(semibold);
+  font-variant-numeric: tabular-nums;
+}

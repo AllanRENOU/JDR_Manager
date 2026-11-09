@@ -9,8 +9,8 @@ import {
   ShowBattlemapElement,
   StopSoundElement,
   UserClickElement,
+  WaitElement,
 } from '../../../core/models';
-import { delay } from '../../../shared/util/delay';
 
 /**
  * Ce que le moteur met à disposition d'une action pendant son exécution (TRD §6.2). Chaque
@@ -33,6 +33,11 @@ export interface ActionContext {
    * et rejetée si le signal est annulé (ACT-11, FIL-05).
    */
   waitForUserClick(action: Action, element: UserClickElement, signal: AbortSignal): Promise<void>;
+  /**
+   * Attend la durée de l'élément en affichant le temps restant dans le fil ; rejetée si le signal
+   * est annulé (ACT-10, TEC-51).
+   */
+  wait(element: WaitElement, signal: AbortSignal): Promise<void>;
   /**
    * `true` si la scène cible existe ; sinon le problème est signalé et la scène ne change pas
    * (PRS-07).
@@ -76,7 +81,7 @@ export class ActionRunner {
           context.stopAllSounds();
           break;
         case 'wait':
-          await delay(element.seconds * 1000, signal);
+          await context.wait(element, signal);
           break;
         case 'user-click':
           await context.waitForUserClick(action, element, signal);

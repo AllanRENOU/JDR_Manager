@@ -1,5 +1,6 @@
 import { anAction } from '../../../../testing/data-builders';
 import { Action, ActionElement } from '../../../core/models';
+import { delay } from '../../../shared/util/delay';
 import { ActionContext, ActionRunner } from './action-runner';
 
 describe('ActionRunner', () => {
@@ -21,6 +22,7 @@ describe('ActionRunner', () => {
           clicks.push({ resolve, reject });
           signal.addEventListener('abort', () => reject(signal.reason), { once: true });
         }),
+      wait: (e, signal) => delay(e.seconds * 1000, signal),
       canChangeScene: (e) => {
         log.push(`scène:${e.sceneId}`);
         return options.sceneExists ?? true;

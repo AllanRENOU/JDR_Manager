@@ -58,7 +58,12 @@
           }
         }
       </div>
-    } @empty {
+    }
+    <!-- Attentes en cours (ACT-10) : sous le fil, retirées à la fin de l'attente. -->
+    @for (wait of engine.waits(); track wait.id) {
+      <app-feed-wait class="item" [wait]="wait" />
+    }
+    @if (feed.length === 0 && engine.waits().length === 0) {
       <p class="empty">{{ 'presentation.emptyFeed' | transloco }}</p>
     }
   </div>

@@ -15,9 +15,11 @@ import {
   SceneState,
   SoundNode,
   UserClickElement,
+  WaitElement,
   newId,
 } from '../../../core/models';
 import { visibleRows } from '../../../shared/tree/tree-model';
+import { delay } from '../../../shared/util/delay';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { AudioPlayer, DEFAULT_FADE_OUT_MS, SoundRequest } from '../audio/audio-player';
 import { ActionContext, ActionRunner, RunOutcome } from './action-runner';
@@ -49,6 +51,17 @@ export interface ShownBattlemap {
 export interface FeedFocus {
   itemId: Id;
   seq: number;
+}
+
+/**
+ * Élément « Attendre » en cours : affiché en bas du fil avec le temps restant, puis retiré.
+ * N'est pas enregistré dans la partie (décision d'Allan).
+ */
+export interface PendingWait {
+  id: Id;
+  /** Fin de l'attente (`Date.now()`, ms). */
+  endsAt: number;
+  durationMs: number;
 }
 
 /** Clic de l'utilisateur en attente : promesse de l'action et retour arrière à l'annulation. */
@@ -91,6 +104,8 @@ export class PresentationEngine {
   readonly actions = signal<ReadonlyMap<Id, Action>>(new Map());
   /** Actions en cours d'exécution. */
   readonly runningActionIds = signal<ReadonlySet<Id>>(new Set());
+  /** Attentes en cours dans la scène ouverte, par ordre de début (lignes du fil). */
+  readonly waits = signal<readonly PendingWait[]>([]);
   /** Dernière entrée du fil à montrer (ajout ou relance). */
   readonly focus = signal<FeedFocus | null>(null);
   /** Sons en cours (contrôles du MJ, CTL-08 à CTL-10). */
@@ -424,6 +439,7 @@ export class PresentationEngine {
       stopAllSounds: () => this.audio.stopAll(),
       waitForUserClick: (action, element, signal) =>
         this.waitForUserClick(sceneId, action, element, signal),
+      wait: (element, signal) => this.wait(element, signal),
       canChangeScene: (element) => {
         if (this.sceneExists(element.sceneId)) {
           return true;
@@ -489,6 +505,17 @@ export class PresentationEngine {
         { once: true },
       );
     });
+  }
+
+  private async wait(element: WaitElement, signal: AbortSignal): Promise<void> {
+    const durationMs = Math.max(0, element.seconds * 1000);
+    const pending: PendingWait = { id: newId(), endsAt: Date.now() + durationMs, durationMs };
+    this.waits.update((waits) => [...waits, pending]);
+    try {
+      await delay(durationMs, signal);
+    } finally {
+      this.waits.update((waits) => waits.filter((w) => w !== pending));
+    }
   }
 
   private applyBattlemap(sceneId: Id, battlemapId: Id): void {
