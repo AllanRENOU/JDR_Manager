@@ -27,6 +27,11 @@ export interface LaunchDialogData {
   /** `null` : pas de partie sauvegardée, la partie commence sur la première scène (PRS-01). */
   saved: SavedGameSummary | null;
   firstSceneName: string;
+  /**
+   * Appelé dans le gestionnaire du clic de lancement, avant la fermeture : c'est là qu'on peut
+   * ouvrir la fenêtre joueurs sans que le navigateur la bloque.
+   */
+  onLaunch?: (choice: LaunchChoice) => void;
 }
 
 /** `continue` : reprendre (PRS-05) ; `restart` : partie neuve (confirmée s'il y en avait une). */
@@ -87,6 +92,8 @@ export class LaunchDialog {
   private close(start: LaunchChoice['start']): void {
     // Dans le gestionnaire du clic : le navigateur autorise alors le son (TEC-43).
     void this.audio.unlock();
-    this.ref.close({ start, display: this.display() });
+    const choice: LaunchChoice = { start, display: this.display() };
+    this.data.onLaunch?.(choice);
+    this.ref.close(choice);
   }
 }

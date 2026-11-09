@@ -181,6 +181,13 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Pluriels : `pluralKey('project.stats.scenes', n)` choisit `.one` / `.other` (règle française : 0 et 1 au singulier).
 - Paramètres : route `/settings` (`features/settings/settings-page`), ouverte par l'icône réglages de l'accueil. Thèmes présentés par `ThemePreview` (`data-theme` sur l'hôte) dans un groupe radio (clic ou flèches → `Theme.setTheme`).
 
+## Fenêtre joueurs (lot 11)
+
+- Contrat des messages : `PlayerMessage` (`features/presentation/player-screen/player-channel.ts`), canal `jdr-manager:<projectId>` via `PLAYER_CHANNEL_FACTORY`. MJ → joueurs : `show-battlemap` (`sceneId`, `battlemapId`), `clear`, `theme`, `hello` ; joueurs → MJ : `ping` (demande l'état), `bye`.
+- Côté MJ : `PlayerWindow` (`gm-screen/player-window.ts`, fourni par l'écran) : `connect(projectId)` après `load()`, `openWindow()` **dans un gestionnaire de clic** (rappel `onLaunch` de `LaunchDialog`), signal `open` ; envoie la battlemap et le thème par `effect`, `clear` à la sortie (`DestroyRef` et `pagehide`).
+- Côté joueurs : `PlayerScreenPage` résout l'image elle-même (`listBattlemaps(sceneId)` + `MediaUrls`), fond `color(player-bg)` noir dans tous les thèmes, double-clic = plein écran.
+- Tests : `useFakePlayerChannel()` (`src/testing/fake-player-channel.ts`, inclus dans `usePresentation()`) : `bus.open(projectId)` donne un canal « de l'autre fenêtre », `bus.received(canal)` ses messages ; les messages arrivent en microtâche (attendre un `setTimeout`). Le thème peut déjà valoir `automne` (localStorage partagé entre tests) : choisir « l'autre » thème dans un test.
+
 ## Écran de Présentation (lot 10)
 
 - `GmScreenPage` (`features/presentation/gm-screen`) : `load()` puis `LaunchDialog` (fenêtre `md`, Continuer / Recommencer avec confirmation destructive / Commencer, choix d'affichage `DisplayMode`) ; le clic de lancement appelle `AudioPlayer.unlock()` **dans le gestionnaire du clic** (TEC-43). Fermée sans choix → retour aux projets.

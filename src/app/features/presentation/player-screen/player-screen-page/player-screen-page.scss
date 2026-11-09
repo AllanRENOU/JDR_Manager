@@ -1,0 +1,33 @@
+@use 'functions' as *;
+
+// Fond noir quel que soit le thème, battlemap seule en plein écran (Brief §2.8, §7.2).
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: color(player-bg);
+  color: color(player-text);
+}
+
+.map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: space(8);
+  font-size: font-size(lead);
+  text-align: center;
+}
+
+.waiting__hint {
+  font-size: font-size(small);
+}

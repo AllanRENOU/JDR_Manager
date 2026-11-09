@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { aProject } from '../../../../../testing/data-builders';
 import { seedPresentation, usePresentation } from '../../../../../testing/presentation-harness';
 import { DATA_REPOSITORY } from '../../../../core/data/data-repository';
+import { Notifications } from '../../../../shared/ui/notification-host/notifications';
 import { PresentationEngine } from '../../engine/presentation-engine';
 import { GmScreenPage } from './gm-screen-page';
 
@@ -114,5 +115,27 @@ describe('GmScreenPage', () => {
       await page.fixture.whenStable();
       expect(page.el.querySelector('h1')?.textContent).toContain('Le marché');
     });
+  });
+  it('« Deux fenêtres » ouvre la fenêtre joueurs au lancement ; pastille, fenêtre bloquée (11.1, 11.7)', async () => {
+    await seedPresentation();
+    const popup = { closed: false, focus: vi.fn() } as unknown as Window;
+    const open = vi.spyOn(window, 'open').mockReturnValue(null);
+    const page = await render('p1');
+    (document.querySelector('app-launch-dialog input[value=dual]') as HTMLInputElement).click();
+    TestBed.tick();
+    await launch('Commencer la partie', page);
+
+    // Fenêtre bloquée par le navigateur : message et bouton pour réessayer.
+    expect(open).toHaveBeenCalledWith('/projects/p1/player', 'jdr-manager-player-p1', 'popup');
+    expect(TestBed.inject(Notifications).notifications().at(-1)?.message).toContain(
+      'Le navigateur a bloqué la fenêtre joueurs',
+    );
+    expect(page.el.querySelector('.player-pill')).toBeNull();
+
+    open.mockReturnValue(popup);
+    button(page.el, 'Ouvrir la fenêtre joueurs').click();
+    await page.fixture.whenStable();
+    expect(page.el.querySelector('.player-pill')?.textContent).toContain('Fenêtre joueurs ouverte');
+    expect(button(page.el, 'Ouvrir la fenêtre joueurs')).toBeUndefined();
   });
 });

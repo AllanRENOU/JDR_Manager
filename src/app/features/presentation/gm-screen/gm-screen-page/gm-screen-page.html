@@ -20,12 +20,17 @@
       role="img"
       [attr.aria-label]="'project.presentMode' | transloco"
     ></svg>
-    @if (playerWindowOpen()) {
+    @if (playerWindow.open()) {
       <span class="player-pill">
         <svg lucideMonitor aria-hidden="true"></svg
         >{{ 'presentation.playerWindowOpen' | transloco }}
       </span>
     }
+  }
+  @if (engine.status() === 'ready' && displayMode() === 'dual' && !playerWindow.open()) {
+    <button headerEnd appButton="quiet" size="header" type="button" (click)="openPlayerWindow()">
+      <svg lucideMonitorUp aria-hidden="true"></svg>{{ 'presentation.player.open' | transloco }}
+    </button>
   }
   @if (engine.status() === 'ready') {
     <button headerEnd appButton="secondary" size="header" type="button" (click)="goToScene()">

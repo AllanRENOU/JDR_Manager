@@ -10,19 +10,21 @@ import { PresentationEngine } from '../app/features/presentation/engine/presenta
 import { Modals } from '../app/shared/ui/modal/modals';
 import { aBattlemap, aProject, aScene, aSceneNode, aSoundNode, anAction } from './data-builders';
 import { FakeAudio, useFakeAudio } from './fake-audio';
+import { FakePlayerBus, useFakePlayerChannel } from './fake-player-channel';
 import { useTestRepository } from './test-repository';
 import { getTranslocoTestingModule } from './transloco-testing';
 
 /**
  * Banc de test de la Présentation : vrai moteur et vrai dépôt IndexedDB, Web Audio simulé,
- * traductions françaises. Projet « p1 » « La crypte » :
+ * canal de la fenêtre joueurs en mémoire, traductions françaises. Projet « p1 » « La crypte » :
  * - dossier « Acte I » › scène A « La taverne » (première ; battlemaps b1 « Salle » par défaut et
  *   b2 « Étage » ; texte de scène ; ambiance « Taverne » à l'ouverture), puis B « La forêt » et
  *   C « Le marché », toutes deux scènes suivantes de A ;
  * - sons « Taverne » (projet) et « Pluie » (bibliothèque globale).
  */
-export function usePresentation(): { audio: FakeAudio } {
+export function usePresentation(): { audio: FakeAudio; bus: FakePlayerBus } {
   const audio = useFakeAudio();
+  const bus = useFakePlayerChannel();
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [getTranslocoTestingModule()],
@@ -34,6 +36,7 @@ export function usePresentation(): { audio: FakeAudio } {
         PlaySessionStore,
         ...useTestRepository(),
         ...audio.providers,
+        ...bus.providers,
       ],
     });
   });
@@ -41,7 +44,7 @@ export function usePresentation(): { audio: FakeAudio } {
     TestBed.inject(Modals).closeAll();
     await TestBed.inject(PresentationEngine).stop();
   });
-  return { audio };
+  return { audio, bus };
 }
 
 /** Enregistre le projet de démonstration, plus d'éventuelles actions de la scène A. */

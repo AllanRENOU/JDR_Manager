@@ -309,6 +309,13 @@
       "resume": "Reprendre « {{ name }} »",
       "volume": "Volume de « {{ name }} »",
       "launchConfirm": "Lancer"
+    },
+    "player": {
+      "open": "Ouvrir la fenêtre joueurs",
+      "blocked": "Le navigateur a bloqué la fenêtre joueurs : autorisez les fenêtres pop-up pour ce site, puis cliquez sur « Ouvrir la fenêtre joueurs ».",
+      "title": "Fenêtre joueurs",
+      "waiting": "En attente de l’écran du MJ…",
+      "fullscreenHint": "Double-cliquez pour passer en plein écran."
     }
   },
   "sound": {

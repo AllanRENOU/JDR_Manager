@@ -11,7 +11,13 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { LucideArrowLeft, LucideMap, LucideMonitor, LucidePresentation } from '@lucide/angular';
+import {
+  LucideArrowLeft,
+  LucideMap,
+  LucideMonitor,
+  LucideMonitorUp,
+  LucidePresentation,
+} from '@lucide/angular';
 
 import { Id } from '../../../../core/models';
 import { Selections } from '../../../../shared/selection-dialog/selections';
@@ -28,6 +34,7 @@ import { ActionsSection } from '../actions-section/actions-section';
 import { BattlemapSection } from '../battlemap-section/battlemap-section';
 import { Feed } from '../feed/feed';
 import { NextSceneButton } from '../next-scene-button/next-scene-button';
+import { PlayerWindow } from '../player-window';
 import { SoundsSection } from '../sounds-section/sounds-section';
 import {
   DisplayMode,
@@ -57,9 +64,10 @@ import {
     LucideArrowLeft,
     LucideMap,
     LucideMonitor,
+    LucideMonitorUp,
     LucidePresentation,
   ],
-  providers: [PresentationEngine, ActionRunner, PlaySessionStore],
+  providers: [PresentationEngine, ActionRunner, PlaySessionStore, PlayerWindow],
   templateUrl: './gm-screen-page.html',
   styleUrl: './gm-screen-page.scss',
 })
@@ -72,10 +80,10 @@ export class GmScreenPage {
   private readonly selections = inject(Selections);
   private readonly transloco = inject(TranslocoService);
 
-  /** Affichage choisi au lancement (la fenêtre joueurs s'ouvre au lot 11). */
+  protected readonly playerWindow = inject(PlayerWindow);
+
+  /** Affichage choisi au lancement (AFF-03). */
   protected readonly displayMode = signal<DisplayMode>('single');
-  /** Fenêtre joueurs ouverte (pastille de l'en-tête) ; branchée au lot 11. */
-  protected readonly playerWindowOpen = signal(false);
 
   /** Projet et dossiers de la scène : « Les Ombres de Valombre · Acte I — Valombre ». */
   protected readonly context = computed(() => {
@@ -106,6 +114,13 @@ export class GmScreenPage {
     });
   }
 
+  /** Ouvre ou rouvre la fenêtre joueurs (AFF-02) ; signale une fenêtre bloquée par le navigateur. */
+  protected openPlayerWindow(): void {
+    if (!this.playerWindow.openWindow()) {
+      this.notifications.error(this.transloco.translate('presentation.player.blocked'));
+    }
+  }
+
   /** « Aller à une scène » : arborescence en lecture seule, scène actuelle grisée (CTL-05). */
   protected async goToScene(): Promise<void> {
     const current = this.engine.scene()?.id;
@@ -128,11 +143,17 @@ export class GmScreenPage {
     if (this.engine.status() !== 'choose') {
       return;
     }
+    this.playerWindow.connect(projectId);
     const saved = this.engine.savedSession();
     const ref = this.modals.open<LaunchChoice, LaunchDialogData>(LaunchDialog, {
       size: 'md',
       closable: false,
       data: {
+        onLaunch: (choice) => {
+          if (choice.display === 'dual') {
+            this.openPlayerWindow();
+          }
+        },
         projectName: this.engine.project()?.name ?? '',
         firstSceneName: this.engine.firstScene()?.name ?? '',
         saved: saved && {
