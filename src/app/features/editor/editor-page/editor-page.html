@@ -62,7 +62,7 @@
             type="button"
             [attr.aria-label]="'scene.newFolderAction' | transloco"
             [attr.title]="'scene.newFolderAction' | transloco"
-            (click)="create({ parentId: store.creationParent(), kind: 'folder' })"
+            (click)="createFromHeader('folder')"
           >
             <svg lucideFolderPlus aria-hidden="true"></svg>
           </button>
@@ -72,7 +72,7 @@
             type="button"
             [attr.aria-label]="'scene.newScene' | transloco"
             [attr.title]="'scene.newScene' | transloco"
-            (click)="create({ parentId: store.creationParent(), kind: 'item' })"
+            (click)="createFromHeader('item')"
           >
             <svg lucidePlus aria-hidden="true"></svg>
           </button>

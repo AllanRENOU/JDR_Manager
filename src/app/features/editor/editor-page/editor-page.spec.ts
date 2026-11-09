@@ -141,6 +141,29 @@ describe('EditorPage', () => {
     ]);
   });
 
+  it('crée la nouvelle scène dans le dossier sélectionné, pas dans celui de la scène ouverte', async () => {
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    const project = aProject();
+    const act = aSceneNode(project.id, { kind: 'folder', name: 'Acte I' });
+    const crypt = aSceneNode(project.id, { name: 'Crypte', order: 1 });
+    await repository.saveProject({ ...project, firstSceneId: crypt.id });
+    await repository.saveSceneNodes([act, crypt]);
+    await repository.saveScene(aScene(project.id, crypt.id));
+    const el = await render(project.id);
+    await vi.waitFor(() =>
+      expect((el.querySelector('.scene-title') as HTMLInputElement | null)?.value).toBe('Crypte'),
+    );
+
+    (el.querySelector(`[data-tree-id="${act.id}"]`) as HTMLElement).click();
+    (
+      el.querySelector('.tree-header button[aria-label="Nouvelle scène"]') as HTMLButtonElement
+    ).click();
+    await vi.waitFor(() => expect(el.querySelector('.tree__rename')).not.toBeNull());
+
+    const nodes = await repository.listSceneNodes(project.id);
+    expect(nodes.find((n) => n.name === 'Nouvelle scène')?.parentId).toBe(act.id);
+  });
+
   it('menu des scènes et des dossiers : entrées propres aux scènes, suppression confirmée (7.1.3)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const project = aProject();

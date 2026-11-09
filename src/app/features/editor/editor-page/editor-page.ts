@@ -13,7 +13,7 @@ import {
 
 import { pluralKey } from '../../../core/i18n/plural';
 import { FORMAT_LABELS, MediaKind } from '../../../core/media/media-types';
-import { Id, SceneNode } from '../../../core/models';
+import { Id, SceneNode, TreeNodeKind } from '../../../core/models';
 import { FileDrop } from '../../../shared/file-drop/file-drop';
 import { FileDropOverlay } from '../../../shared/file-drop/file-drop-overlay/file-drop-overlay';
 import { ProjectNav } from '../../../shared/project-nav/project-nav';
@@ -147,6 +147,20 @@ export class EditorPage {
 
   protected openScene(id: Id | null): void {
     this.store.openScene(id).catch((error) => this.notifications.fromError(error));
+  }
+
+  /**
+   * Boutons du haut de l'arborescence : crée dans le dossier sélectionné, à côté de la scène
+   * sélectionnée, sinon dans le dossier de la scène ouverte. Le dossier visé est déplié.
+   */
+  protected createFromHeader(kind: TreeNodeKind): void {
+    const tree = this.tree();
+    const parentId = this.store.creationParent(tree?.selectedId() ?? null);
+    if (tree) {
+      tree.requestCreate(parentId, kind);
+    } else {
+      void this.create({ parentId, kind });
+    }
   }
 
   /** Crée un dossier ou une scène (boutons du haut, menu d'un dossier), puis lance son renommage. */

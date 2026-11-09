@@ -468,10 +468,15 @@ export class EditorStore {
   }
 
   /**
-   * Dossier où créer un élément depuis les boutons du haut de l'arborescence (SCN-08) : celui
-   * de la scène ouverte, sinon la racine.
+   * Dossier où créer un élément depuis les boutons du haut de l'arborescence (SCN-08), selon le
+   * nœud sélectionné dans l'arborescence (`selectedId`) : un dossier reçoit le nouvel élément,
+   * une scène le place à côté d'elle. Sans sélection : dossier de la scène ouverte, sinon la racine.
    */
-  creationParent(): Id | null {
+  creationParent(selectedId: Id | null = null): Id | null {
+    const selected = this.sceneNodes().find((n) => n.id === selectedId);
+    if (selected) {
+      return selected.kind === 'folder' ? selected.id : selected.parentId;
+    }
     return this.selectedNode()?.parentId ?? null;
   }
 

@@ -178,6 +178,18 @@ describe('EditorStore', () => {
       return { project, act, tavern, market, crypt };
     }
 
+    it('choisit le dossier de création selon la sélection de l’arborescence', async () => {
+      const { act, tavern, crypt } = await loadTree();
+      // Dossier sélectionné : création dedans.
+      expect(store.creationParent(act.id)).toBe(act.id);
+      // Autre scène sélectionnée (à la racine) : création à côté d'elle.
+      expect(store.creationParent(crypt.id)).toBeNull();
+      expect(store.creationParent(tavern.id)).toBe(act.id);
+      // Rien de sélectionné : dossier de la scène ouverte (« Taverne », dans l'acte).
+      expect(store.creationParent(null)).toBe(act.id);
+      expect(store.creationParent('inconnu')).toBe(act.id);
+    });
+
     it('crée dossiers et scènes dans le dossier de la scène ouverte, en dernière position (7.1.2)', async () => {
       const { project, act, tavern } = await loadTree();
       expect(store.creationParent()).toBe(act.id);
