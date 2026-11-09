@@ -28,6 +28,7 @@ import { Modals } from '../../../shared/ui/modal/modals';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { BattlemapCard } from '../battlemap-card/battlemap-card';
 import { EditorStore } from '../editor-store';
+import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
 
 /**
  * Partie « Battlemaps » du volet droit de l'éditeur (BTM-01, BTM-02) : miniatures en grille,
@@ -36,6 +37,7 @@ import { EditorStore } from '../editor-store';
 @Component({
   selector: 'app-battlemaps-panel',
   imports: [
+    Capitalize,
     BattlemapCard,
     Button,
     CdkMenuTrigger,

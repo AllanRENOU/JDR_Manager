@@ -108,7 +108,9 @@ describe('BattlemapsPanel', () => {
       expect(el.querySelector('.name-input')).not.toBeNull();
     });
     const input = el.querySelector('.name-input') as HTMLInputElement;
-    input.value = 'Cave';
+    input.value = 'cave';
+    input.dispatchEvent(new Event('input'));
+    expect(input.value).toBe('Cave');
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
     await vi.waitFor(() => expect(store.battlemaps()[0].name).toBe('Cave'));
     expect(first.id).toBe(store.battlemaps()[0].id);
