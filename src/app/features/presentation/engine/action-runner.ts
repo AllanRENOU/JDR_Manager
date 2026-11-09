@@ -1,27 +1,62 @@
 import { Injectable } from '@angular/core';
 
-import { Action, AddTextElement } from '../../../core/models';
+import {
+  Action,
+  AddTextElement,
+  ChangeSceneElement,
+  Id,
+  PlaySoundElement,
+  ShowBattlemapElement,
+  StopSoundElement,
+  UserClickElement,
+} from '../../../core/models';
+import { delay } from '../../../shared/util/delay';
 
 /**
- * Ce que le moteur met à disposition des actions pendant leur exécution. Il s'enrichira avec
- * les autres types d'éléments (battlemap, sons, attente, clic, changement de scène — lot 9).
+ * Ce que le moteur met à disposition d'une action pendant son exécution (TRD §6.2). Chaque
+ * méthode applique l'événement à la partie et la sauvegarde (TEC-52) ; aucune ne lève d'erreur
+ * pour une ressource manquante : elle la signale et la partie continue (NF-25).
  */
 export interface ActionContext {
-  /** Ajoute le texte au fil d'actualité de la scène (ou y revient s'il y est déjà). */
+  /** Ajoute le texte au fil ; s'il y est déjà (relance, CTL-03), le fil revient sur lui. */
   addText(action: Action, element: AddTextElement): void;
+  /** Affiche la battlemap et ajoute sa miniature au fil (ACT-04, FIL-03). */
+  showBattlemap(element: ShowBattlemapElement): void;
+  /** Lance le son, sans attendre son chargement (ACT-05). */
+  playSound(element: PlaySoundElement): void;
+  /** Arrête le son avec son fondu de sortie (ACT-06). */
+  stopSound(element: StopSoundElement): void;
+  /** Arrête tous les sons, chacun avec son fondu de sortie (ACT-07). */
+  stopAllSounds(): void;
+  /**
+   * Affiche le bloc « Clic de l'utilisateur » ; la promesse est résolue au clic sur « Continuer »
+   * et rejetée si le signal est annulé (ACT-11, FIL-05).
+   */
+  waitForUserClick(action: Action, element: UserClickElement, signal: AbortSignal): Promise<void>;
+  /**
+   * `true` si la scène cible existe ; sinon le problème est signalé et la scène ne change pas
+   * (PRS-07).
+   */
+  canChangeScene(element: ChangeSceneElement): boolean;
+  /** Marque l'action comme effectuée dans la scène (CTL-01). */
+  markDone(action: Action): void;
 }
+
+/** Fin d'une action : terminée, ou terminée par un « Changer de scène » à appliquer. */
+export type RunOutcome = { kind: 'done' } | { kind: 'change-scene'; sceneId: Id };
 
 /**
  * Exécute les éléments d'une action dans l'ordre (TEC-50, TRD §6.2), indépendamment de
- * l'interface. Annulable : l'arrêt du signal (scène quittée) interrompt l'action entre deux
- * éléments.
+ * l'interface. Annulable (TEC-51) : l'annulation du signal (scène quittée) interrompt l'action
+ * entre deux éléments, pendant une attente ou un clic en attente ; la promesse est alors rejetée
+ * et l'action n'est pas marquée comme effectuée.
  *
- * Lot 4 : seul l'élément « Ajouter un texte » est exécuté ; les autres types sont ignorés
- * jusqu'au lot 9.
+ * Une action déjà effectuée peut être relancée (CTL-03) : c'est le contexte qui évite les doublons
+ * dans le fil.
  */
 @Injectable()
 export class ActionRunner {
-  async run(action: Action, context: ActionContext, signal: AbortSignal): Promise<void> {
+  async run(action: Action, context: ActionContext, signal: AbortSignal): Promise<RunOutcome> {
     for (const element of action.elements) {
       signal.throwIfAborted();
       switch (element.type) {
@@ -29,18 +64,36 @@ export class ActionRunner {
           context.addText(action, element);
           break;
         case 'show-battlemap':
-        case 'play-sound':
-        case 'stop-sound':
-        case 'stop-all-sounds':
-        case 'wait':
-        case 'user-click':
-        case 'change-scene':
-          // Lot 9 (moteur de présentation complet).
+          context.showBattlemap(element);
           break;
+        case 'play-sound':
+          context.playSound(element);
+          break;
+        case 'stop-sound':
+          context.stopSound(element);
+          break;
+        case 'stop-all-sounds':
+          context.stopAllSounds();
+          break;
+        case 'wait':
+          await delay(element.seconds * 1000, signal);
+          break;
+        case 'user-click':
+          await context.waitForUserClick(action, element, signal);
+          break;
+        case 'change-scene': {
+          // Fin de l'action : les éléments suivants ne sont pas exécutés (ACT-09).
+          context.markDone(action);
+          return context.canChangeScene(element)
+            ? { kind: 'change-scene', sceneId: element.sceneId }
+            : { kind: 'done' };
+        }
       }
       // Laisse l'interface se mettre à jour entre deux éléments.
       await Promise.resolve();
     }
     signal.throwIfAborted();
+    context.markDone(action);
+    return { kind: 'done' };
   }
 }

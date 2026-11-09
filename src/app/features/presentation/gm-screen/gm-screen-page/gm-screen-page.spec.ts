@@ -2,16 +2,19 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { aProject, aScene, aSceneNode, anAction } from '../../../../../testing/data-builders';
+import { useFakeAudio } from '../../../../../testing/fake-audio';
 import { useTestRepository } from '../../../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../../../testing/transloco-testing';
 import { DATA_REPOSITORY } from '../../../../core/data/data-repository';
 import { GmScreenPage } from './gm-screen-page';
 
 describe('GmScreenPage', () => {
+  const audio = useFakeAudio();
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [getTranslocoTestingModule()],
-      providers: [provideRouter([]), ...useTestRepository()],
+      providers: [provideRouter([]), ...useTestRepository(), ...audio.providers],
     });
   });
 

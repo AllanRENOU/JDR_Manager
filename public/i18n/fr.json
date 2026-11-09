@@ -241,7 +241,11 @@
     "feed": "Fil d’actualité",
     "emptyFeed": "Aucun texte pour cette scène.",
     "missingText": "Ce texte a été supprimé du projet.",
-    "noScene": "Ce projet n’a pas encore de scène à présenter."
+    "noScene": "Ce projet n’a pas encore de scène à présenter.",
+    "errors": {
+      "missingSound": "Un son a été supprimé du projet : il n’est pas lancé.",
+      "missingScene": "La scène cible de « Changer de scène » a été supprimée : la scène ne change pas."
+    }
   },
   "sound": {
     "library": "Bibliothèque de sons",

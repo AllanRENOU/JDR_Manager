@@ -171,7 +171,7 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
   - `PresentationEngine` et `ActionRunner` (`features/presentation/engine`).
 - **Enregistrement automatique** : `DebouncedTask` (`shared/util`), 500 ms, plus `flush()` à la sortie du champ, au changement de scène, à la destruction de l'écran et sur `beforeunload`. Un champ édité ne se lie **pas** à la valeur enregistrée, mais à une valeur initiale posée à l'ouverture (`initialSceneText`) : un enregistrement en retard ne doit jamais écraser la saisie.
 - **Écritures concurrentes** : les enchaîner (`this.writes = this.writes.then(...)`), sinon deux frappes rapides peuvent créer deux objets.
-- **Moteur** : `ActionRunner.run(action, context, signal)`. Le moteur fournit un `ActionContext` (aujourd'hui `addText`) et un `AbortController` par scène ; `PresentationEngine.textOf(item)` relit le texte dans l'action (`null` = supprimé).
+- **Moteur** : voir « Moteur de présentation (lot 9) ».
 - Dates : `provideFrenchLocale()` (`core/i18n/locale.ts`), à ajouter aussi dans les tests qui affichent des dates.
 
 ## Accueil et paramètres (lot 5)
@@ -180,6 +180,17 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - La fenêtre `CreateProjectDialog` sert aussi au renommage : `modals.open(CreateProjectDialog, { data: { name } })`.
 - Pluriels : `pluralKey('project.stats.scenes', n)` choisit `.one` / `.other` (règle française : 0 et 1 au singulier).
 - Paramètres : route `/settings` (`features/settings/settings-page`), ouverte par l'icône réglages de l'accueil. Thèmes présentés par `ThemePreview` (`data-theme` sur l'hôte) dans un groupe radio (clic ou flèches → `Theme.setTheme`).
+
+## Moteur de présentation (lot 9)
+
+- Fichiers : `features/presentation/engine` (`ActionRunner`, `PresentationEngine`, `PlaySessionStore`) et `features/presentation/audio` (`AudioPlayer`). L'écran fournit `PresentationEngine`, `ActionRunner` et `PlaySessionStore` dans ses `providers` ; `AudioPlayer` est global (`@Service()`, un seul `AudioContext`).
+- `ActionRunner.run(action, context, signal)` → `RunOutcome` (`done` / `change-scene`). Le moteur fournit l'`ActionContext` de la scène : chaque méthode applique l'événement **et l'enregistre** (TEC-52). Attente : `delay(ms, signal)` (`shared/util/delay.ts`).
+- `PresentationEngine` : `load(projectId)` (statut `choose` si une partie existe) puis `continueSession()` / `restart()` ; `start(projectId)` continue automatiquement (en attendant la fenêtre du lot 10). Commandes : `openScene`, `runAction`, `continueClick`, `showBattlemap`, `playLibrarySound`, `pauseSound` / `resumeSound`, `setVolume`, `togglePlayback`, `stop`. Signals : `feed` (sans les textes d'actions supprimées), `focus`, `shownBattlemap` (`battlemap: null` = supprimée), `manualActions`, `nextScenes`, `sounds`, `anyPlaying`…
+- Démarrer le moteur depuis un `effect` : **dans `untracked()`**, sinon l'effet suit les signals lus par le moteur et le relance à chaque enregistrement.
+- `PlaySessionStore` : `updateScene(sceneId, fn)` / `setCurrentScene` enregistrent tout de suite (écritures enchaînées, erreur → notification).
+- Ressource supprimée (son, scène cible) : notification `presentation.errors.*`, la partie continue (NF-25).
+- Tests : `useFakeAudio()` (`src/testing/fake-audio.ts`) fournit un faux `AudioContext` (rampes journalisées), un faux `MediaUrls` (médias `absent*` introuvables) et espionne `play` / `pause` ; à mettre dans tout test qui démarre le moteur. Lire les espions **au moment du test** (`vi.mocked(HTMLMediaElement.prototype.play)` dans une fonction), pas au chargement du fichier.
+- Prototype Web Audio autonome : `../prototypes/prototype-web-audio.html`.
 
 ## Éditeur d'action (lot 8)
 

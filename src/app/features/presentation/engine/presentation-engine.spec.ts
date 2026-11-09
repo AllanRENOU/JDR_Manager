@@ -1,18 +1,37 @@
 import { TestBed } from '@angular/core/testing';
 
-import { aProject, aScene, aSceneNode, anAction } from '../../../../testing/data-builders';
+import {
+  aBattlemap,
+  aProject,
+  aScene,
+  aSceneNode,
+  aSoundNode,
+  anAction,
+} from '../../../../testing/data-builders';
+import { useFakeAudio } from '../../../../testing/fake-audio';
 import { useTestRepository } from '../../../../testing/test-repository';
+import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
-import { Action, AddTextElement } from '../../../core/models';
+import { Action, ActionElement, Id, PlaySession } from '../../../core/models';
+import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { ActionRunner } from './action-runner';
+import { PlaySessionStore } from './play-session-store';
 import { PresentationEngine } from './presentation-engine';
 
-describe('PresentationEngine (4.7)', () => {
+describe('PresentationEngine', () => {
+  const audio = useFakeAudio();
   let engine: PresentationEngine;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [PresentationEngine, ActionRunner, ...useTestRepository()],
+      imports: [getTranslocoTestingModule()],
+      providers: [
+        PresentationEngine,
+        ActionRunner,
+        PlaySessionStore,
+        ...useTestRepository(),
+        ...audio.providers,
+      ],
     });
     engine = TestBed.inject(PresentationEngine);
   });
@@ -20,117 +39,431 @@ describe('PresentationEngine (4.7)', () => {
   afterEach(() => engine.stop());
 
   const repository = () => TestBed.inject(DATA_REPOSITORY);
-  const text = (id: string, value: string): AddTextElement => ({
+  const store = () => TestBed.inject(PlaySessionStore);
+  const errors = () =>
+    TestBed.inject(Notifications)
+      .notifications()
+      .map((n) => n.message);
+  const feedTexts = () =>
+    engine
+      .feed()
+      .map((item) => (item.type === 'battlemap' ? `[${item.battlemapId}]` : engine.textOf(item)));
+  const text = (id: string, value: string): ActionElement => ({
     id,
     type: 'add-text',
     text: value,
   });
-  const feedTexts = () => engine.feed().map((item) => engine.textOf(item));
-
-  async function projectWithScenes(firstSceneIndex: number | null) {
-    const project = aProject();
-    const folder = aSceneNode(project.id, { kind: 'folder', name: 'Acte 1', order: 0 });
-    const a = aSceneNode(project.id, { name: 'A', parentId: folder.id, order: 0 });
-    const b = aSceneNode(project.id, { name: 'B', order: 1 });
-    const scenes = [a, b];
-    await repository().saveProject({
-      ...project,
-      firstSceneId: firstSceneIndex === null ? null : scenes[firstSceneIndex].id,
-    });
-    await repository().saveSceneNodes([folder, a, b]);
-    for (const node of scenes) {
-      await repository().saveScene(aScene(project.id, node.id));
-    }
-    return { project, a, b };
-  }
-
-  it('signale un projet introuvable ou sans scène', async () => {
-    await engine.start('inconnu');
-    expect(engine.status()).toBe('missing');
-
-    const empty = aProject();
-    await repository().saveProject(empty);
-    await engine.start(empty.id);
-    expect(engine.status()).toBe('no-scene');
+  const playSound = (id: string, soundId: string, volume = 0.5): ActionElement => ({
+    id,
+    type: 'play-sound',
+    soundId,
+    volume,
+    loop: true,
+    fadeInMs: 500,
+    fadeOutMs: 2000,
   });
+  const savedSession = async (): Promise<PlaySession | undefined> => {
+    await store().flush();
+    return repository().getPlaySession('p1');
+  };
 
-  it('ouvre la première scène du projet (PRS-01), sinon la première de l’arborescence', async () => {
-    const withFirst = await projectWithScenes(1);
-    await engine.start(withFirst.project.id);
-    expect(engine.status()).toBe('ready');
-    expect(engine.sceneNode()?.name).toBe('B');
-
-    const withoutFirst = await projectWithScenes(null);
-    await engine.start(withoutFirst.project.id);
-    expect(engine.sceneNode()?.name).toBe('A');
-  });
-
-  it('lance les actions d’ouverture, « Texte de scène » en premier, puis par ordre', async () => {
-    const { project, b } = await projectWithScenes(1);
-    const actions: Action[] = [
-      anAction(b.id, { order: 2, trigger: 'scene-open', elements: [text('e3', 'Troisième')] }),
-      anAction(b.id, {
-        order: 5,
-        isSceneText: true,
+  /**
+   * Projet « p1 » : scène A (première, battlemap par défaut b1, texte de scène + ambiance + une
+   * action d'ouverture), scène B (texte de scène), et des sons dans les deux bibliothèques.
+   */
+  async function seed(extraActions: Action[] = []) {
+    const project = aProject({ id: 'p1' });
+    const a = aSceneNode('p1', { id: 'A', name: 'La taverne', order: 0 });
+    const b = aSceneNode('p1', { id: 'B', name: 'La forêt', order: 1 });
+    await repository().saveProject({ ...project, firstSceneId: 'A' });
+    await repository().saveSceneNodes([a, b]);
+    await repository().saveScene(
+      aScene('p1', 'A', { defaultBattlemapId: 'b1', nextSceneIds: ['B'] }),
+    );
+    await repository().saveScene(aScene('p1', 'B'));
+    await repository().saveBattlemap(aBattlemap('A', 'm1', { id: 'b1', name: 'Salle', order: 0 }));
+    await repository().saveBattlemap(aBattlemap('A', 'm2', { id: 'b2', name: 'Étage', order: 1 }));
+    await repository().saveSoundNodes([
+      aSoundNode('p1', { id: 'taverne', name: 'Taverne', mediaId: 'son-taverne' }),
+      aSoundNode('p1', { id: 'fantome', name: 'Supprimé', mediaId: 'absent-1' }),
+      aSoundNode('global', { id: 'pluie', name: 'Pluie', mediaId: 'son-pluie' }),
+    ]);
+    const actions = [
+      anAction('A', {
+        id: 'ambiance',
+        name: 'Ambiance',
         trigger: 'scene-open',
-        elements: [text('e1', 'Texte de scène')],
+        order: 2,
+        elements: [playSound('e-amb', 'taverne')],
       }),
-      anAction(b.id, { order: 1, trigger: 'scene-open', elements: [text('e2', 'Deuxième')] }),
-      anAction(b.id, { order: 0, trigger: 'manual', elements: [text('e4', 'Manuelle')] }),
+      anAction('A', {
+        id: 'texte-a',
+        name: 'Texte de scène',
+        trigger: 'scene-open',
+        isSceneText: true,
+        order: 1,
+        elements: [text('t-a', 'Odeur de bière.')],
+      }),
+      anAction('B', {
+        id: 'texte-b',
+        name: 'Texte de scène',
+        trigger: 'scene-open',
+        isSceneText: true,
+        elements: [text('t-b', 'Les arbres se resserrent.')],
+      }),
+      ...extraActions,
     ];
     for (const action of actions) {
       await repository().saveAction(action);
     }
-    await engine.start(project.id);
-    expect(feedTexts()).toEqual(['Texte de scène', 'Deuxième', 'Troisième']);
-  });
+  }
 
-  it('n’ajoute pas deux fois le même texte au fil', async () => {
-    const { project, b } = await projectWithScenes(1);
-    const repeated = text('e1', 'Une seule fois');
-    await repository().saveAction(
-      anAction(b.id, { trigger: 'scene-open', elements: [repeated, repeated] }),
-    );
-    await engine.start(project.id);
-    expect(feedTexts()).toEqual(['Une seule fois']);
-  });
+  async function startAt(sceneId: Id = 'A') {
+    await engine.start('p1');
+    await vi.waitFor(() => expect(engine.scene()?.id).toBe(sceneId));
+  }
 
-  it('renvoie null pour le texte d’un élément supprimé', async () => {
-    const { project, b } = await projectWithScenes(1);
-    const action = anAction(b.id, {
-      trigger: 'scene-open',
-      elements: [text('e1', 'Bientôt supprimé')],
+  describe('ouverture d’une scène (9.2.1, PRS-01)', () => {
+    it('sans partie : première scène, battlemap par défaut, texte de scène puis actions d’ouverture', async () => {
+      await seed();
+      await startAt('A');
+      await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+      expect(engine.status()).toBe('ready');
+      expect(engine.sceneNode()?.name).toBe('La taverne');
+      expect(engine.shownBattlemap()).toEqual({
+        id: 'b1',
+        battlemap: expect.objectContaining({ name: 'Salle' }),
+      });
+      expect(feedTexts()).toEqual(['Odeur de bière.']);
+      expect([...engine.doneActionIds()].sort()).toEqual(['ambiance', 'texte-a']);
+      expect(engine.sounds()[0]).toMatchObject({ soundId: 'taverne', volume: 0.5, paused: false });
+      expect(engine.nextScenes().map((n) => n.name)).toEqual(['La forêt']);
     });
-    await repository().saveAction(action);
-    await engine.start(project.id);
-    const [item] = engine.feed();
-    engine.actions.set(new Map([[action.id, { ...action, elements: [] }]]));
-    expect(engine.textOf(item)).toBeNull();
+
+    it('enregistre la partie dès l’ouverture (9.3.1)', async () => {
+      await seed();
+      await startAt('A');
+      await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+      const saved = await savedSession();
+      expect(saved?.currentSceneId).toBe('A');
+      expect(saved?.scenes['A']).toMatchObject({
+        visited: true,
+        currentBattlemapId: 'b1',
+        playingSounds: [{ soundId: 'taverne', elementId: 'e-amb', paused: false, volume: 0.5 }],
+      });
+      expect(saved?.scenes['A'].feed).toHaveLength(1);
+    });
   });
 
-  it('arrête les actions de la scène quittée', async () => {
-    // Runner ralenti : il attend un feu vert après chaque élément.
-    let release!: () => void;
-    const gate = new Promise<void>((resolve) => (release = resolve));
-    const runner = TestBed.inject(ActionRunner);
-    vi.spyOn(runner, 'run').mockImplementation(async (action, context, signal) => {
-      for (const element of action.elements) {
-        signal.throwIfAborted();
-        context.addText(action, element as AddTextElement);
-        await gate;
+  describe('quitter et revenir (9.2.2, 9.2.3)', () => {
+    it('quitter : actions interrompues, sons coupés en fondu, état de la scène conservé', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      try {
+        await seed([
+          anAction('A', {
+            id: 'longue',
+            name: 'Longue',
+            elements: [{ id: 'w', type: 'wait', seconds: 60 }, text('t-jamais', 'Jamais')],
+          }),
+        ]);
+        await startAt('A');
+        await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+        const gain = audio.gains[0];
+        void engine.runAction('longue');
+        expect(engine.runningActionIds().has('longue')).toBe(true);
+
+        await engine.openScene('B');
+        expect(engine.runningActionIds().has('longue')).toBe(false);
+        expect(engine.sounds()).toEqual([]);
+        // Fondu de sortie de l'élément (2 s), puis arrêt.
+        expect(gain.gain.ramps.at(-1)).toMatchObject({ target: 0, endTime: 2 });
+        await vi.advanceTimersByTimeAsync(2000);
+        expect(audio.released).toContain('son-taverne');
+        expect(feedTexts()).toEqual(['Les arbres se resserrent.']);
+
+        const saved = await savedSession();
+        expect(saved?.currentSceneId).toBe('B');
+        expect(saved?.scenes['A'].doneActionIds).not.toContain('longue');
+        expect(saved?.scenes['A'].playingSounds).toEqual([
+          { soundId: 'taverne', elementId: 'e-amb', paused: false, volume: 0.5 },
+        ]);
+      } finally {
+        vi.useRealTimers();
       }
-      signal.throwIfAborted();
     });
 
-    const { project, b } = await projectWithScenes(1);
-    await repository().saveAction(
-      anAction(b.id, { trigger: 'scene-open', elements: [text('e1', 'Un'), text('e2', 'Deux')] }),
-    );
-    const started = engine.start(project.id);
-    await vi.waitFor(() => expect(engine.feed()).toHaveLength(1));
-    engine.stop();
-    release();
-    await expect(started).resolves.toBeUndefined();
-    expect(feedTexts()).toEqual(['Un']);
+    it('revenir : état restauré sans relancer les actions d’ouverture, sons relancés (PRS-06)', async () => {
+      await seed();
+      await startAt('A');
+      await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+      engine.setVolume('taverne', 0.2);
+      engine.pauseSound('taverne');
+      engine.showBattlemap('b2');
+      await engine.openScene('B');
+      const playsBefore = vi.mocked(HTMLMediaElement.prototype.play).mock.calls.length;
+
+      await engine.openScene('A');
+      await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+      expect(feedTexts()).toEqual(['Odeur de bière.', '[b2]']);
+      expect(engine.shownBattlemap()?.id).toBe('b2');
+      expect(engine.sounds()[0]).toMatchObject({ soundId: 'taverne', paused: true, volume: 0.2 });
+      // Relancé en pause : pas de lecture ; un nouvel <audio> repart du début.
+      expect(vi.mocked(HTMLMediaElement.prototype.play).mock.calls.length).toBe(playsBefore);
+      expect(audio.elements.at(-1)?.currentTime).toBe(0);
+    });
+  });
+
+  describe('battlemap (9.2.4)', () => {
+    it('le sélecteur change la battlemap et ajoute une miniature au fil ; pas de doublon', async () => {
+      await seed();
+      await startAt('A');
+      engine.showBattlemap('b2');
+      engine.showBattlemap('b2');
+      expect(engine.shownBattlemap()?.id).toBe('b2');
+      expect(feedTexts()).toEqual(['Odeur de bière.', '[b2]']);
+      expect(engine.focus()?.itemId).toBe(engine.feed()[1].id);
+      expect((await savedSession())?.scenes['A'].currentBattlemapId).toBe('b2');
+    });
+
+    it('un élément « Afficher une battlemap » fait de même ; une battlemap supprimée est signalée', async () => {
+      await seed([
+        anAction('A', {
+          id: 'carte',
+          name: 'Carte',
+          elements: [{ id: 'sb', type: 'show-battlemap', battlemapId: 'supprimée' }],
+        }),
+      ]);
+      await startAt('A');
+      await engine.runAction('carte');
+      expect(engine.shownBattlemap()).toEqual({ id: 'supprimée', battlemap: null });
+      expect(feedTexts()).toEqual(['Odeur de bière.', '[supprimée]']);
+    });
+  });
+
+  describe('actions manuelles (9.1.7, 9.2.5)', () => {
+    it('effectuée puis relancée : pas de texte en double, le fil revient dessus', async () => {
+      await seed([
+        anAction('A', {
+          id: 'garde',
+          name: 'Le garde',
+          order: 3,
+          elements: [text('t-g', 'Halte !')],
+        }),
+      ]);
+      await startAt('A');
+      expect(engine.manualActions().map((m) => [m.action.name, m.done])).toEqual([
+        ['Le garde', false],
+      ]);
+      await engine.runAction('garde');
+      expect(engine.manualActions()[0].done).toBe(true);
+      expect(feedTexts()).toEqual(['Odeur de bière.', 'Halte !']);
+
+      const textId = engine.feed()[1].id;
+      engine.showBattlemap('b2');
+      await engine.runAction('garde');
+      expect(feedTexts()).toEqual(['Odeur de bière.', 'Halte !', '[b2]']);
+      expect(engine.focus()?.itemId).toBe(textId);
+      expect((await savedSession())?.scenes['A'].doneActionIds).toContain('garde');
+    });
+
+    it('Clic de l’utilisateur : l’action attend « Continuer », le bloc est validé', async () => {
+      await seed([
+        anAction('A', {
+          id: 'clic',
+          name: 'Clic',
+          elements: [
+            { id: 'uc', type: 'user-click', text: 'Il approche.' },
+            text('t-apres', 'Il parle.'),
+          ],
+        }),
+      ]);
+      await startAt('A');
+      const run = engine.runAction('clic');
+      await vi.waitFor(() => expect(engine.feed()).toHaveLength(2));
+      const block = engine.feed()[1];
+      expect(block).toMatchObject({ type: 'user-click', validated: false });
+      expect(engine.textOf(block)).toBe('Il approche.');
+      expect(engine.manualActions()[0].running).toBe(true);
+
+      engine.continueClick(block.id);
+      await run;
+      expect(engine.feed()[1]).toMatchObject({ validated: true });
+      expect(feedTexts()).toEqual(['Odeur de bière.', 'Il approche.', 'Il parle.']);
+      expect(engine.manualActions()[0]).toMatchObject({ done: true, running: false });
+      expect((await savedSession())?.scenes['A'].feed[1]).toMatchObject({ validated: true });
+    });
+
+    it('un clic en attente est retiré du fil si la scène est quittée', async () => {
+      await seed([
+        anAction('A', {
+          id: 'clic',
+          name: 'Clic',
+          elements: [{ id: 'uc', type: 'user-click', text: 'Il approche.' }],
+        }),
+      ]);
+      await startAt('A');
+      void engine.runAction('clic');
+      await vi.waitFor(() => expect(engine.feed()).toHaveLength(2));
+      await engine.openScene('B');
+      const saved = await savedSession();
+      expect(saved?.scenes['A'].feed).toHaveLength(1);
+      expect(saved?.scenes['A'].doneActionIds).not.toContain('clic');
+    });
+  });
+
+  describe('changer de scène (9.1.6, 9.3.4)', () => {
+    it('ouvre la scène cible ; les éléments suivants ne sont pas exécutés', async () => {
+      await seed([
+        anAction('A', {
+          id: 'fuite',
+          name: 'Fuite',
+          elements: [{ id: 'cs', type: 'change-scene', sceneId: 'B' }, text('t-x', 'Jamais')],
+        }),
+      ]);
+      await startAt('A');
+      await engine.runAction('fuite');
+      await vi.waitFor(() => expect(engine.scene()?.id).toBe('B'));
+      expect(feedTexts()).toEqual(['Les arbres se resserrent.']);
+      expect((await savedSession())?.scenes['A'].doneActionIds).toContain('fuite');
+    });
+
+    it('scène cible supprimée : message d’erreur, pas de changement', async () => {
+      await seed([
+        anAction('A', {
+          id: 'fuite',
+          name: 'Fuite',
+          elements: [{ id: 'cs', type: 'change-scene', sceneId: 'supprimée' }],
+        }),
+      ]);
+      await startAt('A');
+      await engine.runAction('fuite');
+      expect(engine.scene()?.id).toBe('A');
+      expect(errors()).toContain(
+        'La scène cible de « Changer de scène » a été supprimée : la scène ne change pas.',
+      );
+    });
+  });
+
+  describe('sons (9.2.5, 9.3.4)', () => {
+    it('lancer à la main, pause, volume, arrêt par élément, arrêter tout', async () => {
+      await seed([
+        anAction('A', {
+          id: 'calme',
+          name: 'Calme',
+          elements: [{ id: 'ss', type: 'stop-sound', soundId: 'taverne' }],
+        }),
+        anAction('A', {
+          id: 'silence',
+          name: 'Silence',
+          elements: [{ id: 'sa', type: 'stop-all-sounds' }],
+        }),
+      ]);
+      await startAt('A');
+      await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+      await engine.playLibrarySound('pluie');
+      expect(engine.sounds().map((s) => s.soundId)).toEqual(['taverne', 'pluie']);
+      await engine.togglePlayback();
+      expect(engine.anyPlaying()).toBe(false);
+      await engine.togglePlayback();
+      expect(engine.anyPlaying()).toBe(true);
+
+      await engine.runAction('calme');
+      expect(engine.sounds().map((s) => s.soundId)).toEqual(['pluie']);
+      expect((await savedSession())?.scenes['A'].playingSounds).toEqual([
+        { soundId: 'pluie', elementId: null, paused: false, volume: 1 },
+      ]);
+      await engine.runAction('silence');
+      expect(engine.sounds()).toEqual([]);
+    });
+
+    it('un son supprimé n’est pas lancé et un message s’affiche (PRS-07)', async () => {
+      await seed([
+        anAction('A', {
+          id: 'fantomes',
+          name: 'Fantômes',
+          elements: [playSound('e-f', 'fantome'), playSound('e-g', 'inconnu'), text('t-f', 'Brr.')],
+        }),
+      ]);
+      await startAt('A');
+      await engine.runAction('fantomes');
+      await vi.waitFor(() => expect(errors()).toHaveLength(2));
+      expect(errors()[0]).toBe('Un son a été supprimé du projet : il n’est pas lancé.');
+      expect(feedTexts()).toContain('Brr.');
+      expect(engine.sounds().map((s) => s.soundId)).toEqual(['taverne']);
+    });
+  });
+
+  describe('partie sauvegardée (9.3.2, 9.3.3, 9.3.4)', () => {
+    async function previousGame() {
+      await seed([
+        anAction('B', {
+          id: 'loup',
+          name: 'Le loup',
+          elements: [text('t-loup', 'Un loup hurle.')],
+        }),
+      ]);
+      await startAt('A');
+      await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+      await engine.openScene('B');
+      await engine.runAction('loup');
+      await engine.playLibrarySound('pluie');
+      engine.setVolume('pluie', 0.4);
+      engine.pauseSound('pluie');
+      await engine.stop();
+      engine = TestBed.inject(PresentationEngine);
+    }
+
+    it('une partie existe : le MJ choisit (statut « choose »)', async () => {
+      await previousGame();
+      await engine.load('p1');
+      expect(engine.status()).toBe('choose');
+      expect(engine.savedSession()?.currentSceneId).toBe('B');
+    });
+
+    it('Continuer : dernière scène dans l’état exact, sons repris depuis le début (PRS-05)', async () => {
+      await previousGame();
+      await engine.load('p1');
+      await engine.continueSession();
+      await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+      expect(engine.scene()?.id).toBe('B');
+      expect(feedTexts()).toEqual(['Les arbres se resserrent.', 'Un loup hurle.']);
+      expect(engine.manualActions()[0].done).toBe(true);
+      expect(engine.sounds()[0]).toMatchObject({ soundId: 'pluie', paused: true, volume: 0.4 });
+    });
+
+    it('Recommencer : partie effacée, retour à la première scène (PRS-03)', async () => {
+      await previousGame();
+      await engine.load('p1');
+      await engine.restart();
+      await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+      expect(engine.scene()?.id).toBe('A');
+      const saved = await savedSession();
+      expect(Object.keys(saved?.scenes ?? {})).toEqual(['A']);
+      expect(saved?.currentSceneId).toBe('A');
+    });
+
+    it('éléments supprimés depuis : textes masqués, scène courante supprimée → première scène', async () => {
+      await previousGame();
+      await repository().deleteAction('loup');
+      await engine.load('p1');
+      await engine.continueSession();
+      await vi.waitFor(() => expect(engine.scene()?.id).toBe('B'));
+      expect(feedTexts()).toEqual(['Les arbres se resserrent.']);
+
+      await engine.stop();
+      await repository().deleteSceneNode('B');
+      engine = TestBed.inject(PresentationEngine);
+      await engine.load('p1');
+      await engine.continueSession();
+      await vi.waitFor(() => expect(engine.scene()?.id).toBe('A'));
+    });
+  });
+
+  it('signale un projet introuvable ou sans scène', async () => {
+    await engine.start('absent');
+    expect(engine.status()).toBe('missing');
+    await repository().saveProject(aProject({ id: 'vide' }));
+    await engine.start('vide');
+    expect(engine.status()).toBe('no-scene');
   });
 });
