@@ -93,7 +93,8 @@ describe('ProjectsPage (4.1)', () => {
     const project = aProject({ name: 'La crypte' });
     await TestBed.inject(DATA_REPOSITORY).saveProject(project);
     const { el } = await render();
-    const [edit, present] = el.querySelectorAll<HTMLAnchorElement>('.card__actions a');
+    const edit = el.querySelector('.card__link') as HTMLAnchorElement;
+    const [present] = el.querySelectorAll<HTMLAnchorElement>('.card__actions a');
     expect(edit.getAttribute('href')).toBe(`/projects/${project.id}/edit`);
     expect(edit.getAttribute('aria-label')).toBe('Éditer « La crypte »');
     expect(present.getAttribute('href')).toBe(`/projects/${project.id}/play`);

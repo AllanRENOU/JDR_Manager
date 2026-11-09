@@ -12,7 +12,14 @@
   }
 </div>
 <div class="card__body">
-  <h2 class="card__name">{{ s.project.name }}</h2>
+  <h2 class="card__name">
+    <a
+      class="card__link"
+      [routerLink]="['/projects', s.project.id, 'edit']"
+      [attr.aria-label]="'project.editAction' | transloco: { name: s.project.name }"
+      >{{ s.project.name }}</a
+    >
+  </h2>
   <p class="card__stats">
     {{ pluralKey('project.stats.scenes', s.sceneCount) | transloco: { count: s.sceneCount } }} ·
     {{ pluralKey('project.stats.sounds', s.soundCount) | transloco: { count: s.soundCount } }}
@@ -25,14 +32,6 @@
   }
 </div>
 <div class="card__actions">
-  <a
-    appButton="secondary"
-    size="sm"
-    [routerLink]="['/projects', s.project.id, 'edit']"
-    [attr.aria-label]="'project.editAction' | transloco: { name: s.project.name }"
-  >
-    <svg lucidePencil aria-hidden="true"></svg>{{ 'project.edit' | transloco }}
-  </a>
   <a
     appButton
     size="sm"

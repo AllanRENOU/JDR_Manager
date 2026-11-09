@@ -4,10 +4,38 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
   overflow: hidden;
   border: 1px solid color(border-subtle);
   border-radius: radius(xl);
   background: color(bg-card);
+  transition: transition(border-color);
+
+  &:hover {
+    border-color: color(border-strong);
+  }
+
+  // Le lien du nom couvre la carte : le focus clavier s'affiche sur toute la carte.
+  &:has(.card__link:focus-visible) {
+    outline: 2px solid color(accent);
+    outline-offset: 2px;
+  }
+}
+
+// Lien « étiré » : un clic n'importe où sur la carte ouvre le projet en édition.
+.card__link {
+  color: inherit;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
 }
 
 .card__thumb {
@@ -58,7 +86,10 @@
   font-size: font-size(small);
 }
 
+// Au-dessus du lien étiré, pour rester cliquables.
 .card__actions {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: space(8);
   margin-top: auto;
