@@ -245,6 +245,70 @@
     "errors": {
       "missingSound": "Un son a été supprimé du projet : il n’est pas lancé.",
       "missingScene": "La scène cible de « Changer de scène » a été supprimée : la scène ne change pas."
+    },
+    "launch": {
+      "savedTitle": "Une partie est en cours",
+      "newTitle": "Lancer la présentation",
+      "lastScene": "Dernière scène",
+      "firstScene": "Première scène",
+      "savedAt": "Sauvegardée le {{ date }}",
+      "display": "Affichage",
+      "single": "Un seul écran",
+      "singleHelp": "Texte, cartes et contrôles sur cet écran.",
+      "dual": "Deux fenêtres",
+      "dualHelp": "Une fenêtre joueurs pour la TV ou le projecteur. PC uniquement.",
+      "continue": "Continuer la partie",
+      "start": "Commencer la partie",
+      "restartTitle": "Recommencer la partie ?",
+      "restartMessage": "Tout ce qui a été fait dans cette partie sera perdu : actions effectuées, cartes affichées, sons en cours et fil d’actualité de chaque scène. La partie repartira de la première scène.",
+      "restartConfirm": "Effacer et recommencer",
+      "visited": {
+        "one": "{{ count }} scène visitée",
+        "other": "{{ count }} scènes visitées"
+      }
+    },
+    "goToSceneConfirm": "Ouvrir la scène",
+    "chooseNextScene": "Choisir la scène suivante",
+    "validated": "Validé",
+    "backToLatest": "Revenir au dernier élément",
+    "previousItems": {
+      "one": "{{ count }} élément précédent",
+      "other": "{{ count }} éléments précédents"
+    },
+    "battlemapMissing": "Cette battlemap a été supprimée du projet.",
+    "enlargeBattlemap": "Agrandir la battlemap « {{ name }} »",
+    "panel": {
+      "label": "Panneau de contrôle",
+      "battlemap": "Battlemap",
+      "noBattlemap": "Aucune battlemap affichée.",
+      "chooseBattlemap": "Choisir la battlemap affichée",
+      "actions": "Actions",
+      "available": {
+        "one": "{{ count }} disponible",
+        "other": "{{ count }} disponibles"
+      },
+      "running": "En cours",
+      "relaunch": "Relancer",
+      "showAll": {
+        "one": "Voir toutes les actions ({{ count }} effectuée)",
+        "other": "Voir toutes les actions ({{ count }} effectuées)"
+      },
+      "hideDone": "Masquer les actions effectuées",
+      "allDone": "Toutes les actions ont été effectuées.",
+      "noAction": "Aucune action manuelle dans cette scène.",
+      "sounds": "Sons"
+    },
+    "sounds": {
+      "playing": {
+        "one": "{{ count }} en cours",
+        "other": "{{ count }} en cours"
+      },
+      "loop": "boucle",
+      "paused": "en pause",
+      "pause": "Mettre en pause « {{ name }} »",
+      "resume": "Reprendre « {{ name }} »",
+      "volume": "Volume de « {{ name }} »",
+      "launchConfirm": "Lancer"
     }
   },
   "sound": {

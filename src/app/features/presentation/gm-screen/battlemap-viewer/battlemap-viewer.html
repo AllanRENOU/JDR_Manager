@@ -1,0 +1,10 @@
+<app-modal [title]="battlemap.name">
+  @if (image.missing()) {
+    <p class="missing" role="alert">
+      <svg lucideTriangleAlert aria-hidden="true"></svg
+      >{{ 'presentation.battlemapMissing' | transloco }}
+    </p>
+  } @else if (image.url(); as url) {
+    <img class="image" [src]="url" [alt]="battlemap.name" />
+  }
+</app-modal>

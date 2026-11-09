@@ -25,7 +25,8 @@ import { PlaySessionStore, newSceneState } from './play-session-store';
 
 /**
  * - `loading` : chargement ;
- * - `choose` : une partie sauvegardée existe, le MJ choisit Continuer ou Recommencer (PRS-02) ;
+ * - `choose` : chargé, en attente du lancement (fenêtre de lancement) : `savedSession` dit s'il y a
+ *   une partie à continuer (PRS-02) ; sinon la partie commencera sur la première scène (PRS-01) ;
  * - `ready` : une scène est ouverte ;
  * - `missing` : projet introuvable ; `no-scene` : projet sans scène.
  */
@@ -150,12 +151,13 @@ export class PresentationEngine {
   // ── Démarrage ───────────────────────────────────────────────────────────
 
   /**
-   * Charge le projet et sa partie sauvegardée. Sans partie, la première scène s'ouvre (PRS-01) ;
-   * sinon le statut passe à `choose` et l'écran appelle `continueSession()` ou `restart()`.
+   * Charge le projet et sa partie sauvegardée, sans rien ouvrir : le statut passe à `choose` et
+   * l'écran lance la partie (`continueSession()` ou `restart()`) au clic qui débloque l'audio.
    */
   async load(projectId: Id): Promise<void> {
     this.stop();
     this.status.set('loading');
+    this.savedSession.set(null);
     const project = await this.repository.getProject(projectId);
     if (!project) {
       this.status.set('missing');
@@ -174,23 +176,22 @@ export class PresentationEngine {
       this.status.set('no-scene');
       return;
     }
-    if (saved) {
-      this.savedSession.set(saved);
-      this.status.set('choose');
-      return;
-    }
-    await this.restart();
+    this.savedSession.set(saved ?? null);
+    this.status.set('choose');
   }
 
-  /**
-   * Démarre sans poser de question : reprend la partie sauvegardée s'il y en a une.
-   * (L'écran de Présentation du lot 10 proposera Continuer / Recommencer.)
-   */
+  /** Charge puis lance sans poser de question : continue la partie sauvegardée s'il y en a une. */
   async start(projectId: Id): Promise<void> {
     await this.load(projectId);
     if (this.status() === 'choose') {
-      await this.continueSession();
+      await (this.savedSession() ? this.continueSession() : this.restart());
     }
+  }
+
+  /** Première scène du projet (fenêtre de lancement, Recommencer). */
+  firstScene(): SceneNode | null {
+    const id = this.firstSceneId();
+    return this.sceneNodes().find((n) => n.id === id) ?? null;
   }
 
   /** Continuer (PRS-05) : rouvre la dernière scène dans l'état où elle était. */

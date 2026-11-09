@@ -1,0 +1,28 @@
+@let next = engine.nextScenes();
+@if (next.length === 1) {
+  <button class="next" appButton size="lg" type="button" (click)="go(next[0].id)">
+    {{ 'presentation.nextScene' | transloco }}
+    <svg lucideArrowRight aria-hidden="true"></svg>
+  </button>
+} @else if (next.length > 1) {
+  <button
+    class="next"
+    appButton
+    size="lg"
+    type="button"
+    [cdkMenuTriggerFor]="list"
+    [cdkMenuPosition]="positions"
+  >
+    {{ 'presentation.nextScene' | transloco }}
+    <svg lucideChevronUp aria-hidden="true"></svg>
+  </button>
+  <ng-template #list>
+    <div appMenu class="list" [attr.aria-label]="'presentation.chooseNextScene' | transloco">
+      @for (scene of next; track scene.id) {
+        <button appMenuItem (triggered)="go(scene.id)">
+          <svg lucideArrowRight class="list__icon" aria-hidden="true"></svg>{{ scene.name }}
+        </button>
+      }
+    </div>
+  </ng-template>
+}

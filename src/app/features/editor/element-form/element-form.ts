@@ -21,7 +21,7 @@ import { Input } from '../../../shared/ui/input/input';
 import { SummaryContext } from '../action-summary';
 import { BattlemapCard } from '../battlemap-card/battlemap-card';
 import { elementProblem } from '../element-validation';
-import { soundChoiceNodes, soundPath } from '../sound-choice';
+import { soundChoiceNodes, soundPath } from '../../../shared/selection-dialog/sound-choice';
 
 /**
  * Champs saisis au clavier, communs aux types d'éléments. Les cibles (battlemap, son, scène)

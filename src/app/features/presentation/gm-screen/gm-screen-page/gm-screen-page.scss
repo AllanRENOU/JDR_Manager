@@ -6,19 +6,27 @@
   height: 100vh;
 }
 
-.title {
+// En-tête : contexte (projet · dossiers) puis nom de la scène (maquette « Présentation — MJ »).
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: space(2);
+  min-width: 0;
+}
+
+.heading__context {
   overflow: hidden;
-  font-size: font-size(section);
+  color: color(text-secondary);
+  font-size: font-size(label);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.title__scene {
-  margin-left: space(6);
-  color: color(text-secondary);
-  font-family: font-family(ui);
-  font-size: font-size(input);
-  font-weight: font-weight(medium);
+.heading__scene {
+  overflow: hidden;
+  font-size: font-size(section);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mode {
@@ -26,43 +34,58 @@
   color: color(accent-text);
 }
 
-.stage {
+.player-pill {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: space(6);
+  padding: space(4) space(10);
+  border-radius: radius(pill);
+  background: color(active-bg);
+  color: color(active-text);
+  font-size: font-size(label);
+  font-weight: font-weight(semibold);
+
+  svg {
+    width: space(14);
+    height: space(14);
+  }
+}
+
+.message {
+  padding: space(32);
+}
+
+// Fil au centre, panneau de contrôle à droite (Brief §7.1).
+.play {
   display: flex;
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
 }
 
-.stage__message {
-  align-self: flex-start;
-  margin: space(32);
-}
-
-// Fil d'actualité : colonne centrée de 760 px au plus (Brief §6.10).
-.feed {
+.stage {
+  position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: space(16);
-  width: 100%;
-  max-width: layout(feed-max);
-  margin: 0 auto;
-  padding: space(32) space(24) space(64);
+  min-width: 0;
 }
 
-.feed__text {
-  padding: space(20) space(24);
-  border: 1px solid color(border-subtle);
-  border-radius: radius(xl);
-  background: color(bg-card);
-  font-family: font-family(narrative);
-  font-size: font-size(narrative);
-  line-height: line-height(narrative);
-  white-space: pre-line;
+.stage__feed {
+  flex: 1;
 }
 
-.feed__empty {
-  margin-top: space(48);
-  color: color(text-tertiary);
-  font-style: italic;
-  text-align: center;
+.stage__next {
+  position: absolute;
+  right: space(28);
+  bottom: space(24);
+}
+
+.panel {
+  flex-shrink: 0;
+  width: layout(sidebar-play);
+  padding: space(8) space(20) space(20);
+  overflow-y: auto;
+  border-left: 1px solid color(border-subtle);
+  background: color(bg-panel);
 }

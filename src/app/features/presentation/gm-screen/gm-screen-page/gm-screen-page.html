@@ -10,31 +10,42 @@
     <svg lucideArrowLeft aria-hidden="true"></svg>
   </a>
   @if (project) {
-    <h1 class="title">
-      {{ project.name }}
-      @if (engine.sceneNode(); as scene) {
-        <span class="title__scene">› {{ scene.name }}</span>
-      }
-    </h1>
+    <div class="heading">
+      <span class="heading__context">{{ context() }}</span>
+      <h1 class="heading__scene">{{ engine.sceneNode()?.name ?? project.name }}</h1>
+    </div>
     <svg
       lucidePresentation
       class="mode"
       role="img"
       [attr.aria-label]="'project.presentMode' | transloco"
     ></svg>
+    @if (playerWindowOpen()) {
+      <span class="player-pill">
+        <svg lucideMonitor aria-hidden="true"></svg
+        >{{ 'presentation.playerWindowOpen' | transloco }}
+      </span>
+    }
+  }
+  @if (engine.status() === 'ready') {
+    <button headerEnd appButton="secondary" size="header" type="button" (click)="goToScene()">
+      <svg lucideMap aria-hidden="true"></svg>{{ 'presentation.goToScene' | transloco }}
+    </button>
   }
 </app-header>
 
-<main class="stage">
-  @switch (engine.status()) {
-    @case ('missing') {
-      <app-alert class="stage__message">
+@switch (engine.status()) {
+  @case ('missing') {
+    <main class="message">
+      <app-alert>
         {{ 'project.notFound' | transloco }}
         <a alertAction routerLink="/projects">{{ 'project.backToProjects' | transloco }}</a>
       </app-alert>
-    }
-    @case ('no-scene') {
-      <app-alert class="stage__message" tone="info">
+    </main>
+  }
+  @case ('no-scene') {
+    <main class="message">
+      <app-alert tone="info">
         {{ 'presentation.noScene' | transloco }}
         @if (project) {
           <a alertAction [routerLink]="['/projects', project.id, 'edit']">{{
@@ -42,22 +53,19 @@
           }}</a>
         }
       </app-alert>
-    }
-    @case ('ready') {
-      <section class="feed" [attr.aria-label]="'presentation.feed' | transloco" aria-live="polite">
-        @for (item of engine.feed(); track item.id) {
-          @if (item.type === 'text') {
-            @let text = engine.textOf(item);
-            @if (text !== null) {
-              <article class="feed__text">{{ text }}</article>
-            } @else {
-              <app-alert>{{ 'presentation.missingText' | transloco }}</app-alert>
-            }
-          }
-        } @empty {
-          <p class="feed__empty">{{ 'presentation.emptyFeed' | transloco }}</p>
-        }
-      </section>
-    }
+    </main>
   }
-</main>
+  @case ('ready') {
+    <div class="play">
+      <main class="stage">
+        <app-feed class="stage__feed" />
+        <app-next-scene-button class="stage__next" />
+      </main>
+      <aside class="panel" [attr.aria-label]="'presentation.panel.label' | transloco">
+        <app-battlemap-section />
+        <app-actions-section />
+        <app-sounds-section />
+      </aside>
+    </div>
+  }
+}

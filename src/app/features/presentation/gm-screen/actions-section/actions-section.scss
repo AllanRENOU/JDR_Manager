@@ -1,0 +1,108 @@
+@use 'functions' as *;
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: space(10);
+  padding-bottom: space(14);
+}
+
+// Action en cours.
+.running {
+  display: flex;
+  align-items: center;
+  gap: space(10);
+  padding: space(12) space(14);
+  border: 1px solid color(active-border);
+  border-radius: radius(lg);
+  background: color(active-bg);
+}
+
+.running__dot {
+  width: space(8);
+  height: space(8);
+  border-radius: radius(pill);
+  background: color(active-text);
+}
+
+.running__name {
+  font-weight: font-weight(semibold);
+}
+
+.running__state {
+  margin-left: auto;
+  color: color(active-text);
+  font-size: font-size(label);
+}
+
+// Action à lancer (ou à relancer).
+.action {
+  display: flex;
+  align-items: center;
+  gap: space(10);
+  min-height: control-height(touch);
+  padding: 0 space(14);
+  border: 1px solid color(border-default);
+  border-radius: radius(lg);
+  background: color(bg-card);
+  color: color(text-primary);
+  font-weight: font-weight(semibold);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: color(bg-control-hover);
+  }
+}
+
+.action--done {
+  color: color(text-secondary);
+  font-weight: font-weight(medium);
+}
+
+.action__icon {
+  flex-shrink: 0;
+  width: space(16);
+  height: space(16);
+  color: color(accent-text);
+}
+
+.action__icon--done {
+  color: color(active-text);
+}
+
+.action__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.action__relaunch {
+  display: flex;
+  align-items: center;
+  gap: space(4);
+  color: color(accent-text);
+  font-size: font-size(label);
+
+  svg {
+    width: space(14);
+    height: space(14);
+  }
+}
+
+.empty {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+  font-style: italic;
+}
+
+.toggle {
+  align-self: flex-start;
+  height: control-height(sm);
+  padding: 0 space(4);
+  border: 0;
+  background: transparent;
+  color: color(accent-text);
+  font-size: font-size(small);
+  font-weight: font-weight(medium);
+  cursor: pointer;
+}

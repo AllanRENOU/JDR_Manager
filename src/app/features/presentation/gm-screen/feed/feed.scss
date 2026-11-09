@@ -1,0 +1,156 @@
+@use 'functions' as *;
+
+:host {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+// Zone qui défile ; l'élément courant s'arrête à `scroll-padding-top` du haut (FIL-06).
+.scroller {
+  flex: 1;
+  min-height: 0;
+  padding: 0 space(56);
+  overflow-y: auto;
+  scroll-padding-top: space(64);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: space(18);
+  max-width: layout(feed-max);
+  margin: 0 auto;
+  padding-top: space(64);
+}
+
+// Laisse le dernier élément monter jusqu'en haut.
+.spacer {
+  height: calc(100% - #{space(160)});
+}
+
+.item {
+  transition: opacity duration(normal) easing(out);
+}
+
+// Éléments précédents estompés (Brief §6.10).
+.item--past {
+  opacity: 0.45;
+}
+
+// Miniature (FIL-03) : pas en pleine largeur, un clic l'agrandit.
+app-feed-battlemap {
+  max-width: layout(sidebar-play);
+}
+
+.text {
+  padding: space(22) space(24);
+  border: 1px solid color(border-subtle);
+  border-radius: radius(xl);
+  background: color(bg-card);
+  font-family: font-family(narrative);
+  font-size: font-size(narrative);
+  line-height: line-height(narrative);
+  white-space: pre-line;
+}
+
+// Clic de l'utilisateur (FIL-05).
+.click {
+  display: flex;
+  flex-direction: column;
+  gap: space(16);
+  padding: space(22) space(24) space(18);
+  border: 2px solid color(accent);
+  border-radius: radius(xl);
+  background: color(accent-surface);
+}
+
+.click--done {
+  border: 1px solid color(border-subtle);
+  background: color(bg-card);
+}
+
+.click__body {
+  display: flex;
+  align-items: center;
+  gap: space(18);
+}
+
+.click__icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: space(44);
+  height: space(44);
+  border-radius: radius(pill);
+  background: color(accent-tint);
+  color: color(accent-text);
+
+  .click--done & {
+    background: color(active-bg);
+    color: color(active-text);
+  }
+
+  svg {
+    width: space(20);
+    height: space(20);
+  }
+}
+
+.click__text {
+  margin: 0;
+  font-size: font-size(click);
+  font-weight: font-weight(medium);
+  line-height: line-height(normal);
+}
+
+.click__button {
+  align-self: flex-end;
+}
+
+.click__done {
+  align-self: flex-end;
+  color: color(active-text);
+  font-size: font-size(small);
+  font-weight: font-weight(semibold);
+}
+
+.empty {
+  color: color(text-tertiary);
+  font-style: italic;
+}
+
+// Pastille « N éléments précédents » et « Revenir au dernier élément » (FIL-07).
+.previous {
+  position: absolute;
+  top: space(16);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: space(6);
+  height: control-height(sm);
+  padding: 0 space(14);
+  transform: translateX(-50%);
+  border: 1px solid color(border-default);
+  border-radius: radius(pill);
+  background: color(bg-card);
+  color: color(text-secondary);
+  font-size: font-size(label);
+  font-weight: font-weight(medium);
+  cursor: pointer;
+
+  svg {
+    width: space(14);
+    height: space(14);
+  }
+}
+
+.back {
+  position: absolute;
+  bottom: space(24);
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: shadow(float);
+}

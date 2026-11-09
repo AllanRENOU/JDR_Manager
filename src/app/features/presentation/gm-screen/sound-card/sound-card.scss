@@ -1,0 +1,85 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+  border: 1px solid transparent;
+  border-radius: radius(lg);
+  background: color(bg-card);
+}
+
+// Carte dépliée (Brief §6.12).
+:host(.expanded) {
+  border-color: color(border-default);
+  background: color(bg-raised);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: space(6);
+  padding: 0 space(6) 0 space(14);
+}
+
+.head__main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: space(10);
+  min-width: 0;
+  height: control-height(touch);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: color(text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.head__icon {
+  flex-shrink: 0;
+  width: space(16);
+  height: space(16);
+  color: color(active-text);
+}
+
+.head__icon--paused {
+  color: color(text-tertiary);
+}
+
+.head__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.head__loop {
+  flex-shrink: 0;
+  color: color(text-secondary);
+  font-size: font-size(label);
+}
+
+.volume {
+  display: flex;
+  align-items: center;
+  gap: space(12);
+  padding: 0 space(14) space(12);
+  color: color(text-secondary);
+
+  svg {
+    flex-shrink: 0;
+    width: space(16);
+    height: space(16);
+  }
+
+  input {
+    flex: 1;
+    margin: 0;
+    accent-color: color(accent);
+  }
+}
+
+.volume__value {
+  width: space(40);
+  font-size: font-size(small);
+  text-align: right;
+}

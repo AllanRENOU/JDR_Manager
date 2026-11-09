@@ -1,0 +1,55 @@
+<app-collapsible-section
+  [title]="'presentation.panel.actions' | transloco"
+  [summary]="'· ' + (summaryKey() | transloco: { count: availableCount() })"
+  preferenceKey="play.actions"
+>
+  <div class="content">
+    @for (item of running(); track item.action.id) {
+      <div class="running" role="status">
+        <span class="running__dot" aria-hidden="true"></span>
+        <span class="running__name">{{ item.action.name }}</span>
+        <span class="running__state">{{ 'presentation.panel.running' | transloco }}</span>
+      </div>
+    }
+    @for (item of available(); track item.action.id) {
+      <button class="action" [class.action--done]="item.done" type="button" (click)="run(item)">
+        @if (item.done) {
+          <svg lucideCheck class="action__icon action__icon--done" aria-hidden="true"></svg>
+          <span class="action__name">{{ item.action.name }}</span>
+          <span class="action__relaunch">
+            <svg lucideRotateCcw aria-hidden="true"></svg
+            >{{ 'presentation.panel.relaunch' | transloco }}
+          </span>
+        } @else {
+          <svg lucidePlay class="action__icon" aria-hidden="true"></svg>
+          <span class="action__name">{{ item.action.name }}</span>
+        }
+      </button>
+    } @empty {
+      @if (running().length === 0) {
+        <p class="empty">
+          {{
+            (engine.manualActions().length
+              ? 'presentation.panel.allDone'
+              : 'presentation.panel.noAction'
+            ) | transloco
+          }}
+        </p>
+      }
+    }
+    @if (doneCount() > 0) {
+      <button
+        class="toggle"
+        type="button"
+        [attr.aria-pressed]="showAll()"
+        (click)="showAll.set(!showAll())"
+      >
+        {{
+          showAll()
+            ? ('presentation.panel.hideDone' | transloco)
+            : (showAllKey() | transloco: { count: doneCount() })
+        }}
+      </button>
+    }
+  </div>
+</app-collapsible-section>

@@ -1,0 +1,55 @@
+@let s = sound();
+<div class="head">
+  <button
+    class="head__main"
+    type="button"
+    [attr.aria-expanded]="expanded()"
+    [attr.aria-controls]="volumeId"
+    (click)="expanded.set(!expanded())"
+  >
+    <svg
+      lucideVolume2
+      class="head__icon"
+      [class.head__icon--paused]="s.paused"
+      aria-hidden="true"
+    ></svg>
+    <span class="head__name">{{ name() }}</span>
+    @if (s.loop) {
+      <span class="head__loop">{{ 'presentation.sounds.loop' | transloco }}</span>
+    }
+    @if (s.paused) {
+      <span class="head__loop">{{ 'presentation.sounds.paused' | transloco }}</span>
+    }
+  </button>
+  <button
+    appButton="icon"
+    size="sm"
+    type="button"
+    [attr.aria-label]="
+      (s.paused ? 'presentation.sounds.resume' : 'presentation.sounds.pause')
+        | transloco: { name: name() }
+    "
+    (click)="toggle()"
+  >
+    @if (s.paused) {
+      <svg lucidePlay aria-hidden="true"></svg>
+    } @else {
+      <svg lucidePause aria-hidden="true"></svg>
+    }
+  </button>
+</div>
+@if (expanded()) {
+  <div class="volume" [id]="volumeId">
+    <svg lucideVolume1 aria-hidden="true"></svg>
+    <input
+      type="range"
+      min="0"
+      max="100"
+      step="5"
+      [value]="percent()"
+      [attr.aria-label]="'presentation.sounds.volume' | transloco: { name: name() }"
+      (input)="setVolume($any($event.target).value)"
+    />
+    <span class="volume__value">{{ percent() }} %</span>
+  </div>
+}

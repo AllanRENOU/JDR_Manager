@@ -1,0 +1,32 @@
+@let sounds = engine.sounds();
+<app-collapsible-section
+  [title]="'presentation.panel.sounds' | transloco"
+  [summary]="'· ' + (summaryKey() | transloco: { count: sounds.length })"
+  preferenceKey="play.sounds"
+>
+  @if (sounds.length) {
+    <button
+      sectionAction
+      appButton="icon"
+      size="sm"
+      type="button"
+      [attr.aria-label]="(engine.anyPlaying() ? 'sound.pauseAll' : 'sound.playAll') | transloco"
+      [attr.title]="(engine.anyPlaying() ? 'sound.pauseAll' : 'sound.playAll') | transloco"
+      (click)="toggleAll()"
+    >
+      @if (engine.anyPlaying()) {
+        <svg lucidePause aria-hidden="true"></svg>
+      } @else {
+        <svg lucidePlay aria-hidden="true"></svg>
+      }
+    </button>
+  }
+  <div class="content">
+    @for (sound of sounds; track sound.soundId) {
+      <app-sound-card [sound]="sound" />
+    }
+    <button class="launch" appButton="add" type="button" (click)="launch()">
+      <svg lucidePlus aria-hidden="true"></svg>{{ 'sound.launch' | transloco }}
+    </button>
+  </div>
+</app-collapsible-section>

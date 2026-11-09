@@ -14,14 +14,18 @@ $spacing: (
   12: 12px,
   14: 14px,
   16: 16px,
+  18: 18px,
   20: 20px,
+  22: 22px,
   24: 24px,
   28: 28px,
   32: 32px,
   40: 40px,
+  44: 44px,
   48: 48px,
   56: 56px,
   64: 64px,
+  160: 160px,
 );
 
 // Rayons (Brief §4).
@@ -44,6 +48,7 @@ $font-size: (
   input: 15px,
   lead: 17px,
   narrative: 20px,
+  click: 19px,
   section: 18px,
   dialog: 22px,
   screen: 28px,
@@ -97,6 +102,7 @@ $layout: (
   feed-max: 760px,
   card-min: 320px,
   card-thumb: 150px,
+  scene-thumb: 96px,
   card-create-min: 240px,
   tree-indent: 30px,
   menu-min: 200px,
@@ -104,6 +110,7 @@ $layout: (
   modal-sm: 560px,
   modal-md: 620px,
   modal-lg: 900px,
+  modal-xl: 1400px,
 );
 
 // Toutes les maps exposées en variables CSS, avec leur préfixe.

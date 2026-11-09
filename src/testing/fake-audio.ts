@@ -1,4 +1,4 @@
-import { Provider } from '@angular/core';
+import { Provider, computed } from '@angular/core';
 
 import { MediaUrls } from '../app/core/media/media-urls';
 import { AUDIO_CONTEXT_FACTORY } from '../app/features/presentation/audio/audio-player';
@@ -40,8 +40,8 @@ export interface FakeAudio {
 }
 
 /**
- * Fournit un faux `AudioContext` et un faux `MediaUrls` (les médias dont l'id commence par
- * `absent` sont introuvables), et espionne `play()` / `pause()` des éléments `<audio>`.
+ * Fournit un faux `AudioContext` et un faux `MediaUrls` (`acquire`, `release`, `track` ; les médias
+ * dont l'id commence par `absent` sont introuvables), et espionne `play()` / `pause()` des éléments `<audio>`.
  */
 export function useFakeAudio(): FakeAudio {
   const fake: FakeAudio = {
@@ -106,6 +106,14 @@ export function useFakeAudio(): FakeAudio {
       return `blob:${mediaId}`;
     },
     release: (mediaId: string) => fake.released.push(mediaId),
+    /** Comme `MediaUrls.track()`, sans `Blob` : URL `blob:<id>`, `absent*` introuvables. */
+    track: (mediaId: () => string | null | undefined) => ({
+      url: computed(() => {
+        const id = mediaId();
+        return id && !id.startsWith('absent') ? `blob:${id}` : null;
+      }),
+      missing: computed(() => !!mediaId()?.startsWith('absent')),
+    }),
   };
   fake.providers.push(
     { provide: AUDIO_CONTEXT_FACTORY, useValue: createContext },

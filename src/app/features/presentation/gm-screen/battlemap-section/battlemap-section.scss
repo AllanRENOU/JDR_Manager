@@ -1,0 +1,44 @@
+@use 'functions' as *;
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: space(10);
+  padding-bottom: space(14);
+}
+
+.empty {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+  font-style: italic;
+}
+
+// Choix de la battlemap : pastilles (maquette « Présentation — MJ »).
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space(8);
+}
+
+.choice {
+  height: control-height(md);
+  padding: 0 space(12);
+  border: 1px solid color(border-default);
+  border-radius: radius(pill);
+  background: transparent;
+  color: color(text-primary);
+  font-size: font-size(small);
+  font-weight: font-weight(medium);
+  cursor: pointer;
+
+  &:hover {
+    background: color(bg-control-hover);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: transparent;
+    background: color(accent-tint);
+    color: color(accent-text);
+    font-weight: font-weight(semibold);
+  }
+}

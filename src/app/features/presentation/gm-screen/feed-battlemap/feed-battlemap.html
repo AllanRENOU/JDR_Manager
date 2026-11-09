@@ -1,0 +1,21 @@
+@let map = battlemap();
+@if (map && !image.missing()) {
+  <button
+    class="thumb"
+    type="button"
+    [attr.aria-label]="'presentation.enlargeBattlemap' | transloco: { name: map.name }"
+    (click)="open(map)"
+  >
+    @if (image.url(); as url) {
+      <img class="thumb__image" [src]="url" alt="" />
+    } @else {
+      <app-placeholder class="thumb__image" grid="fine" />
+    }
+    <span class="thumb__name">{{ map.name }}</span>
+  </button>
+} @else {
+  <p class="missing" role="alert">
+    <svg lucideTriangleAlert aria-hidden="true"></svg
+    >{{ 'presentation.battlemapMissing' | transloco }}
+  </p>
+}

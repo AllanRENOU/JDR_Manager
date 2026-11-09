@@ -1,0 +1,63 @@
+@let saved = data.saved;
+<app-modal
+  [title]="(saved ? 'presentation.launch.savedTitle' : 'presentation.launch.newTitle') | transloco"
+  [subtitle]="data.projectName"
+  [hideClose]="true"
+>
+  <div class="scene">
+    <app-placeholder class="scene__visual" grid="fine" />
+    <div class="scene__text">
+      <span class="scene__label">
+        {{
+          (saved ? 'presentation.launch.lastScene' : 'presentation.launch.firstScene') | transloco
+        }}
+      </span>
+      <span class="scene__name">{{ saved?.sceneName ?? data.firstSceneName }}</span>
+      @if (saved) {
+        <span class="scene__meta">
+          {{
+            'presentation.launch.savedAt'
+              | transloco: { date: (saved.updatedAt | date: "d MMMM 'à' HH'h'mm") }
+          }}
+          · {{ visitedKey | transloco: { count: saved.visitedScenes } }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <fieldset class="display">
+    <legend class="display__legend">{{ 'presentation.launch.display' | transloco }}</legend>
+    <div class="display__options">
+      @for (mode of modes; track mode) {
+        <label class="option" [class.option--checked]="display() === mode">
+          <input
+            type="radio"
+            name="display-mode"
+            [value]="mode"
+            [checked]="display() === mode"
+            (change)="display.set(mode)"
+          />
+          <span class="option__text">
+            <span class="option__title">{{ 'presentation.launch.' + mode | transloco }}</span>
+            <span class="option__help">{{
+              'presentation.launch.' + mode + 'Help' | transloco
+            }}</span>
+          </span>
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  <button modalFooterStart appButton="quiet" type="button" (click)="back()">
+    <svg lucideArrowLeft aria-hidden="true"></svg>{{ 'project.backToProjects' | transloco }}
+  </button>
+  @if (saved) {
+    <button modalFooterEnd appButton="secondary" size="lg" type="button" (click)="restart()">
+      {{ 'presentation.restart' | transloco }}
+    </button>
+  }
+  <button modalFooterEnd appButton size="lg" type="button" cdkFocusInitial (click)="launch()">
+    <svg lucidePlay aria-hidden="true"></svg>
+    {{ (saved ? 'presentation.launch.continue' : 'presentation.launch.start') | transloco }}
+  </button>
+</app-modal>

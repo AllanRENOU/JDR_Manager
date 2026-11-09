@@ -1,0 +1,32 @@
+@let shown = engine.shownBattlemap();
+<app-collapsible-section
+  [title]="'presentation.panel.battlemap' | transloco"
+  [summary]="summary()"
+  preferenceKey="play.battlemap"
+>
+  <div class="content">
+    @if (shown) {
+      <app-feed-battlemap [battlemapId]="shown.id" [battlemaps]="engine.battlemaps()" />
+    } @else {
+      <p class="empty">{{ 'presentation.panel.noBattlemap' | transloco }}</p>
+    }
+    @if (engine.battlemaps().length > 1) {
+      <div
+        class="choices"
+        role="group"
+        [attr.aria-label]="'presentation.panel.chooseBattlemap' | transloco"
+      >
+        @for (map of engine.battlemaps(); track map.id) {
+          <button
+            class="choice"
+            type="button"
+            [attr.aria-pressed]="shown?.id === map.id"
+            (click)="engine.showBattlemap(map.id)"
+          >
+            {{ map.name }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+</app-collapsible-section>

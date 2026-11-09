@@ -1,0 +1,96 @@
+@use 'functions' as *;
+
+// Dernière scène (maquette « Présentation — lancement »).
+.scene {
+  display: flex;
+  align-items: center;
+  gap: space(16);
+  padding: space(16);
+  border: 1px solid color(border-subtle);
+  border-radius: radius(lg);
+  background: color(bg-app);
+}
+
+.scene__visual {
+  flex-shrink: 0;
+  width: layout(scene-thumb);
+  height: space(64);
+  border-radius: radius(sm);
+}
+
+.scene__text {
+  display: flex;
+  flex-direction: column;
+  gap: space(4);
+  min-width: 0;
+}
+
+.scene__label,
+.scene__meta {
+  color: color(text-secondary);
+  font-size: font-size(small);
+}
+
+.scene__name {
+  font-size: font-size(lead);
+  font-weight: font-weight(semibold);
+}
+
+// Choix de l'affichage : cartes radio.
+.display {
+  margin: space(24) 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.display__legend {
+  margin-bottom: space(10);
+  padding: 0;
+  color: color(text-secondary);
+  font-size: font-size(small);
+  font-weight: font-weight(semibold);
+}
+
+.display__options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: space(12);
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: space(12);
+  padding: space(16);
+  border: 1px solid color(border-default);
+  border-radius: radius(lg);
+  background: color(bg-card);
+  cursor: pointer;
+
+  input {
+    margin: space(2) 0 0;
+    accent-color: color(accent);
+  }
+}
+
+.option--checked {
+  border-color: color(accent);
+  box-shadow: inset 0 0 0 1px color(accent);
+  background: color(bg-raised);
+}
+
+.option__text {
+  display: flex;
+  flex-direction: column;
+  gap: space(4);
+}
+
+.option__title {
+  font-weight: font-weight(semibold);
+}
+
+.option__help {
+  color: color(text-secondary);
+  font-size: font-size(small);
+  line-height: line-height(normal);
+}

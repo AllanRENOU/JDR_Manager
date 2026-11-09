@@ -1,5 +1,5 @@
 import { GLOBAL_SOUND_LIBRARY, Id, SoundNode, TreeNode } from '../../core/models';
-import { pathTo } from '../../shared/tree/tree-model';
+import { pathTo } from '../tree/tree-model';
 
 /** Noms affichés des deux bibliothèques (déjà traduits). */
 export interface LibraryNames {

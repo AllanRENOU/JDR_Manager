@@ -5,8 +5,11 @@ import { firstValueFrom } from 'rxjs';
 
 import { ConfirmDialog, ConfirmOptions } from '../confirm-dialog/confirm-dialog';
 
-/** Largeurs de fenêtre (Brief §6.9) : sélection / confirmation, lancement, édition d'une action. */
-export type ModalSize = 'sm' | 'md' | 'lg';
+/**
+ * Largeurs de fenêtre (Brief §6.9) : sélection / confirmation, lancement, édition d'une action,
+ * battlemap en grand (FIL-04).
+ */
+export type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 
 export interface ModalOptions<D> {
   data?: D;

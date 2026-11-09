@@ -1,0 +1,12 @@
+@use 'functions' as *;
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: space(10);
+  padding-bottom: space(14);
+}
+
+.launch {
+  width: 100%;
+}

@@ -1,0 +1,54 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+}
+
+.thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid color(border-default);
+  border-radius: radius(lg);
+  background: color(bg-card);
+  cursor: zoom-in;
+}
+
+.thumb__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.thumb__name {
+  position: absolute;
+  bottom: space(10);
+  left: space(10);
+  padding: space(4) space(10);
+  border-radius: radius(sm);
+  background: color(bg-panel);
+  color: color(text-primary);
+  font-size: font-size(small);
+}
+
+.missing {
+  display: flex;
+  align-items: center;
+  gap: space(8);
+  margin: 0;
+  padding: space(14) space(16);
+  border: 1px solid color(danger-border);
+  border-radius: radius(lg);
+  background: color(danger-bg);
+  color: color(danger-text);
+  font-size: font-size(small);
+
+  svg {
+    flex-shrink: 0;
+    width: space(16);
+    height: space(16);
+  }
+}

@@ -1,0 +1,74 @@
+@let feed = engine.feed();
+<div
+  #scroller
+  class="scroller"
+  role="log"
+  aria-live="polite"
+  [attr.aria-label]="'presentation.feed' | transloco"
+  (scroll)="onScroll()"
+>
+  <div class="column">
+    @for (item of feed; track item.id; let i = $index) {
+      <div
+        class="item"
+        [attr.data-feed-item]="item.id"
+        [class.item--past]="i < currentIndex() && !scrolledUp()"
+      >
+        @switch (item.type) {
+          @case ('text') {
+            <article class="text">{{ engine.textOf(item) }}</article>
+          }
+          @case ('battlemap') {
+            <app-feed-battlemap
+              [battlemapId]="item.battlemapId"
+              [battlemaps]="engine.battlemaps()"
+            />
+          }
+          @case ('user-click') {
+            <article class="click" [class.click--done]="item.validated">
+              <div class="click__body">
+                <span class="click__icon" aria-hidden="true">
+                  @if (item.validated) {
+                    <svg lucideCheck></svg>
+                  } @else {
+                    <svg lucideMousePointerClick></svg>
+                  }
+                </span>
+                <p class="click__text">{{ engine.textOf(item) }}</p>
+              </div>
+              @if (item.validated) {
+                <span class="click__done">{{ 'presentation.validated' | transloco }}</span>
+              } @else {
+                <button
+                  class="click__button"
+                  appButton
+                  size="lg"
+                  type="button"
+                  (click)="engine.continueClick(item.id)"
+                >
+                  {{ 'presentation.clickToContinue' | transloco }}
+                  <svg lucideArrowRight aria-hidden="true"></svg>
+                </button>
+              }
+            </article>
+          }
+        }
+      </div>
+    } @empty {
+      <p class="empty">{{ 'presentation.emptyFeed' | transloco }}</p>
+    }
+  </div>
+  <div class="spacer" aria-hidden="true"></div>
+</div>
+
+@if (currentIndex() > 0 && !scrolledUp()) {
+  <button class="previous" type="button" (click)="showPrevious()">
+    <svg lucideChevronUp aria-hidden="true"></svg>
+    {{ previousKey() | transloco: { count: currentIndex() } }}
+  </button>
+}
+@if (scrolledUp()) {
+  <button class="back" appButton="secondary" type="button" (click)="backToCurrent()">
+    <svg lucideArrowDown aria-hidden="true"></svg>{{ 'presentation.backToLatest' | transloco }}
+  </button>
+}
