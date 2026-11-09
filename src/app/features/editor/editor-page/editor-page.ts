@@ -128,8 +128,15 @@ export class EditorPage {
     this.store.flush().catch((error) => this.notifications.fromError(error));
   }
 
-  protected createFirstScene(): void {
-    this.store.createFirstScene().catch((error) => this.notifications.fromError(error));
+  /** Bouton « Créer la première scène » : comme depuis l'arborescence, lance son renommage. */
+  protected async createFirstScene(): Promise<void> {
+    try {
+      const scene = await this.store.createFirstScene();
+      // L'arborescence apparaît avec le premier nœud : on attend son rendu.
+      setTimeout(() => this.tree()?.startRename(scene.id));
+    } catch (error) {
+      this.notifications.fromError(error);
+    }
   }
 
   protected onSceneTextInput(text: string): void {

@@ -49,13 +49,20 @@ describe('EditorPage', () => {
     expect(el.querySelector('app-alert')?.textContent).toContain('Ce projet est introuvable');
   });
 
-  it('propose de créer la première scène puis l’affiche dans l’arborescence (4.3)', async () => {
+  it('propose de créer la première scène, la renomme sur place puis l’affiche dans l’arborescence (4.3)', async () => {
     const project = aProject({ name: 'La crypte' });
     await TestBed.inject(DATA_REPOSITORY).saveProject(project);
     const el = await render(project.id);
+    document.body.appendChild(el);
     expect(el.querySelector('.empty')?.textContent).toContain('pas encore de scène');
 
     (el.querySelector('.empty button') as HTMLButtonElement).click();
+    // Comme depuis l'arborescence : le champ de renommage du nom est affiché et a le focus.
+    await vi.waitFor(() => expect(el.querySelector('.tree__rename')).not.toBeNull());
+    const input = el.querySelector('.tree__rename') as HTMLInputElement;
+    expect(input.value).toBe('Première scène');
+    await vi.waitFor(() => expect(document.activeElement).toBe(input));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     // L'étoile apparaît quand le projet est enregistré, juste après la scène.
     await vi.waitFor(() =>
       expect(el.querySelector('.scene-item [aria-label="Première scène"]')).not.toBeNull(),
