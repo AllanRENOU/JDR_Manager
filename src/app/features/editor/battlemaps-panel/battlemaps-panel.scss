@@ -22,6 +22,12 @@
   white-space: nowrap;
 }
 
+// Le bouton « ⋯ » déborde verticalement : la ligne du nom reste basse, près de l'image.
+.more {
+  flex-shrink: 0;
+  margin-block: calc(-1 * #{space(4)});
+}
+
 .name-input {
   flex: 1;
   min-width: 0;
