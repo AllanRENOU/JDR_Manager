@@ -138,13 +138,17 @@
   color: color(text-secondary);
 }
 
+// Textes centrés sur les trois quarts de la zone centrale ; le titre reste aligné à gauche.
 .scene-text {
   display: block;
-  max-width: layout(feed-max);
+  width: calc(100% * 3 / 4);
+  margin-inline: auto;
 }
 
 .action-text {
   display: flex;
+  width: calc(100% * 3 / 4);
+  margin-inline: auto;
   flex-direction: column;
   align-items: flex-start;
   gap: space(8);

@@ -181,6 +181,8 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - La fenêtre `CreateProjectDialog` sert aussi au renommage : `modals.open(CreateProjectDialog, { data: { name } })`.
 - Pluriels : `pluralKey('project.stats.scenes', n)` choisit `.one` / `.other` (règle française : 0 et 1 au singulier).
 - Paramètres : route `/settings` (`features/settings/settings-page`), ouverte par l'icône réglages de l'accueil. Thèmes présentés par `ThemePreview` (`data-theme` sur l'hôte) dans un groupe radio (clic ou flèches → `Theme.setTheme`).
+- Le contenu des paramètres (Apparence, Stockage) est dans `SettingsContent`, partagé par la page et par la fenêtre `SettingsDialog`.
+- Depuis les modes Édition et Présentation, les paramètres s'ouvrent dans une **fenêtre** pour ne pas quitter l'écran (scène ouverte, sons, fenêtre joueurs). On utilise `<app-settings-button headerEnd />` (`features/settings/settings-button`) dans l'en-tête ; il est déjà dans l'éditeur, la Présentation et la bibliothèque de sons (décision d'Allan).
 
 ## Fenêtre joueurs (lot 11)
 
