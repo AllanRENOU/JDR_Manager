@@ -23,6 +23,11 @@
   gap: space(8);
 }
 
+// Le choix du déclencheur garde sa largeur naturelle (la colonne étirerait l'élément).
+.trigger app-segmented-control {
+  align-self: flex-start;
+}
+
 .trigger__label {
   color: color(text-secondary);
   font-size: font-size(small);
