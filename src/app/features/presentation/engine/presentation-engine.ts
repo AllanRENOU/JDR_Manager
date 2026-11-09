@@ -252,10 +252,16 @@ export class PresentationEngine {
 
     const saved = this.store.sceneState(sceneId);
     if (saved?.visited) {
-      // Un clic resté en attente (fermeture brutale) n'a plus d'action pour le reprendre.
+      // Un clic resté en attente (fermeture brutale) n'a plus d'action pour le reprendre : retiré
+      // si l'action n'a jamais été terminée, sinon (relance interrompue) remis à l'état validé.
       this.store.updateScene(sceneId, (state) => ({
         ...state,
-        feed: state.feed.filter((item) => item.type !== 'user-click' || item.validated),
+        feed: state.feed.flatMap((item) => {
+          if (item.type !== 'user-click' || item.validated) {
+            return [item];
+          }
+          return state.doneActionIds.includes(item.actionId) ? [{ ...item, validated: true }] : [];
+        }),
       }));
       this.status.set('ready');
       await this.restoreSounds(saved.playingSounds);

@@ -56,6 +56,11 @@ export interface DataRepository {
   listActions(sceneId: Id): Promise<Action[]>;
   saveAction(action: Action): Promise<void>;
   deleteAction(id: Id): Promise<void>;
+  /**
+   * Liens « Changer de scène » du projet : pour chaque action qui en contient, sa scène et les
+   * scènes visées (avertissement à la suppression d'une scène, PRS-07).
+   */
+  listSceneLinks(projectId: Id): Promise<SceneLink[]>;
 
   // ── Bibliothèques de sons ──────────────────────────────────────────────
   /** Nœuds d'une bibliothèque (`'global'` ou id du projet), triés par `order`. */
@@ -91,6 +96,13 @@ export interface DataRepository {
   getPlaySession(projectId: Id): Promise<PlaySession | undefined>;
   savePlaySession(session: PlaySession): Promise<void>;
   deletePlaySession(projectId: Id): Promise<void>;
+}
+
+/** Action contenant des éléments « Changer de scène » : sa scène et les scènes visées. */
+export interface SceneLink {
+  actionId: Id;
+  sceneId: Id;
+  targetIds: Id[];
 }
 
 /** Informations lues sur le fichier avant l'import. */

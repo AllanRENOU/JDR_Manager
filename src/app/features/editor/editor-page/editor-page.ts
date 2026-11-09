@@ -74,6 +74,19 @@ export class EditorPage {
   private readonly transloco = inject(TranslocoService);
   private readonly tree = viewChild<Tree<SceneNode>>('tree');
   protected readonly treeLabels = SCENE_TREE_LABELS;
+
+  /**
+   * Confirmation de suppression d'une scène (ou d'un dossier) visée par des « Changer de scène » :
+   * avertit, comme pour les sons et les battlemaps utilisés (12.3). `null` : message par défaut.
+   */
+  protected readonly sceneDeleteMessage = (node: SceneNode): string | null => {
+    const count = this.store.sceneTargetCount(node.id);
+    if (count === 0) {
+      return null;
+    }
+    const base = node.kind === 'folder' ? 'scene.deleteFolderTargeted' : 'scene.deleteTargeted';
+    return this.transloco.translate(pluralKey(base, count), { count });
+  };
   protected readonly imageKinds: readonly MediaKind[] = ['image'];
 
   /** Entrées propres aux scènes dans le menu de l'arborescence (SCN-09). */

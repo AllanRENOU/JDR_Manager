@@ -311,6 +311,49 @@ describe('PresentationEngine', () => {
     });
   });
 
+  describe('fermeture brutale pendant un clic (12.1)', () => {
+    const clic = () =>
+      anAction('A', {
+        id: 'clic',
+        name: 'Clic',
+        elements: [{ id: 'uc', type: 'user-click', text: 'Il approche.' }],
+      });
+
+    async function crashWhileWaiting(alreadyDone: boolean) {
+      await seed([clic()]);
+      await startAt('A');
+      if (alreadyDone) {
+        const first = engine.runAction('clic');
+        await vi.waitFor(() => expect(engine.feed()).toHaveLength(2));
+        engine.continueClick(engine.feed()[1].id);
+        await first;
+      }
+      void engine.runAction('clic');
+      await vi.waitFor(() => expect(engine.feed()[1]).toMatchObject({ validated: false }));
+      // Partie enregistrée avec le bloc en attente, sans passer par stop() : navigateur fermé.
+      const saved = (await savedSession())!;
+      expect(saved.scenes['A'].feed[1]).toMatchObject({ validated: false });
+      await engine.stop();
+      await repository().savePlaySession(saved);
+      await engine.load('p1');
+      await engine.continueSession();
+      await vi.waitFor(() => expect(engine.scene()?.id).toBe('A'));
+    }
+
+    it('action jamais terminée : le bloc en attente est retiré, l’action reste à faire', async () => {
+      await crashWhileWaiting(false);
+      expect(feedTexts()).toEqual(['Odeur de bière.']);
+      expect(engine.manualActions()[0].done).toBe(false);
+    });
+
+    it('relance interrompue d’une action terminée : le bloc reste, validé', async () => {
+      await crashWhileWaiting(true);
+      expect(feedTexts()).toEqual(['Odeur de bière.', 'Il approche.']);
+      expect(engine.feed()[1]).toMatchObject({ validated: true });
+      expect(engine.manualActions()[0].done).toBe(true);
+    });
+  });
+
   describe('changer de scène (9.1.6, 9.3.4)', () => {
     it('ouvre la scène cible ; les éléments suivants ne sont pas exécutés', async () => {
       await seed([

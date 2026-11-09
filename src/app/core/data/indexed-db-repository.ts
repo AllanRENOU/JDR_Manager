@@ -16,7 +16,7 @@ import {
 } from '../models';
 import { resolveMediaType } from '../media/media-types';
 import { DataError, isQuotaExceededError } from './data-error';
-import { DataRepository, MediaDetails } from './data-repository';
+import { DataRepository, MediaDetails, SceneLink } from './data-repository';
 import { DB_NAME, JdrDb, openJdrDb } from './jdr-db';
 import { ALL_STORES, collectSubtree, deleteScenes, deleteUnusedMedia } from './jdr-db-cascade';
 
@@ -206,6 +206,32 @@ export class IndexedDbRepository implements DataRepository {
       await deleteUnusedMedia(tx, mediaIds);
     }
     await tx.done;
+  }
+
+  async listSceneLinks(projectId: Id): Promise<SceneLink[]> {
+    const db = await this.db();
+    const sceneIds = new Set(
+      (await db.getAllFromIndex('sceneNodes', 'projectId', projectId))
+        .filter((n) => n.kind === 'item')
+        .map((n) => n.id),
+    );
+    const links: SceneLink[] = [];
+    for (const action of await db.getAll('actions')) {
+      if (!sceneIds.has(action.sceneId)) {
+        continue;
+      }
+      const targetIds = [
+        ...new Set(
+          action.elements.flatMap((e) =>
+            e.type === 'change-scene' && e.sceneId ? [e.sceneId] : [],
+          ),
+        ),
+      ];
+      if (targetIds.length) {
+        links.push({ actionId: action.id, sceneId: action.sceneId, targetIds });
+      }
+    }
+    return links;
   }
 
   async countSoundUsages(): Promise<Record<Id, number>> {

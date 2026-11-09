@@ -266,6 +266,28 @@ describe('IndexedDbRepository', () => {
       expect(await repository.countSoundUsages()).toEqual({ [rain.id]: 2, [wind.id]: 1 });
     });
 
+    it('liste les liens « Changer de scène » des actions du projet (12.3)', async () => {
+      const a = aSceneNode('p1', { id: 'scene-a' });
+      const b = aSceneNode('p1', { id: 'scene-b' });
+      await repository.saveSceneNodes([a, b, aSceneNode('p2', { id: 'autre' })]);
+      await repository.saveAction(
+        anAction('scene-a', {
+          id: 'fuite',
+          elements: [
+            { id: 'e1', type: 'change-scene', sceneId: 'scene-b' },
+            { id: 'e2', type: 'change-scene', sceneId: 'scene-b' },
+          ],
+        }),
+      );
+      await repository.saveAction(anAction('scene-b', { id: 'texte' }));
+      await repository.saveAction(
+        anAction('autre', { elements: [{ id: 'e3', type: 'change-scene', sceneId: 'scene-a' }] }),
+      );
+      expect(await repository.listSceneLinks('p1')).toEqual([
+        { actionId: 'fuite', sceneId: 'scene-a', targetIds: ['scene-b'] },
+      ]);
+    });
+
     it('ignore la suppression d’un son inconnu', async () => {
       await expect(repository.deleteSoundNode('inconnu')).resolves.toBeUndefined();
     });

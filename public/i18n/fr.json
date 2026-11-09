@@ -110,7 +110,15 @@
     "noNext": "Aucune scène suivante.",
     "nextDialogTitle": "Scènes suivantes",
     "nextDialogSubtitle": "Après « {{ name }} »",
-    "missingNext": "Scène supprimée"
+    "missingNext": "Scène supprimée",
+    "deleteTargeted": {
+      "one": "Cette scène est la cible de {{ count }} action « Changer de scène », qui la signalera comme introuvable. Cette action est irréversible.",
+      "other": "Cette scène est la cible de {{ count }} actions « Changer de scène », qui la signaleront comme introuvable. Cette action est irréversible."
+    },
+    "deleteFolderTargeted": {
+      "one": "Le dossier et tout son contenu seront supprimés. Ses scènes sont la cible de {{ count }} action « Changer de scène », qui les signalera comme introuvables. Cette action est irréversible.",
+      "other": "Le dossier et tout son contenu seront supprimés. Ses scènes sont la cible de {{ count }} actions « Changer de scène », qui les signaleront comme introuvables. Cette action est irréversible."
+    }
   },
   "action": {
     "title": "Actions",

@@ -232,7 +232,7 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Pré-écoute : `SoundPreview` (fourni par l'écran, un seul `<audio>`, URL via `MediaUrls`) et `app-listen-button`. Le lecteur de Présentation (Web Audio) est un autre service, lot 9.
 - Dépôt : `countSoundUsages()` (« Utilisé dans », avertissement à la suppression), `getMediaInfo(ids)` (infos d'un média sans le `Blob`).
 - `app-tree` : `[canCreateItems]="false"` masque « Nouvel élément » ; `folderTone="global"` colore les dossiers de la bibliothèque globale ; `[deleteMessage]` (fonction stable `node => message | null`) remplace le message de confirmation de suppression (ex. dossier contenant des sons utilisés).
-- Règle d'Allan : **toute suppression d'un son utilisé par des actions doit avertir** (son seul ou dossier).
+- Règle d'Allan : **toute suppression d'un son utilisé par des actions doit avertir** (son seul ou dossier). Idem pour une scène (ou un dossier de scènes) visée par un « Changer de scène » : `listSceneLinks(projectId)` + `EditorStore.sceneTargetCount()`.
 - Utilitaires : `formatDuration(ms)` (`shared/util/duration.ts`), `formatLabel(mimeType)` (`core/media/media-types.ts`).
 - `resource()` : `hasValue()` est `false` quand le chargeur renvoie `undefined` ; tester « introuvable » avec `status() === 'resolved' && !value()`.
 - **Budget de styles** : 4 ko par composant (avertissement de `ng build`, à surveiller : `grep WARN`). Au-delà, sortir un sous-composant (ex. `ListenButton`).
@@ -296,4 +296,4 @@ public/i18n/fr.json
 - Directive : un alias d'entrée doit être `préfixeDuSélecteur + NomDeLaPropriété` (`appFileDropKinds` pour `kinds`), sinon ESLint refuse (`no-input-rename`).
 - `navigator.storage.persist()` est demandé au démarrage. Firefox affiche alors une demande d'autorisation : on pourra la déplacer au premier import si c'est gênant.
 - Le Brief et les maquettes : artifact de maquettes Claude (lien dans les échanges) ; les retours d'Allan y sont intégrés au Brief.
-- Question encore ouverte (voir « Points ouverts » d'`avancement.md`) : Présentation sur tablette en V1.
+- Tablette Android en V1, hors ligne et lancée depuis un fichier HTML (lot 12 bis, conception 12b.1 à valider). Le build actuel **ne démarre pas en `file://`** (modules JS bloqués, traductions chargées par requête).

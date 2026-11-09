@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 
-import { DATA_REPOSITORY } from '../../core/data/data-repository';
+import { DATA_REPOSITORY, SceneLink } from '../../core/data/data-repository';
 import { resolveMediaType } from '../../core/media/media-types';
 import {
   Action,
@@ -77,6 +77,8 @@ export class EditorStore {
   readonly status = signal<EditorStatus>('loading');
   readonly project = signal<Project | null>(null);
   readonly sceneNodes = signal<SceneNode[]>([]);
+  /** Liens « Changer de scène » du projet (avertissement à la suppression d'une scène). */
+  private readonly sceneLinks = signal<readonly SceneLink[]>([]);
   readonly selectedSceneId = signal<Id | null>(null);
   /** Contenu de la scène ouverte. */
   readonly scene = signal<Scene | null>(null);
@@ -156,6 +158,7 @@ export class EditorStore {
     this.project.set(project);
     this.sceneNodes.set(nodes);
     this.soundNodes.set([...projectSounds, ...globalSounds]);
+    await this.refreshSceneLinks();
     const firstItem = nodes.find((n) => n.kind === 'item');
     const initial = project.firstSceneId ?? firstItem?.id ?? null;
     await this.openScene(initial);
@@ -392,6 +395,7 @@ export class EditorStore {
         action.elements.flatMap((e) => (e.type === 'add-text' ? [[e.id, e.text]] : [])),
       ),
     }));
+    await this.refreshSceneLinks();
     await this.touchProject();
     return action;
   }
@@ -405,7 +409,24 @@ export class EditorStore {
     await this.flush();
     await this.repository.deleteAction(id);
     this.actions.update((actions) => actions.filter((a) => a.id !== id));
+    await this.refreshSceneLinks();
     await this.touchProject();
+  }
+
+  /**
+   * Nombre d'actions extérieures à la scène (ou au dossier) qui la visent par « Changer de scène » :
+   * elles la signaleront comme introuvable si elle est supprimée (avertissement, 12.3).
+   */
+  sceneTargetCount(nodeId: Id): number {
+    const removed = descendantIds(this.sceneNodes(), nodeId).add(nodeId);
+    return this.sceneLinks().filter(
+      (link) => !removed.has(link.sceneId) && link.targetIds.some((id) => removed.has(id)),
+    ).length;
+  }
+
+  private async refreshSceneLinks(): Promise<void> {
+    const project = this.project();
+    this.sceneLinks.set(project ? await this.repository.listSceneLinks(project.id) : []);
   }
 
   /** Remplace (ou ajoute) une action dans la liste de la scène ouverte, en gardant l'ordre d'affichage. */
@@ -514,6 +535,7 @@ export class EditorStore {
       this.repository.listSceneNodes(project.id),
     ]);
     this.sceneNodes.set(nodes);
+    await this.refreshSceneLinks();
     if (reloaded) {
       await this.saveProject(reloaded);
     }
@@ -605,6 +627,7 @@ export class EditorStore {
     this.sceneNodes.update((nodes) =>
       [...nodes.map((n) => byId.get(n.id) ?? n), node].sort((a, b) => a.order - b.order),
     );
+    await this.refreshSceneLinks();
     await this.touchProject();
     await this.openScene(copyId);
     return node;

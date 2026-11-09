@@ -185,6 +185,65 @@ describe('EditorPage', () => {
     );
   });
 
+  it('avertit avant de supprimer une scène visée par un « Changer de scène » (12.3)', async () => {
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    const project = aProject();
+    const act = aSceneNode(project.id, { kind: 'folder', name: 'Acte II', order: 1 });
+    const village = aSceneNode(project.id, { name: 'Village', order: 0 });
+    const forest = aSceneNode(project.id, { name: 'Forêt', parentId: act.id });
+    await repository.saveProject({ ...project, firstSceneId: village.id });
+    await repository.saveSceneNodes([village, act, forest]);
+    await repository.saveScene(aScene(project.id, village.id));
+    await repository.saveScene(aScene(project.id, forest.id));
+    await repository.saveAction(
+      anAction(village.id, {
+        name: 'Fuite',
+        elements: [{ id: 'cs', type: 'change-scene', sceneId: forest.id }],
+      }),
+    );
+    // Une action de la scène supprimée elle-même ne compte pas.
+    await repository.saveAction(
+      anAction(forest.id, {
+        name: 'Boucle',
+        elements: [{ id: 'cs2', type: 'change-scene', sceneId: forest.id }],
+      }),
+    );
+    const el = await render(project.id);
+    await vi.waitFor(() => expect(el.querySelectorAll('.tree__row')).toHaveLength(3));
+
+    const confirmText = async (row: string) => {
+      const target = [...el.querySelectorAll<HTMLElement>('.tree__row')].find((r) =>
+        r.textContent?.includes(row),
+      )!;
+      (target.querySelector('.tree__more') as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(document.querySelector('.app-menu')).not.toBeNull());
+      [...document.querySelectorAll<HTMLButtonElement>('.app-menu .app-menu-item')]
+        .find((b) => b.textContent?.includes('Supprimer'))!
+        .click();
+      await vi.waitFor(() => {
+        TestBed.tick();
+        expect(document.querySelector('app-confirm-dialog')).not.toBeNull();
+      });
+      const text = document.querySelector('app-confirm-dialog')!.textContent ?? '';
+      [...document.querySelectorAll<HTMLButtonElement>('app-confirm-dialog button')]
+        .find((b) => b.textContent?.includes('Annuler'))!
+        .click();
+      await vi.waitFor(() => {
+        TestBed.tick();
+        expect(document.querySelector('app-confirm-dialog')).toBeNull();
+      });
+      return text;
+    };
+
+    expect(await confirmText('Forêt')).toContain(
+      'Cette scène est la cible de 1 action « Changer de scène », qui la signalera comme introuvable.',
+    );
+    expect(await confirmText('Acte II')).toContain(
+      'Ses scènes sont la cible de 1 action « Changer de scène »',
+    );
+    expect(await confirmText('Village')).not.toContain('Changer de scène');
+  });
+
   it('renomme la scène depuis son titre ; Échap annule, un titre vide est refusé (7.2.1)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const project = aProject();

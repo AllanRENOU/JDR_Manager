@@ -82,6 +82,7 @@
             [nodes]="store.sceneNodes()"
             [labels]="treeLabels"
             [extraMenuItems]="menuItems"
+            [deleteMessage]="sceneDeleteMessage"
             [ariaLabel]="'scene.treeLabel' | transloco"
             [selectedId]="store.selectedSceneId()"
             (selectedIdChange)="openScene($event)"
