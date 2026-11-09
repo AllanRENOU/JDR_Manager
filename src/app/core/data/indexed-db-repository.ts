@@ -139,6 +139,10 @@ export class IndexedDbRepository implements DataRepository {
     return (await this.db()).get('scenes', id);
   }
 
+  async listScenes(projectId: Id): Promise<Scene[]> {
+    return (await this.db()).getAllFromIndex('scenes', 'projectId', projectId);
+  }
+
   async saveScene(scene: Scene): Promise<void> {
     await (await this.db()).put('scenes', scene);
   }

@@ -127,6 +127,13 @@ describe('IndexedDbRepository', () => {
       expect(await repository.getScene('inconnue')).toBeUndefined();
     });
 
+    it('liste les scènes d’un projet', async () => {
+      await repository.saveScene(aScene('p1', 's1'));
+      await repository.saveScene(aScene('p1', 's2'));
+      await repository.saveScene(aScene('p2', 's3'));
+      expect((await repository.listScenes('p1')).map((s) => s.id).sort()).toEqual(['s1', 's2']);
+    });
+
     it('supprime un dossier avec ses descendants, leurs scènes, battlemaps, actions et médias', async () => {
       const project = aProject();
       const folder = aSceneNode(project.id, { kind: 'folder', name: 'Acte 1' });

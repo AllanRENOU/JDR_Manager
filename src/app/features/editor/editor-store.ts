@@ -79,6 +79,30 @@ export class EditorStore {
   readonly sceneNodes = signal<SceneNode[]>([]);
   /** Liens « Changer de scène » du projet (avertissement à la suppression d'une scène). */
   private readonly sceneLinks = signal<readonly SceneLink[]>([]);
+  /** « Scènes suivantes » de chaque scène du projet, par id de scène. */
+  private readonly nextSceneLinks = signal<Readonly<Record<Id, readonly Id[]>>>({});
+  /**
+   * Scènes non utilisées : ni première scène, ni « scène suivante » d'une autre scène, ni visées
+   * par un élément « Changer de scène » d'une autre scène. Signalées dans l'arborescence.
+   */
+  readonly unusedSceneIds = computed<ReadonlySet<Id>>(() => {
+    const used = new Set<Id>();
+    const first = this.project()?.firstSceneId;
+    if (first) {
+      used.add(first);
+    }
+    for (const [sceneId, nextIds] of Object.entries(this.nextSceneLinks())) {
+      nextIds.filter((id) => id !== sceneId).forEach((id) => used.add(id));
+    }
+    for (const link of this.sceneLinks()) {
+      link.targetIds.filter((id) => id !== link.sceneId).forEach((id) => used.add(id));
+    }
+    return new Set(
+      this.sceneNodes()
+        .filter((n) => n.kind === 'item' && !used.has(n.id))
+        .map((n) => n.id),
+    );
+  });
   readonly selectedSceneId = signal<Id | null>(null);
   /** Contenu de la scène ouverte. */
   readonly scene = signal<Scene | null>(null);
@@ -362,6 +386,7 @@ export class EditorStore {
     const updated = { ...scene, nextSceneIds };
     await this.repository.saveScene(updated);
     this.scene.set(updated);
+    this.nextSceneLinks.update((links) => ({ ...links, [scene.id]: nextSceneIds }));
     await this.touchProject();
   }
 
@@ -424,9 +449,22 @@ export class EditorStore {
     ).length;
   }
 
+  /** Relit les liens entre scènes (« Changer de scène » et « scènes suivantes »). */
   private async refreshSceneLinks(): Promise<void> {
     const project = this.project();
-    this.sceneLinks.set(project ? await this.repository.listSceneLinks(project.id) : []);
+    const [links, scenes] = project
+      ? await Promise.all([
+          this.repository.listSceneLinks(project.id),
+          this.repository.listScenes(project.id),
+        ])
+      : [[], []];
+    this.sceneLinks.set(links);
+    this.nextSceneLinks.set(Object.fromEntries(scenes.map((s) => [s.id, s.nextSceneIds])));
+  }
+
+  /** Vrai si la scène n'est ni la première, ni accessible depuis une autre scène. */
+  isUnusedScene(id: Id): boolean {
+    return this.unusedSceneIds().has(id);
   }
 
   /** Remplace (ou ajoute) une action dans la liste de la scène ouverte, en gardant l'ordre d'affichage. */

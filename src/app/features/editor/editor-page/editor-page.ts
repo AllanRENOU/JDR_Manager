@@ -9,6 +9,7 @@ import {
   LucidePlay,
   LucidePlus,
   LucideStar,
+  LucideTriangleAlert,
 } from '@lucide/angular';
 
 import { pluralKey } from '../../../core/i18n/plural';
@@ -65,6 +66,7 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
     LucidePlay,
     LucidePlus,
     LucideStar,
+    LucideTriangleAlert,
   ],
   providers: [EditorStore],
   host: { '(window:beforeunload)': 'onBeforeUnload()' },

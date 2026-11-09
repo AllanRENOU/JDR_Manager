@@ -104,6 +104,15 @@
                     [attr.aria-label]="'scene.first' | transloco"
                   ></svg>
                 }
+                @if (store.isUnusedScene(node.id)) {
+                  <svg
+                    lucideTriangleAlert
+                    class="scene-item__unused"
+                    role="img"
+                    [attr.aria-label]="'scene.unused' | transloco"
+                    [attr.title]="'scene.unused' | transloco"
+                  ></svg>
+                }
               </span>
             </ng-template>
           </app-tree>
@@ -134,6 +143,12 @@
               (blur)="renameScene(node, titleInput)"
             />
           </h2>
+          @if (store.isUnusedScene(node.id)) {
+            <p class="scene-unused">
+              <svg lucideTriangleAlert aria-hidden="true"></svg
+              >{{ 'scene.unusedMessage' | transloco }}
+            </p>
+          }
           <app-field
             class="scene-text"
             [label]="'scene.text' | transloco"

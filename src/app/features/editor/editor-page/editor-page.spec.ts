@@ -164,6 +164,30 @@ describe('EditorPage', () => {
     expect(nodes.find((n) => n.name === 'Nouvelle scène')?.parentId).toBe(act.id);
   });
 
+  it('signale une scène non utilisée dans l’arborescence et sous son titre', async () => {
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    const project = aProject();
+    const start = aSceneNode(project.id, { name: 'Départ' });
+    const lost = aSceneNode(project.id, { name: 'Oubliée', order: 1 });
+    await repository.saveProject({ ...project, firstSceneId: start.id });
+    await repository.saveSceneNodes([start, lost]);
+    await repository.saveScene(aScene(project.id, start.id));
+    await repository.saveScene(aScene(project.id, lost.id));
+    const el = await render(project.id);
+    const alert = (id: string) =>
+      el.querySelector(`[data-tree-id="${id}"] [aria-label="Scène non utilisée"]`);
+    await vi.waitFor(() => expect(alert(lost.id)).not.toBeNull());
+    expect(alert(start.id)).toBeNull();
+    expect(el.querySelector('.scene-unused')).toBeNull();
+
+    (el.querySelector(`[data-tree-id="${lost.id}"]`) as HTMLElement).click();
+    await vi.waitFor(() =>
+      expect(el.querySelector('.scene-unused')?.textContent).toContain(
+        'Cette scène n’est pas utilisée',
+      ),
+    );
+  });
+
   it('menu des scènes et des dossiers : entrées propres aux scènes, suppression confirmée (7.1.3)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const project = aProject();

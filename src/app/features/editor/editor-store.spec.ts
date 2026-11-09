@@ -190,6 +190,35 @@ describe('EditorStore', () => {
       expect(store.creationParent('inconnu')).toBe(act.id);
     });
 
+    it('signale les scènes non utilisées : ni première, ni scène suivante, ni cible d’une action', async () => {
+      const { tavern, market, crypt } = await loadTree();
+      // « Taverne » est la première scène ; les deux autres ne sont accessibles par rien.
+      expect([...store.unusedSceneIds()].sort()).toEqual([market.id, crypt.id].sort());
+      expect(store.isUnusedScene(tavern.id)).toBe(false);
+
+      // « Taverne » (ouverte) propose « Marché » comme scène suivante.
+      await store.setNextScenes([market.id]);
+      expect([...store.unusedSceneIds()]).toEqual([crypt.id]);
+
+      // Une action de « Crypte » vers elle-même ne compte pas.
+      await store.openScene(crypt.id);
+      await store.saveAction(null, {
+        name: 'Boucle',
+        trigger: 'manual',
+        elements: [{ id: 'c1', type: 'change-scene', sceneId: crypt.id }],
+      });
+      expect(store.isUnusedScene(crypt.id)).toBe(true);
+
+      // Une action de « Marché » mène à « Crypte ».
+      await store.openScene(market.id);
+      await store.saveAction(null, {
+        name: 'Descendre',
+        trigger: 'manual',
+        elements: [{ id: 'c2', type: 'change-scene', sceneId: crypt.id }],
+      });
+      expect(store.unusedSceneIds().size).toBe(0);
+    });
+
     it('crée dossiers et scènes dans le dossier de la scène ouverte, en dernière position (7.1.2)', async () => {
       const { project, act, tavern } = await loadTree();
       expect(store.creationParent()).toBe(act.id);

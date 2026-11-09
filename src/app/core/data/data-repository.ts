@@ -46,6 +46,8 @@ export interface DataRepository {
    */
   deleteSceneNode(id: Id): Promise<void>;
   getScene(id: Id): Promise<Scene | undefined>;
+  /** Scènes d'un projet (ex. pour lire toutes les « scènes suivantes »). */
+  listScenes(projectId: Id): Promise<Scene[]>;
   saveScene(scene: Scene): Promise<void>;
   /** Battlemaps d'une scène, triées par `order`. */
   listBattlemaps(sceneId: Id): Promise<Battlemap[]>;

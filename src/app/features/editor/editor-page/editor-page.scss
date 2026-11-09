@@ -93,8 +93,29 @@
   fill: currentcolor;
 }
 
+// Scène non utilisée : alerte dans l'arborescence et sous le titre.
+.scene-item .scene-item__unused {
+  color: color(danger-text);
+}
+
 .scene-heading {
   margin-bottom: space(20);
+}
+
+.scene-unused {
+  display: flex;
+  align-items: center;
+  gap: space(6);
+  margin-top: calc(-1 * #{space(12)});
+  margin-bottom: space(20);
+  color: color(danger-text);
+  font-size: font-size(small);
+
+  svg {
+    flex-shrink: 0;
+    width: space(16);
+    height: space(16);
+  }
 }
 
 // Titre modifiable : se lit comme un titre, le cadre n'apparaît qu'au survol et au focus.

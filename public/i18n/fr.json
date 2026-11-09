@@ -87,6 +87,8 @@
     "defaultName": "Première scène",
     "first": "Première scène",
     "firstBadge": "1re",
+    "unused": "Scène non utilisée",
+    "unusedMessage": "Cette scène n’est pas utilisée",
     "noScene": "Ce projet n’a pas encore de scène.",
     "createFirst": "Créer la première scène",
     "treeLabel": "Scènes du projet",
