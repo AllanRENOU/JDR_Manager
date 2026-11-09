@@ -3,8 +3,9 @@
 @use '../functions' as *;
 @include cdk.overlay;
 
+// Fond à 90 % d'opacité : l'écran reste deviné derrière la fenêtre.
 .app-dialog-backdrop {
-  background: color(bg-backdrop);
+  background: color-mix(in srgb, color(bg-backdrop) 90%, transparent);
 }
 
 // Fenêtre ouverte depuis une autre (choix d'un son, confirmation) : le fond opaque ne couvre
