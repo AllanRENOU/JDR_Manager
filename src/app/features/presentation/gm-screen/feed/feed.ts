@@ -32,8 +32,10 @@ const SCROLLED_UP_THRESHOLD = 48;
 
 /**
  * Fil d'actualité de la scène (Brief §6.10, FIL-01 à FIL-09) : textes, miniatures de battlemap,
- * blocs « Clic de l'utilisateur », et en bas les attentes en cours (compte à rebours). Chaque nouvel élément (ou le texte retrouvé à une relance)
- * est amené en haut de la zone ; les éléments précédents sont estompés et restent relisibles.
+ * blocs « Clic de l'utilisateur », et en bas les attentes en cours (compte à rebours). L'élément
+ * montré par le moteur (`engine.focus` : le premier d'une salve, ou le texte retrouvé à une
+ * relance) est amené en haut de la zone ; les éléments précédents sont estompés et restent
+ * relisibles, les suivants de la salve s'affichent dessous.
  */
 @Component({
   selector: 'app-feed',
@@ -74,7 +76,7 @@ export class Feed {
   );
 
   constructor() {
-    // FIL-06, CTL-03 : à chaque élément montré, il passe en haut de la zone.
+    // FIL-06, CTL-03 : l'élément montré (premier de sa salve) passe en haut de la zone.
     effect(() => {
       this.engine.focus();
       const id = this.currentId();

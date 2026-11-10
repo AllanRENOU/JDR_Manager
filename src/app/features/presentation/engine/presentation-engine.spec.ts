@@ -240,6 +240,76 @@ describe('PresentationEngine', () => {
     });
   });
 
+  describe('élément montré dans le fil : le premier de chaque salve', () => {
+    const idOf = (value: string) => engine.feed().find((item) => engine.textOf(item) === value)?.id;
+
+    it('à l’ouverture de la scène, le premier élément affiché, pas le dernier', async () => {
+      await seed([
+        anAction('A', {
+          id: 'suite',
+          name: 'Suite',
+          trigger: 'scene-open',
+          order: 3,
+          elements: [text('t-1', 'Un.'), { id: 'sb', type: 'show-battlemap', battlemapId: 'b2' }],
+        }),
+      ]);
+      await startAt('A');
+      await vi.waitFor(() => expect(feedTexts()).toEqual(['Odeur de bière.', 'Un.', '[b2]']));
+      expect(engine.focus()?.itemId).toBe(idOf('Odeur de bière.'));
+    });
+
+    it('après « Continuer » et après une attente, le premier élément qui suit', async () => {
+      await seed([
+        anAction('A', {
+          id: 'suite',
+          name: 'Suite',
+          elements: [
+            text('t-1', 'Un.'),
+            text('t-2', 'Deux.'),
+            { id: 'uc', type: 'user-click', text: 'Clic.' },
+            text('t-3', 'Trois.'),
+            text('t-4', 'Quatre.'),
+            { id: 'w', type: 'wait', seconds: 0 },
+            text('t-5', 'Cinq.'),
+            text('t-6', 'Six.'),
+          ],
+        }),
+      ]);
+      await startAt('A');
+      const run = engine.runAction('suite');
+      await vi.waitFor(() => expect(idOf('Clic.')).toBeDefined());
+      expect(engine.focus()?.itemId).toBe(idOf('Un.'));
+
+      engine.continueClick(idOf('Clic.')!);
+      await run;
+      expect(feedTexts().at(-1)).toBe('Six.');
+      expect(engine.focus()?.itemId).toBe(idOf('Cinq.'));
+    });
+
+    it('après « Continuer », le premier élément qui suit (avant l’attente)', async () => {
+      await seed([
+        anAction('A', {
+          id: 'suite',
+          name: 'Suite',
+          elements: [
+            { id: 'uc', type: 'user-click', text: 'Clic.' },
+            text('t-3', 'Trois.'),
+            text('t-4', 'Quatre.'),
+            { id: 'w', type: 'wait', seconds: 60 },
+          ],
+        }),
+      ]);
+      await startAt('A');
+      void engine.runAction('suite');
+      await vi.waitFor(() => expect(idOf('Clic.')).toBeDefined());
+      engine.continueClick(idOf('Clic.')!);
+      await vi.waitFor(() => expect(engine.waits()).toHaveLength(1));
+      expect(feedTexts().slice(-2)).toEqual(['Trois.', 'Quatre.']);
+      expect(engine.focus()?.itemId).toBe(idOf('Trois.'));
+      await engine.openScene('B');
+    });
+  });
+
   describe('actions manuelles (9.1.7, 9.2.5)', () => {
     it('effectuée puis relancée : pas de texte en double, le fil revient dessus', async () => {
       await seed([

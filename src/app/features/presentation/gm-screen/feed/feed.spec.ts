@@ -98,8 +98,9 @@ describe('Feed', () => {
     await engine.runAction('garde');
     await fixture.whenStable();
     const items = [...el.querySelectorAll('.item')];
-    expect(items.map((i) => i.classList.contains('item--past'))).toEqual([true, true, false]);
-    expect(el.querySelector('.previous')?.textContent).toContain('2 éléments précédents');
+    // Le fil montre le premier élément de l'action (« Un. ») : seul le texte de scène est passé.
+    expect(items.map((i) => i.classList.contains('item--past'))).toEqual([true, false, false]);
+    expect(el.querySelector('.previous')?.textContent).toContain('1 élément précédent');
   });
 
   it('relance : le fil revient sur le texte déjà présent (10.3.6)', async () => {

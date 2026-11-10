@@ -106,7 +106,11 @@ export class PresentationEngine {
   readonly runningActionIds = signal<ReadonlySet<Id>>(new Set());
   /** Attentes en cours dans la scène ouverte, par ordre de début (lignes du fil). */
   readonly waits = signal<readonly PendingWait[]>([]);
-  /** Dernière entrée du fil à montrer (ajout ou relance). */
+  /**
+   * Entrée du fil à montrer : la **première** affichée (ajout ou relance) depuis le dernier point
+   * de départ (ouverture de scène, action ou battlemap lancée par le MJ, « Continuer », fin d'une
+   * attente). Les suivantes ne la déplacent pas : le MJ lit une salve d'éléments depuis le début.
+   */
   readonly focus = signal<FeedFocus | null>(null);
   /** Sons en cours (contrôles du MJ, CTL-08 à CTL-10). */
   readonly sounds = this.audio.sounds;
@@ -157,6 +161,8 @@ export class PresentationEngine {
   /** Pendant un changement de scène, les sons ne sont pas reportés dans la partie. */
   private switching = false;
   private focusSeq = 0;
+  /** Une salve a commencé et aucun élément n'y a encore été montré (voir `focus`). */
+  private burstStarted = false;
 
   constructor() {
     const unsubscribe = this.audio.onChange(() => this.syncSounds());
@@ -264,6 +270,7 @@ export class PresentationEngine {
     this.actions.set(new Map(actions.map((a) => [a.id, a])));
     this.battlemaps.set(battlemaps);
     this.focus.set(null);
+    this.startBurst();
 
     const saved = this.store.sceneState(sceneId);
     if (saved?.visited) {
@@ -305,6 +312,7 @@ export class PresentationEngine {
     if (!action || !sceneId || !controller || this.runningActionIds().has(actionId)) {
       return;
     }
+    this.startBurst();
     await this.execute(action, sceneId, controller.signal);
   }
 
@@ -316,6 +324,7 @@ export class PresentationEngine {
     }
     this.pendingClicks.delete(itemId);
     this.setClickValidated(pending.sceneId, itemId, true);
+    this.startBurst();
     pending.resolve();
   }
 
@@ -323,6 +332,7 @@ export class PresentationEngine {
   showBattlemap(battlemapId: Id): void {
     const sceneId = this.scene()?.id;
     if (sceneId) {
+      this.startBurst();
       this.applyBattlemap(sceneId, battlemapId);
     }
   }
@@ -421,7 +431,7 @@ export class PresentationEngine {
           ?.feed.find((item) => item.type === 'text' && item.elementId === element.id);
         if (existing) {
           // Relance (CTL-03) : pas de doublon, le fil revient sur le texte.
-          this.setFocus(existing.id);
+          this.show(existing.id);
           return;
         }
         this.addFeedItem(sceneId, {
@@ -474,7 +484,7 @@ export class PresentationEngine {
       const itemId = existing?.id ?? newId();
       if (existing) {
         this.setClickValidated(sceneId, itemId, false);
-        this.setFocus(itemId);
+        this.show(itemId);
       } else {
         this.addFeedItem(sceneId, {
           id: itemId,
@@ -513,6 +523,7 @@ export class PresentationEngine {
     this.waits.update((waits) => [...waits, pending]);
     try {
       await delay(durationMs, signal);
+      this.startBurst();
     } finally {
       this.waits.update((waits) => waits.filter((w) => w !== pending));
     }
@@ -528,7 +539,7 @@ export class PresentationEngine {
 
   private addFeedItem(sceneId: Id, item: FeedItem): void {
     this.store.updateScene(sceneId, (state) => ({ ...state, feed: [...state.feed, item] }));
-    this.setFocus(item.id);
+    this.show(item.id);
   }
 
   private setClickValidated(sceneId: Id, itemId: Id, validated: boolean): void {
@@ -540,8 +551,17 @@ export class PresentationEngine {
     }));
   }
 
-  private setFocus(itemId: Id): void {
-    this.focus.set({ itemId, seq: ++this.focusSeq });
+  /** Les éléments affichés ensuite forment une nouvelle salve : le premier prendra le focus. */
+  private startBurst(): void {
+    this.burstStarted = true;
+  }
+
+  /** Élément affiché (ajout ou relance) : il prend le focus s'il est le premier de sa salve. */
+  private show(itemId: Id): void {
+    if (this.burstStarted) {
+      this.burstStarted = false;
+      this.focus.set({ itemId, seq: ++this.focusSeq });
+    }
   }
 
   // ── Sons ────────────────────────────────────────────────────────────────
