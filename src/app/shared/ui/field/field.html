@@ -4,10 +4,13 @@
     <span class="field__required">({{ 'common.required' | transloco }})</span>
   }
 </label>
-@if (markdownEditor(); as editor) {
-  <app-markdown-toolbar [editor]="editor" [controlId]="controlId" />
-}
-<ng-content />
+<div class="field__control">
+  @if (markdownEditor(); as editor) {
+    <!-- Barre Markdown : masquée, elle flotte au-dessus du champ tant qu'il a le focus. -->
+    <app-markdown-toolbar class="field__toolbar" [editor]="editor" [controlId]="controlId" />
+  }
+  <ng-content />
+</div>
 @if (error()) {
   <p class="field__error" role="alert" [id]="messageId">{{ error() }}</p>
 } @else if (hint()) {

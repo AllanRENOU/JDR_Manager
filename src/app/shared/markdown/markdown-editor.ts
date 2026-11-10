@@ -10,7 +10,8 @@ import { MarkdownFormat, applyMarkdownFormat } from './markdown-format';
  *   <textarea appInput appMarkdownEditor [id]="f.controlId"></textarea>
  * </app-field>
  * ```
- * Dans un `app-field`, la barre d'outils (`MarkdownToolbar`) s'affiche au-dessus du champ.
+ * Dans un `app-field`, la barre d'outils (`MarkdownToolbar`) flotte au-dessus du champ
+ * quand il a le focus.
  * Raccourcis : Ctrl / Cmd + B (gras), Ctrl / Cmd + I (italique).
  *
  * Chaque mise en forme passe par un événement `input` natif : les gestionnaires `(input)`

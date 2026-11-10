@@ -18,7 +18,8 @@ let nextId = 0;
  * d'écran seulement (ex. texte de scène).
  *
  * Un `<textarea appMarkdownEditor>` projeté ajoute la barre de mise en page Markdown
- * (`MarkdownToolbar`) entre le libellé et le champ.
+ * (`MarkdownToolbar`) : masquée par défaut, elle s'affiche quand le champ a le focus et flotte
+ * juste au-dessus, par-dessus le libellé ou le contenu qui précède (sans décaler la page).
  */
 @Component({
   selector: 'app-field',

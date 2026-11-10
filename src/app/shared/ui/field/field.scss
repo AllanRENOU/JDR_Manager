@@ -6,6 +6,33 @@
   gap: space(6);
 }
 
+// Contrôle projeté ; sert de repère à la barre Markdown flottante.
+.field__control {
+  position: relative;
+}
+
+// Barre Markdown : masquée par défaut, affichée tant que le champ (ou la barre) a le focus,
+// par-dessus ce qui précède le champ (libellé, titre…) sans décaler la mise en page.
+.field__toolbar {
+  position: absolute;
+  bottom: calc(100% + #{space(4)});
+  left: 0;
+  z-index: 2;
+  padding: space(2);
+  border: 1px solid color(border-default);
+  border-radius: radius(md);
+  background: color(bg-raised);
+  box-shadow: shadow(popover);
+  opacity: 0;
+  visibility: hidden;
+  transition: transition(opacity, visibility);
+}
+
+:host:focus-within .field__toolbar {
+  opacity: 1;
+  visibility: visible;
+}
+
 .field__label {
   color: color(text-secondary);
   font-size: font-size(small);
