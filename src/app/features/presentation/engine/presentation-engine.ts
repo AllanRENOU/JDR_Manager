@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, InjectionToken, computed, inject, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
@@ -48,6 +48,15 @@ export interface ShownBattlemap {
 }
 
 /** Entrée du fil à amener en haut de l'écran (FIL-06, CTL-03) ; `seq` change à chaque demande. */
+/**
+ * Temps minimal (ms) entre deux éléments affichés dans le fil par les actions d'une scène
+ * (texte, battlemap, clic de l'utilisateur), pour laisser le temps de lire. Les tests le
+ * mettent à 0 (`usePresentation()`).
+ */
+export const DISPLAY_GAP_MS = new InjectionToken<number>('DISPLAY_GAP_MS', {
+  factory: () => 1000,
+});
+
 export interface FeedFocus {
   itemId: Id;
   seq: number;
@@ -86,6 +95,7 @@ export class PresentationEngine {
   private readonly audio = inject(AudioPlayer);
   private readonly notifications = inject(Notifications);
   private readonly transloco = inject(TranslocoService);
+  private readonly displayGapMs = inject(DISPLAY_GAP_MS);
 
   readonly status = signal<PresentationStatus>('loading');
   readonly project = signal<Project | null>(null);
@@ -163,6 +173,8 @@ export class PresentationEngine {
   private focusSeq = 0;
   /** Une salve a commencé et aucun élément n'y a encore été montré (voir `focus`). */
   private burstStarted = false;
+  /** Instant (ms) à partir duquel le prochain élément peut s'afficher (`beforeDisplay`). */
+  private nextDisplayAt = 0;
 
   constructor() {
     const unsubscribe = this.audio.onChange(() => this.syncSounds());
@@ -270,6 +282,7 @@ export class PresentationEngine {
     this.actions.set(new Map(actions.map((a) => [a.id, a])));
     this.battlemaps.set(battlemaps);
     this.focus.set(null);
+    this.nextDisplayAt = 0;
     this.startBurst();
 
     const saved = this.store.sceneState(sceneId);
@@ -425,6 +438,7 @@ export class PresentationEngine {
   /** Contexte d'exécution d'une action de la scène `sceneId` (TRD §6.2). */
   private contextFor(sceneId: Id): ActionContext {
     return {
+      beforeDisplay: (signal) => this.beforeDisplay(signal),
       addText: (action, element) => {
         const existing = this.store
           .sceneState(sceneId)
@@ -515,6 +529,20 @@ export class PresentationEngine {
         { once: true },
       );
     });
+  }
+
+  /**
+   * Espace les éléments affichés de `DISPLAY_GAP_MS`, toutes actions de la scène confondues
+   * (actions d'ouverture successives, actions lancées en parallèle) : chaque appel réserve
+   * son créneau. Après un clic ou une attente plus longs que l'écart, aucune pause.
+   */
+  private async beforeDisplay(signal: AbortSignal): Promise<void> {
+    const now = Date.now();
+    const at = Math.max(now, this.nextDisplayAt);
+    this.nextDisplayAt = at + this.displayGapMs;
+    if (at > now) {
+      await delay(at - now, signal);
+    }
   }
 
   private async wait(element: WaitElement, signal: AbortSignal): Promise<void> {

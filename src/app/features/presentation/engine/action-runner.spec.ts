@@ -7,10 +7,15 @@ describe('ActionRunner', () => {
   const runner = new ActionRunner();
 
   /** Contexte qui journalise chaque appel ; les clics sont résolus à la main (`click()`). */
-  function recorder(options: { sceneExists?: boolean } = {}) {
+  function recorder(options: { sceneExists?: boolean; logPauses?: boolean } = {}) {
     const log: string[] = [];
     const clicks: { resolve: () => void; reject: (e: unknown) => void }[] = [];
     const context: ActionContext = {
+      beforeDisplay: async () => {
+        if (options.logPauses) {
+          log.push('pause');
+        }
+      },
       addText: (_a, e) => log.push(`texte:${e.text}`),
       showBattlemap: (e) => log.push(`battlemap:${e.battlemapId}`),
       playSound: (e) => log.push(`lancer:${e.soundId}`),
@@ -66,6 +71,38 @@ describe('ActionRunner', () => {
       'arrêter-tout',
       'texte:Deux',
       'effectuée:Bagarre',
+    ]);
+  });
+
+  it('attend beforeDisplay avant chaque élément affiché, pas avant les sons ni les attentes', async () => {
+    const { log, clicks, context } = recorder({ logPauses: true });
+    const run = runner.run(
+      action([
+        { id: 'a', type: 'add-text', text: 'Un' },
+        { id: 'b', type: 'show-battlemap', battlemapId: 'carte' },
+        { id: 'c', type: 'stop-sound', soundId: 'pluie' },
+        { id: 'd', type: 'stop-all-sounds' },
+        { id: 'e', type: 'wait', seconds: 0 },
+        { id: 'f', type: 'user-click', text: 'Clic' },
+        { id: 'g', type: 'change-scene', sceneId: 's2' },
+      ]),
+      context,
+      new AbortController().signal,
+    );
+    await vi.waitFor(() => expect(clicks).toHaveLength(1));
+    clicks[0].resolve();
+    await run;
+    expect(log).toEqual([
+      'pause',
+      'texte:Un',
+      'pause',
+      'battlemap:carte',
+      'arrêter:pluie',
+      'arrêter-tout',
+      'pause',
+      'clic:Clic',
+      'effectuée:Bagarre',
+      'scène:s2',
     ]);
   });
 

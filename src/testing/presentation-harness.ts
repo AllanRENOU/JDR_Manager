@@ -6,7 +6,10 @@ import { provideFrenchLocale } from '../app/core/i18n/locale';
 import { Action } from '../app/core/models';
 import { ActionRunner } from '../app/features/presentation/engine/action-runner';
 import { PlaySessionStore } from '../app/features/presentation/engine/play-session-store';
-import { PresentationEngine } from '../app/features/presentation/engine/presentation-engine';
+import {
+  DISPLAY_GAP_MS,
+  PresentationEngine,
+} from '../app/features/presentation/engine/presentation-engine';
 import { Modals } from '../app/shared/ui/modal/modals';
 import { aBattlemap, aProject, aScene, aSceneNode, aSoundNode, anAction } from './data-builders';
 import { FakeAudio, useFakeAudio } from './fake-audio';
@@ -32,6 +35,8 @@ export function usePresentation(): { audio: FakeAudio; bus: FakePlayerBus } {
         provideRouter([]),
         provideFrenchLocale(),
         PresentationEngine,
+        // Pas de pause entre les éléments affichés : les tests n'attendent pas.
+        { provide: DISPLAY_GAP_MS, useValue: 0 },
         ActionRunner,
         PlaySessionStore,
         ...useTestRepository(),

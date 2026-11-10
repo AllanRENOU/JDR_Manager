@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 import {
   Action,
+  ActionElement,
   AddTextElement,
   ChangeSceneElement,
   Id,
@@ -18,6 +19,12 @@ import {
  * pour une ressource manquante : elle la signale et la partie continue (NF-25).
  */
 export interface ActionContext {
+  /**
+   * À attendre avant chaque élément **affiché** dans le fil (texte, battlemap, clic de
+   * l'utilisateur) : laisse un temps de lecture depuis l'affichage précédent. Rejetée si le
+   * signal est annulé.
+   */
+  beforeDisplay(signal: AbortSignal): Promise<void>;
   /** Ajoute le texte au fil ; s'il y est déjà (relance, CTL-03), le fil revient sur lui. */
   addText(action: Action, element: AddTextElement): void;
   /** Affiche la battlemap et ajoute sa miniature au fil (ACT-04, FIL-03). */
@@ -56,6 +63,9 @@ export type RunOutcome = { kind: 'done' } | { kind: 'change-scene'; sceneId: Id 
  * entre deux éléments, pendant une attente ou un clic en attente ; la promesse est alors rejetée
  * et l'action n'est pas marquée comme effectuée.
  *
+ * Les éléments affichés (texte, battlemap, clic de l'utilisateur) attendent
+ * `context.beforeDisplay()` ; les éléments de son, « Attendre » et « Changer de scène », non.
+ *
  * Une action déjà effectuée peut être relancée (CTL-03) : c'est le contexte qui évite les doublons
  * dans le fil.
  */
@@ -64,6 +74,9 @@ export class ActionRunner {
   async run(action: Action, context: ActionContext, signal: AbortSignal): Promise<RunOutcome> {
     for (const element of action.elements) {
       signal.throwIfAborted();
+      if (DISPLAYED.has(element.type)) {
+        await context.beforeDisplay(signal);
+      }
       switch (element.type) {
         case 'add-text':
           context.addText(action, element);
@@ -102,3 +115,10 @@ export class ActionRunner {
     return { kind: 'done' };
   }
 }
+
+/** Éléments affichés dans le fil, espacés par `ActionContext.beforeDisplay()`. */
+const DISPLAYED: ReadonlySet<ActionElement['type']> = new Set([
+  'add-text',
+  'show-battlemap',
+  'user-click',
+]);

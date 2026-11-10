@@ -32,6 +32,17 @@
 
 .item {
   transition: opacity duration(normal) easing(out);
+
+  // Apparition en fondu (y compris des éléments déjà là quand on revient sur la scène) ;
+  // désactivée par « mouvements réduits » (`_base.scss`).
+  animation: feed-item-in duration(appear) easing(out) backwards;
+}
+
+// Vers l'opacité de l'élément (1, ou estompé s'il est déjà passé).
+@keyframes feed-item-in {
+  from {
+    opacity: 0;
+  }
 }
 
 // Éléments précédents estompés (Brief §6.10).

@@ -16,17 +16,20 @@ import { Action, ActionElement, Id, PlaySession } from '../../../core/models';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { ActionRunner } from './action-runner';
 import { PlaySessionStore } from './play-session-store';
-import { PresentationEngine } from './presentation-engine';
+import { DISPLAY_GAP_MS, PresentationEngine } from './presentation-engine';
 
 describe('PresentationEngine', () => {
   const audio = useFakeAudio();
   let engine: PresentationEngine;
+  /** Pause entre éléments affichés : 0 sauf dans « espacement des éléments affichés ». */
+  let displayGapMs = 0;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [getTranslocoTestingModule()],
       providers: [
         PresentationEngine,
+        { provide: DISPLAY_GAP_MS, useFactory: () => displayGapMs },
         ActionRunner,
         PlaySessionStore,
         ...useTestRepository(),
@@ -307,6 +310,55 @@ describe('PresentationEngine', () => {
       expect(feedTexts().slice(-2)).toEqual(['Trois.', 'Quatre.']);
       expect(engine.focus()?.itemId).toBe(idOf('Trois.'));
       await engine.openScene('B');
+    });
+  });
+
+  describe('espacement des éléments affichés', () => {
+    beforeAll(() => (displayGapMs = 150));
+    afterAll(() => (displayGapMs = 0));
+
+    it('espace les éléments affichés, d’une action d’ouverture à l’autre ; pas les sons', async () => {
+      await seed([
+        anAction('A', {
+          id: 'suite',
+          name: 'Suite',
+          trigger: 'scene-open',
+          order: 3,
+          elements: [text('t-1', 'Un.'), playSound('e-pluie', 'pluie'), text('t-2', 'Deux.')],
+        }),
+      ]);
+      // Instant d'apparition de chaque texte, et du son « pluie ».
+      const seen = new Map<string | null, number>();
+      const poll = setInterval(() => {
+        for (const value of [...feedTexts(), ...engine.sounds().map((s) => s.soundId)]) {
+          if (!seen.has(value)) {
+            seen.set(value, Date.now());
+          }
+        }
+      }, 2);
+      try {
+        await startAt('A');
+        await vi.waitFor(() => expect(seen.has('Deux.')).toBe(true));
+      } finally {
+        clearInterval(poll);
+      }
+      const at = (value: string) => seen.get(value)!;
+      // Texte de scène → « Un. » (autre action d'ouverture) → « Deux. » : 150 ms d'écart.
+      expect(at('Un.') - at('Odeur de bière.')).toBeGreaterThanOrEqual(140);
+      expect(at('Deux.') - at('Un.')).toBeGreaterThanOrEqual(140);
+      // Le son entre les deux n'attend pas : il part avec « Un. ».
+      expect(at('pluie')).toBeLessThan(at('Deux.'));
+    });
+
+    it('pas de pause pour un élément affiché longtemps après le précédent', async () => {
+      await seed([
+        anAction('A', { id: 'garde', name: 'Le garde', elements: [text('t-g', 'Halte !')] }),
+      ]);
+      await startAt('A');
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      void engine.runAction('garde');
+      await Promise.resolve();
+      expect(feedTexts()).toEqual(['Odeur de bière.', 'Halte !']);
     });
   });
 

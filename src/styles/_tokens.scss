@@ -87,6 +87,7 @@ $control-height: (
 $duration: (
   fast: 150ms,
   normal: 200ms,
+  appear: 1000ms,
 );
 $easing: (
   out: cubic-bezier(0.2, 0, 0, 1),
