@@ -5,6 +5,11 @@
   border-bottom: 1px solid color(border-subtle);
 }
 
+// Ouverte : un peu d'air entre le contenu et le trait du bas.
+:host(.open) {
+  padding-bottom: space(8);
+}
+
 .section__header {
   display: flex;
   align-items: center;
