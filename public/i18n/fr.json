@@ -246,6 +246,7 @@
   },
   "presentation": {
     "nextScene": "Scène suivante",
+    "nextSceneNamed": "Scène suivante : {{name}}",
     "clickToContinue": "Cliquer pour continuer",
     "continue": "Continuer",
     "restart": "Recommencer",

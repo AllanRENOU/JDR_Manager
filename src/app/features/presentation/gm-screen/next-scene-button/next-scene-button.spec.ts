@@ -36,6 +36,8 @@ describe('NextSceneButton', () => {
     const el = fixture.nativeElement as HTMLElement;
     const button = el.querySelector('button') as HTMLButtonElement;
     expect(button.getAttribute('aria-haspopup')).toBeNull();
+    expect(button.textContent?.trim()).toBe('Le marché');
+    expect(button.getAttribute('aria-label')).toBe('Scène suivante : Le marché');
     button.click();
     await vi.waitFor(() => expect(engine.scene()?.id).toBe('C'));
     await fixture.whenStable();

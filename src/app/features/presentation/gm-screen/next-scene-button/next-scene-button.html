@@ -6,9 +6,10 @@
     size="lg"
     type="button"
     aria-keyshortcuts="S"
+    [attr.aria-label]="'presentation.nextSceneNamed' | transloco: { name: next[0].name }"
     (click)="go(next[0].id)"
   >
-    {{ 'presentation.nextScene' | transloco }}
+    <span class="next__label">{{ next[0].name }}</span>
     <svg lucideArrowRight aria-hidden="true"></svg>
   </button>
 } @else if (next.length > 1) {

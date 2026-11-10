@@ -1,7 +1,16 @@
 @use 'functions' as *;
 
 .next {
+  max-width: layout(search);
   box-shadow: shadow(float);
+}
+
+// Nom de la seule scène suivante : tronqué s'il est long.
+.next__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 // Liste au-dessus du bouton (rendue dans l'overlay du CDK, styles de ce composant).

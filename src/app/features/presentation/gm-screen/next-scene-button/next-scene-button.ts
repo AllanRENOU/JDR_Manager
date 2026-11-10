@@ -11,8 +11,8 @@ import { Notifications } from '../../../../shared/ui/notification-host/notificat
 import { PresentationEngine } from '../../engine/presentation-engine';
 
 /**
- * Bouton flottant « Scène suivante » (CTL-04, Brief §6.11) : ouvre directement la seule scène
- * suivante, ou une liste au-dessus du bouton s'il y en a plusieurs. Masqué s'il n'y en a aucune.
+ * Bouton flottant « Scène suivante » (CTL-04, Brief §6.11) : affiche le nom de la seule scène
+ * suivante et l'ouvre directement, ou ouvre une liste au-dessus du bouton s'il y en a plusieurs. Masqué s'il n'y en a aucune.
  */
 @Component({
   selector: 'app-next-scene-button',
