@@ -108,3 +108,58 @@
     max-width: 100%;
   }
 }
+
+// Champ Markdown (`textarea[appMarkdownEditor]` dans un `app-field`) : son texte est transparent,
+// `app-field` le dessine par-dessus (texte source coloré ou mis en page). Le curseur et la
+// sélection restent ceux du champ. Même marge intérieure et taille de texte que `.field__overlay`.
+.app-markdown-editor {
+  display: block;
+  color: transparent;
+  caret-color: color(text-primary);
+  scrollbar-gutter: stable;
+
+  &:has(~ .app-markdown-preview:hover) {
+    border-color: color(border-strong);
+  }
+}
+
+// Texte source coloré. Rien ici ne doit changer la largeur des caractères (curseur aligné) :
+// pas de graisse ni de taille ni de police différentes. Le gras est simulé par un contour,
+// l'italique est synthétisé (la police d'interface n'a pas de fichier italique).
+.app-markdown-source {
+  color: color(text-primary);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+
+  .md-mark {
+    color: color(text-tertiary);
+  }
+
+  .md-strong,
+  .md-heading {
+    -webkit-text-stroke: 0.04em currentcolor;
+  }
+
+  .md-heading {
+    color: color(accent-text);
+  }
+
+  .md-em {
+    font-style: italic;
+  }
+
+  .md-quote {
+    color: color(text-secondary);
+    font-style: italic;
+  }
+
+  .md-code {
+    border-radius: radius(sm);
+    background: color(bg-control);
+  }
+
+  .md-link {
+    color: color(accent-text);
+    text-decoration: underline;
+  }
+}

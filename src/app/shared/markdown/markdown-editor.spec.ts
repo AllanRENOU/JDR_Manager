@@ -68,4 +68,40 @@ describe('MarkdownEditor', () => {
     expect(event.defaultPrevented).toBe(true);
     expect(textarea.value).toBe('_mot_');
   });
+
+  it('affiche le texte mis en page hors focus et le texte source coloré avec le focus', async () => {
+    const { fixture, textarea } = await setup();
+    textarea.value = '**Gras**';
+    textarea.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.app-markdown-preview strong')?.textContent).toBe('Gras');
+    expect(host.querySelector('.app-markdown-source')).toBeNull();
+
+    textarea.focus();
+    await fixture.whenStable();
+    const source = host.querySelector('.app-markdown-source') as HTMLElement;
+    expect(source.textContent).toBe('**Gras**\n');
+    expect(source.querySelector('.md-strong')?.textContent).toBe('Gras');
+    expect(host.querySelector('.app-markdown-preview')).toBeNull();
+
+    (host.querySelector('input') as HTMLInputElement).focus();
+    await fixture.whenStable();
+    expect(host.querySelector('.app-markdown-preview')).not.toBeNull();
+  });
+
+  it('suit une valeur posée par le code, et rend le focus au champ au clic sur le rendu', async () => {
+    const { fixture, textarea } = await setup();
+    textarea.value = '_mot_';
+    fixture.changeDetectorRef.markForCheck();
+    await fixture.whenStable();
+    await vi.waitFor(() =>
+      expect(fixture.nativeElement.querySelector('.app-markdown-preview em')).not.toBeNull(),
+    );
+    const preview = fixture.nativeElement.querySelector('.app-markdown-preview') as HTMLElement;
+    const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+    preview.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(textarea);
+  });
 });

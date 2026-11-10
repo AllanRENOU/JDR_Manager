@@ -10,6 +10,25 @@
     <app-markdown-toolbar class="field__toolbar" [editor]="editor" [controlId]="controlId" />
   }
   <ng-content />
+  @if (markdownEditor(); as editor) {
+    @if (focused() || !editor.text()) {
+      <!-- Texte source coloré, aligné caractère par caractère sur le champ (curseur compris). -->
+      <div
+        class="field__overlay field__source app-markdown-source"
+        aria-hidden="true"
+        [innerHTML]="sourceHtml()"
+        [scrollTop]="editor.scrollTop()"
+      ></div>
+    } @else {
+      <!-- Texte mis en page, hors focus. -->
+      <div
+        class="field__overlay field__preview app-markdown app-markdown-preview"
+        aria-hidden="true"
+        [innerHTML]="editor.text() | markdown"
+        (mousedown)="editMarkdown($event, editor)"
+      ></div>
+    }
+  }
 </div>
 @if (error()) {
   <p class="field__error" role="alert" [id]="messageId">{{ error() }}</p>

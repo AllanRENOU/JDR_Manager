@@ -55,3 +55,25 @@
   color: color(danger-text);
   font-size: font-size(label);
 }
+
+// Calques d'un champ Markdown, posés exactement sur le `<textarea>` (même bordure, même marge
+// intérieure) : texte source coloré (focus) ou texte mis en page (hors focus).
+.field__overlay {
+  position: absolute;
+  inset: 0;
+  padding: space(14) space(16);
+  border: 1px solid transparent;
+  font-size: font-size(input);
+  line-height: line-height(input);
+}
+
+.field__source {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+  pointer-events: none;
+}
+
+.field__preview {
+  overflow-y: auto;
+  cursor: text;
+}
