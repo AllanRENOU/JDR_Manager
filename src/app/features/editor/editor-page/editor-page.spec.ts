@@ -344,7 +344,7 @@ describe('EditorPage', () => {
     await vi.waitFor(() => expect(el.querySelector('.action-text')).not.toBeNull());
 
     const block = el.querySelector('.action-text') as HTMLElement;
-    expect(block.querySelector('app-pill')?.textContent?.trim()).toBe('Entrée du bourgmestre');
+    expect(block.querySelector('h3')?.textContent?.trim()).toBe('Entrée du bourgmestre');
     const field = block.querySelector('textarea') as HTMLTextAreaElement;
     expect(field.value).toBe('Un homme corpulent entre.');
     expect(block.querySelector('label')?.textContent?.trim()).toBe(
@@ -383,7 +383,7 @@ describe('EditorPage', () => {
 
     expect(el.querySelectorAll('.action-text')).toHaveLength(1);
     const block = el.querySelector('.action-text') as HTMLElement;
-    expect(block.querySelectorAll('app-pill')).toHaveLength(1);
+    expect(block.querySelectorAll('h3')).toHaveLength(1);
     expect(
       [...block.querySelectorAll('textarea')].map((t) => (t as HTMLTextAreaElement).value),
     ).toEqual(['Une chope vole.', 'Le tavernier crie.']);
@@ -443,7 +443,7 @@ describe('EditorPage', () => {
       expect(el.querySelector('.action-text textarea')).not.toBeNull();
     });
     const block = el.querySelector('.action-text') as HTMLElement;
-    expect(block.querySelector('app-pill')?.textContent?.trim()).toBe('Bagarre');
+    expect(block.querySelector('h3')?.textContent?.trim()).toBe('Bagarre');
     expect((block.querySelector('textarea') as HTMLTextAreaElement).value).toBe(
       'La table vole en éclats.',
     );

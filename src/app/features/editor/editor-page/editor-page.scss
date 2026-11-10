@@ -176,6 +176,15 @@
   margin-top: space(20);
 }
 
+// Nom de l'action : sous-titre, plus petit que le titre de la scène.
+.action-title {
+  margin: space(12) 0 0;
+  color: color(text-primary);
+  font-family: font-family(title);
+  font-size: font-size(dialog);
+  font-weight: font-weight(semibold);
+}
+
 .action-text .scene-text {
   width: 100%;
 }

@@ -168,11 +168,11 @@
             ></textarea>
           </app-field>
 
-          <!-- Contenu des actions (SCN-07) : une pastille du nom de l'action, puis ses textes
+          <!-- Contenu des actions (SCN-07) : le nom de l'action en sous-titre, puis ses textes
                (éditables), attentes et clics (lecture seule) dans l'ordre de l'action. -->
           @for (group of store.actionTextGroups(); track group.action.id) {
             <div class="action-text">
-              <app-pill tone="text" aria-hidden="true">{{ group.action.name }}</app-pill>
+              <h3 class="action-title">{{ group.action.name }}</h3>
               @for (element of group.elements; track element.id) {
                 @if (element.type === 'add-text') {
                   <app-field
