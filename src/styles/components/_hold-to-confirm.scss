@@ -1,0 +1,27 @@
+// Bouton à appui long (directive `appHoldToConfirm`) : le fond se remplit de gauche à droite
+// (`--hold-progress`, 0 à 1, mis à jour en JS à chaque image) et se vide d'un coup au relâchement.
+@use '../functions' as *;
+
+.app-hold {
+  --hold-fill: #{color(danger-border)};
+
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  touch-action: none;
+  user-select: none;
+
+  &::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: var(--hold-fill);
+    content: '';
+    transform: scaleX(var(--hold-progress, 0));
+    transform-origin: left;
+  }
+}
+
+.app-hold--active {
+  border-color: color(danger-border);
+}

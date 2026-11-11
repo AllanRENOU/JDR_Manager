@@ -17,3 +17,25 @@
   line-height: line-height(input);
   white-space: pre-line;
 }
+
+// Pied : boutons alignés à droite, message d'appui trop court en dessous.
+.confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: space(12);
+}
+
+// Appui long : bouton « Danger » bordé, rempli de `danger-border` (lisible dans les deux thèmes).
+.confirm__hold {
+  border-color: color(danger-border);
+}
+
+.confirm__error {
+  flex-basis: 100%;
+  margin: 0;
+  color: color(danger-text);
+  font-size: font-size(small);
+  text-align: right;
+}

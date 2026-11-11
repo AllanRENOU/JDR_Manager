@@ -20,6 +20,44 @@ describe('Modals.confirm', () => {
     ];
   }
 
+  describe('appui long (holdToConfirm)', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('un clic simple affiche le message ; 3 s d\x27appui confirment', async () => {
+      const answer = modals.confirm({
+        title: 'Supprimer « Pluie » ?',
+        message: 'Irréversible.',
+        confirmLabel: 'Supprimer',
+        destructive: true,
+        holdToConfirm: true,
+      });
+      const [, confirm] = buttons();
+      expect(confirm.classList).toContain('app-hold');
+      expect(confirm.classList).toContain('app-button--danger');
+      expect(confirm.getAttribute('aria-describedby')).toBe('confirm-hold-help');
+      expect(document.querySelector('#confirm-hold-help')?.textContent).toContain(
+        'Restez appuyé 3 secondes sur « Supprimer »',
+      );
+
+      const press = (type: string) =>
+        confirm.dispatchEvent(new MouseEvent(type, { button: 0, bubbles: true }));
+      confirm.click();
+      press('pointerdown');
+      vi.advanceTimersByTime(1000);
+      press('pointerup');
+      TestBed.tick();
+      const error = document.querySelector('app-confirm-dialog .confirm__error');
+      expect(error?.getAttribute('role')).toBe('alert');
+      expect(error?.textContent).toContain('irréversible');
+      expect(document.querySelector('app-confirm-dialog')).not.toBeNull();
+
+      press('pointerdown');
+      vi.advanceTimersByTime(3000);
+      expect(await answer).toBe(true);
+    });
+  });
+
   it('renvoie true à la confirmation, avec les libellés par défaut', async () => {
     const answer = modals.confirm({ title: 'Recommencer ?', message: 'La partie sera perdue.' });
     const [cancel, confirm] = buttons();

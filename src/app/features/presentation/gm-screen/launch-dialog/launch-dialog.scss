@@ -94,3 +94,21 @@
   font-size: font-size(small);
   line-height: line-height(normal);
 }
+
+// Pied de fenêtre : boutons alignés à droite, message d'appui trop court en dessous.
+.launch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: space(12);
+}
+
+.launch-actions__error {
+  flex-basis: 100%;
+  order: 1;
+  margin: 0;
+  color: color(danger-text);
+  font-size: font-size(small);
+  text-align: right;
+}

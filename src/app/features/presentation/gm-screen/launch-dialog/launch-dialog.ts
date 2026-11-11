@@ -1,13 +1,16 @@
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { LucideArrowLeft, LucidePlay } from '@lucide/angular';
 
 import { pluralKey } from '../../../../core/i18n/plural';
 import { Button } from '../../../../shared/ui/button/button';
+import {
+  HOLD_TO_CONFIRM_MS,
+  HoldToConfirm,
+} from '../../../../shared/ui/hold-to-confirm/hold-to-confirm';
 import { Modal } from '../../../../shared/ui/modal/modal';
-import { Modals } from '../../../../shared/ui/modal/modals';
 import { Placeholder } from '../../../../shared/ui/placeholder/placeholder';
 import { AudioPlayer } from '../../audio/audio-player';
 
@@ -34,28 +37,42 @@ export interface LaunchDialogData {
   onLaunch?: (choice: LaunchChoice) => void;
 }
 
-/** `continue` : reprendre (PRS-05) ; `restart` : partie neuve (confirmée s'il y en avait une). */
+/** `continue` : reprendre (PRS-05) ; `restart` : partie neuve (appui long s'il y en avait une). */
 export interface LaunchChoice {
   start: 'continue' | 'restart';
   display: DisplayMode;
 }
 
+/** Durée de l'appui sur « Recommencer » qui valide (PRS-03). */
+export const RESTART_HOLD_MS = HOLD_TO_CONFIRM_MS;
+
 /**
  * Fenêtre de lancement de la Présentation (Brief §7.2, maquette « Présentation — lancement ») :
  * dernière scène, choix de l'affichage, Continuer / Recommencer. Le clic de lancement débloque
  * l'audio (TEC-43). Fermée sans choix : `undefined` (retour aux projets).
+ *
+ * « Recommencer » se valide en restant appuyé `RESTART_HOLD_MS` (directive `appHoldToConfirm`) ;
+ * relâché avant, un message explique qu'il faut rester appuyé et que la progression sera perdue
+ * (PRS-03).
  */
 @Component({
   selector: 'app-launch-dialog',
-  imports: [Modal, Button, Placeholder, DatePipe, TranslocoPipe, LucidePlay, LucideArrowLeft],
+  imports: [
+    Modal,
+    Button,
+    HoldToConfirm,
+    Placeholder,
+    DatePipe,
+    TranslocoPipe,
+    LucidePlay,
+    LucideArrowLeft,
+  ],
   templateUrl: './launch-dialog.html',
   styleUrl: './launch-dialog.scss',
 })
 export class LaunchDialog {
   private readonly ref = inject<DialogRef<LaunchChoice>>(DialogRef);
-  private readonly modals = inject(Modals);
   private readonly audio = inject(AudioPlayer);
-  private readonly transloco = inject(TranslocoService);
   protected readonly data = inject<LaunchDialogData>(DIALOG_DATA);
 
   protected readonly display = signal<DisplayMode>('single');
@@ -70,19 +87,14 @@ export class LaunchDialog {
     this.close(this.data.saved ? 'continue' : 'restart');
   }
 
-  /** Recommencer : avertissement puis confirmation destructive (PRS-03). */
-  protected async restart(): Promise<void> {
-    // Débloqué avant l'attente : le clic de confirmation compte aussi, mais autant ne rien risquer.
+  /** Appui long sur « Recommencer » maintenu jusqu'au bout. */
+  protected restart(): void {
+    this.close('restart');
+  }
+
+  /** Début de l'appui sur « Recommencer » : geste de l'utilisateur, l'audio est débloqué (TEC-43). */
+  protected unlockAudio(): void {
     void this.audio.unlock();
-    const confirmed = await this.modals.confirm({
-      title: this.transloco.translate('presentation.launch.restartTitle'),
-      message: this.transloco.translate('presentation.launch.restartMessage'),
-      confirmLabel: this.transloco.translate('presentation.launch.restartConfirm'),
-      destructive: true,
-    });
-    if (confirmed) {
-      this.close('restart');
-    }
   }
 
   protected back(): void {

@@ -196,7 +196,7 @@ export class ComponentsDemoPage {
     }
   }
 
-  protected async openConfirm(destructive: boolean): Promise<void> {
+  protected async openConfirm(destructive: boolean, holdToConfirm = false): Promise<void> {
     const confirmed = await this.modals.confirm(
       destructive
         ? {
@@ -205,6 +205,7 @@ export class ComponentsDemoPage {
               'Les 4 scènes qu’il contient seront aussi supprimées. Cette action est irréversible.',
             confirmLabel: 'Supprimer',
             destructive: true,
+            holdToConfirm,
           }
         : { title: 'Recommencer la partie ?', message: 'La progression actuelle sera effacée.' },
     );

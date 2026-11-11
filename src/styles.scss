@@ -10,6 +10,7 @@
 @use 'styles/components/overlay';
 @use 'styles/components/menu';
 @use 'styles/components/markdown';
+@use 'styles/components/hold-to-confirm';
 
 // Jetons communs à tous les thèmes (espacements, rayons, typographie…).
 @include engine.common-tokens;

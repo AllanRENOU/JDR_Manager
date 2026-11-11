@@ -356,7 +356,19 @@ describe('SoundLibraryPage', () => {
     await fixture.whenStable();
     TestBed.tick();
     expect(dialogText()).not.toContain('utilisé');
-    dialogButton('Supprimer').click();
+    // Appui long de 3 s (clic simple : message, rien de supprimé). Faux minuteurs le temps de l'appui
+    // seulement : IndexedDB a besoin des vrais.
+    const confirm = dialogButton('Supprimer');
+    confirm.click();
+    TestBed.tick();
+    expect(el.querySelectorAll('tbody tr')).toHaveLength(2);
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      confirm.dispatchEvent(new MouseEvent('pointerdown', { button: 0, bubbles: true }));
+      vi.advanceTimersByTime(3000);
+    } finally {
+      vi.useRealTimers();
+    }
     await vi.waitFor(async () => {
       await fixture.whenStable();
       expect(el.querySelectorAll('tbody tr')).toHaveLength(1);

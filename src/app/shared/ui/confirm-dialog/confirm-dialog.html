@@ -1,3 +1,4 @@
+@let confirmLabel = options.confirmLabel ?? ('common.actions.confirm' | transloco);
 <app-modal
   [title]="options.title"
   [subtitle]="options.subtitle ?? ''"
@@ -10,21 +11,39 @@
   }
   <p class="confirm__message">{{ options.message }}</p>
 
-  <button
-    modalFooterEnd
-    appButton="secondary"
-    type="button"
-    cdkFocusInitial
-    (click)="ref.close(false)"
-  >
-    {{ options.cancelLabel ?? ('common.actions.cancel' | transloco) }}
-  </button>
-  <button
-    modalFooterEnd
-    type="button"
-    [appButton]="options.destructive ? 'danger-strong' : 'primary'"
-    (click)="ref.close(true)"
-  >
-    {{ options.confirmLabel ?? ('common.actions.confirm' | transloco) }}
-  </button>
+  <div modalFooterEnd class="confirm__actions">
+    <button appButton="secondary" type="button" cdkFocusInitial (click)="ref.close(false)">
+      {{ options.cancelLabel ?? ('common.actions.cancel' | transloco) }}
+    </button>
+    @if (options.holdToConfirm) {
+      <!-- Appui long (NF-31) : pas de (click). -->
+      <button
+        type="button"
+        appButton="danger"
+        class="confirm__hold"
+        appHoldToConfirm
+        #hold="appHoldToConfirm"
+        aria-describedby="confirm-hold-help"
+        (holdConfirmed)="ref.close(true)"
+      >
+        {{ confirmLabel }}
+      </button>
+      <span id="confirm-hold-help" class="visually-hidden">{{
+        'common.hold.help' | transloco: { label: confirmLabel }
+      }}</span>
+      @if (hold.tooShort()) {
+        <p class="confirm__error" role="alert">
+          {{ 'common.hold.tooShort' | transloco: { label: confirmLabel } }}
+        </p>
+      }
+    } @else {
+      <button
+        type="button"
+        [appButton]="options.destructive ? 'danger-strong' : 'primary'"
+        (click)="ref.close(true)"
+      >
+        {{ confirmLabel }}
+      </button>
+    }
+  </div>
 </app-modal>

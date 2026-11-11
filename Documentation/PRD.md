@@ -133,7 +133,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 |---|---|---|
 | PRS-01 | Sans partie sauvegardée, la Présentation ouvre la **première scène**. | M |
 | PRS-02 | Si une partie sauvegardée existe, le MJ choisit **Continuer** ou **Recommencer**. | M |
-| PRS-03 | « Recommencer » affiche un avertissement (tout ce qui a été fait sera perdu) et demande confirmation. | M |
+| PRS-03 | « Recommencer » se valide en restant appuyé 3 secondes sur le bouton (le fond se remplit comme une barre de progression) ; un clic simple affiche un message : rester appuyé pour valider, tout ce qui a été fait sera perdu. | M |
 | PRS-04 | L'état de **chaque scène** est sauvegardé automatiquement : actions effectuées, battlemap affichée, sons en cours (avec leur état de pause et leur volume, sans la position de lecture), fil d'actualité. | M |
 | PRS-05 | « Continuer » rouvre la dernière scène ouverte dans l'état exact où elle était ; les sons en cours reprennent depuis le début. | M |
 | PRS-06 | Revenir sur une scène déjà visitée restaure son état, sans relancer ses actions d'ouverture. | M |

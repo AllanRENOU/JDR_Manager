@@ -51,13 +51,34 @@
   <button modalFooterStart appButton="quiet" type="button" (click)="back()">
     <svg lucideArrowLeft aria-hidden="true"></svg>{{ 'project.backToProjects' | transloco }}
   </button>
-  @if (saved) {
-    <button modalFooterEnd appButton="secondary" size="lg" type="button" (click)="restart()">
-      {{ 'presentation.restart' | transloco }}
+  <div modalFooterEnd class="launch-actions">
+    @if (saved) {
+      <!-- Appui long de 3 s (PRS-03) : pas de (click). -->
+      <button
+        appButton="secondary"
+        size="lg"
+        type="button"
+        appHoldToConfirm
+        #hold="appHoldToConfirm"
+        aria-describedby="launch-restart-help"
+        (holdStarted)="unlockAudio()"
+        (holdConfirmed)="restart()"
+      >
+        {{ 'presentation.restart' | transloco }}
+      </button>
+      <span id="launch-restart-help" class="visually-hidden">{{
+        'presentation.launch.restartHoldHelp' | transloco
+      }}</span>
+      @if (hold.tooShort()) {
+        <!-- Sous les boutons (`order`), même s'il est déclaré avant « Continuer ». -->
+        <p class="launch-actions__error" role="alert">
+          {{ 'presentation.launch.restartHoldError' | transloco }}
+        </p>
+      }
+    }
+    <button appButton size="lg" type="button" cdkFocusInitial (click)="launch()">
+      <svg lucidePlay aria-hidden="true"></svg>
+      {{ (saved ? 'presentation.launch.continue' : 'presentation.launch.start') | transloco }}
     </button>
-  }
-  <button modalFooterEnd appButton size="lg" type="button" cdkFocusInitial (click)="launch()">
-    <svg lucidePlay aria-hidden="true"></svg>
-    {{ (saved ? 'presentation.launch.continue' : 'presentation.launch.start') | transloco }}
-  </button>
+  </div>
 </app-modal>

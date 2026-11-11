@@ -296,6 +296,7 @@ export class SoundLibraryPage {
           : t('sound.deleteMessage'),
       confirmLabel: t('common.actions.delete'),
       destructive: true,
+      holdToConfirm: true,
     });
     if (!confirmed) {
       return false;

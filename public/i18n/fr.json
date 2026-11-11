@@ -16,6 +16,10 @@
       "pause": "Pause",
       "remove": "Retirer"
     },
+    "hold": {
+      "help": "Restez appuyé 3 secondes sur « {{label}} » pour confirmer. Cette action est irréversible.",
+      "tooShort": "Restez appuyé 3 secondes sur « {{label}} » pour confirmer. Attention : cette action est irréversible."
+    },
     "search": "Rechercher",
     "empty": "Aucun élément",
     "required": "obligatoire",
@@ -279,9 +283,8 @@
       "dualHelp": "Une fenêtre joueurs pour la TV ou le projecteur. PC uniquement.",
       "continue": "Continuer la partie",
       "start": "Commencer la partie",
-      "restartTitle": "Recommencer la partie ?",
-      "restartMessage": "Tout ce qui a été fait dans cette partie sera perdu : actions effectuées, cartes affichées, sons en cours et fil d’actualité de chaque scène. La partie repartira de la première scène.",
-      "restartConfirm": "Effacer et recommencer",
+      "restartHoldHelp": "Restez appuyé 3 secondes pour recommencer la partie depuis la première scène. Toute la progression sera perdue.",
+      "restartHoldError": "Restez appuyé pour valider. Attention : toute la progression sera perdue",
       "visited": {
         "one": "{{ count }} scène visitée",
         "other": "{{ count }} scènes visitées"
