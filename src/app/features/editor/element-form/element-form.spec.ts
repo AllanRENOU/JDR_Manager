@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { aBattlemap, aSceneNode, aSoundNode } from '../../../../testing/data-builders';
+import { aBattlemap, aSceneNode, aSoundNode, anAction } from '../../../../testing/data-builders';
 import { useTestRepository } from '../../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
 import { ActionElement } from '../../../core/models';
@@ -201,6 +201,44 @@ describe('ElementForm', () => {
     });
     type(textarea, '  ');
     expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'wait', seconds: 2 });
+  });
+
+  it('Afficher l’action : choix parmi les actions « Clic du MJ » de la scène, sauf elle-même (ACT-12)', () => {
+    const fixture = TestBed.createComponent(ElementForm);
+    fixture.componentRef.setInput('element', { id: 'e1', type: 'show-action', actionId: '' });
+    fixture.componentRef.setInput('context', {
+      ...context,
+      actions: [
+        anAction('s1', { id: 'self', name: 'Le garde', trigger: 'manual' }),
+        anAction('s1', { id: 'fuite', name: 'La fuite', trigger: 'manual', hidden: true }),
+        anAction('s1', { id: 'auto', name: 'Entrée', trigger: 'scene-open' }),
+      ],
+    });
+    fixture.componentRef.setInput('sceneId', 's1');
+    fixture.componentRef.setInput('projectId', 'p1');
+    fixture.componentRef.setInput('actionId', 'self');
+    const emitted: ActionElement[] = [];
+    fixture.componentInstance.elementChange.subscribe((e) => emitted.push(e));
+    TestBed.tick();
+    const el = fixture.nativeElement as HTMLElement;
+
+    const labels = [...el.querySelectorAll('label.app-check')].map((l) =>
+      l.textContent?.replace(/\s+/g, ' ').trim(),
+    );
+    expect(labels).toEqual(['La fuite · masquée au départ']);
+    expect(fixture.componentInstance.invalid()).toBe(true);
+    fixture.componentInstance.revealErrors();
+    TestBed.tick();
+    expect(el.textContent).toContain('Choisissez l’action à afficher.');
+
+    el.querySelector<HTMLInputElement>('input[type=radio]')!.click();
+    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'show-action', actionId: 'fuite' });
+  });
+
+  it('Afficher l’action : action visée supprimée signalée (PRS-07)', () => {
+    const { el } = render({ id: 'e1', type: 'show-action', actionId: 'disparue' });
+    expect(el.querySelector('.warning')?.textContent).toContain('Action supprimée');
+    expect(el.textContent).toContain('Aucune autre action « Clic du MJ » dans cette scène.');
   });
 
   it('Clic de l’utilisateur : texte obligatoire (8.3.8)', () => {

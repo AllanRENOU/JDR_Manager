@@ -291,6 +291,7 @@ describe('EditorStore', () => {
         elements: [
           { id: 'e1', type: 'show-battlemap', battlemapId: map.id },
           { id: 'e2', type: 'change-scene', sceneId: market.id },
+          { id: 'e3', type: 'show-action', actionId: text.id },
         ],
       });
       await repository().saveBattlemap(map);
@@ -333,11 +334,42 @@ describe('EditorStore', () => {
           battlemapId: copiedMap.id,
         },
         { id: expect.not.stringMatching(/^e2$/), type: 'change-scene', sceneId: market.id },
+        // « Afficher l'action » vise la copie de l'action (ACT-12).
+        { id: expect.not.stringMatching(/^e3$/), type: 'show-action', actionId: actions[0].id },
       ]);
       // L'original n'a pas changé.
       expect((await repository().listActions(tavern.id))[1].elements[0]).toMatchObject({
         battlemapId: map.id,
       });
+    });
+
+    it('« masquée au départ » : enregistrée pour une action « Clic du MJ » seulement (ACT-12)', async () => {
+      await loadTree();
+      const hidden = await store.saveAction(null, {
+        name: 'La fuite',
+        trigger: 'manual',
+        hidden: true,
+        elements: [],
+      });
+      expect(hidden.hidden).toBe(true);
+      const opening = await store.saveAction(hidden, {
+        name: 'La fuite',
+        trigger: 'scene-open',
+        hidden: true,
+        elements: [],
+      });
+      expect('hidden' in opening).toBe(false);
+      const visible = await store.saveAction(null, {
+        name: 'Le garde',
+        trigger: 'manual',
+        hidden: false,
+        elements: [],
+      });
+      expect('hidden' in visible).toBe(false);
+      const saved = (await repository().listActions(hidden.sceneId)).find(
+        (a) => a.id === hidden.id,
+      );
+      expect(saved && 'hidden' in saved).toBe(false);
     });
 
     it('déplace une scène dans un autre dossier et renumérote les frères (7.1.4)', async () => {

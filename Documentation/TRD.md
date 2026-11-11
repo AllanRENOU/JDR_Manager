@@ -272,6 +272,7 @@ interface Action {
   trigger: Trigger;
   order: number;
   isSceneText: boolean;         // true = action « Texte de scène » (non supprimable)
+  hidden?: boolean;             // « Clic du MJ » masquée au départ en Présentation (ACT-12)
   elements: ActionElement[];
 }
 
@@ -283,7 +284,8 @@ type ActionElement =
   | { id: Id; type: 'add-text'; text: string }
   | { id: Id; type: 'change-scene'; sceneId: Id }
   | { id: Id; type: 'wait'; seconds: number; text?: string } // texte facultatif, montré pendant l'attente
-  | { id: Id; type: 'user-click'; text: string };
+  | { id: Id; type: 'user-click'; text: string }
+  | { id: Id; type: 'show-action'; actionId: Id }; // action de la même scène (ACT-12)
 
 /** Partie sauvegardée (une par projet en V1) */
 interface PlaySession {
@@ -296,6 +298,7 @@ interface PlaySession {
 interface SceneState {
   visited: boolean;
   doneActionIds: Id[];
+  shownActionIds?: Id[];        // masquées au départ, affichées par « Afficher l'action » (ACT-12)
   currentBattlemapId: Id | null;
   playingSounds: { soundId: Id; elementId: Id | null; paused: boolean; volume: number }[];  // elementId → paramètres de lecture ; volume = réglage en direct
   feed: FeedItem[];

@@ -51,6 +51,15 @@
                 [attr.title]="'action.locked' | transloco"
               ></svg>
             }
+            @if (row.action.hidden) {
+              <svg
+                lucideEyeOff
+                class="action__lock"
+                role="img"
+                [attr.aria-label]="'action.hidden' | transloco"
+                [attr.title]="'action.hidden' | transloco"
+              ></svg>
+            }
             @if (row.missing) {
               <svg
                 lucideTriangleExclamationPoint

@@ -144,6 +144,39 @@
     </div>
   }
 
+  @case ('show-action') {
+    <!-- Action « au clic du MJ » de la scène à rendre visible en Présentation (ACT-12). -->
+    <fieldset class="group">
+      <legend class="label">{{ 'action.form.targetAction' | transloco }}</legend>
+      <p class="help">{{ 'action.form.showActionHelp' | transloco }}</p>
+      @if (el.actionId && !actionTargetExists()) {
+        <p class="warning">
+          <svg lucideTriangleAlert aria-hidden="true"></svg>
+          {{ 'action.form.actionMissing' | transloco }}
+        </p>
+      }
+      @for (target of actionChoices(); track target.id) {
+        <label class="app-check">
+          <input
+            type="radio"
+            [name]="'show-action-' + el.id"
+            [checked]="target.id === el.actionId"
+            (change)="chooseAction(target.id)"
+          />
+          {{ target.name }}
+          @if (target.hidden) {
+            <span class="help">· {{ 'action.hiddenShort' | transloco }}</span>
+          }
+        </label>
+      } @empty {
+        <p class="help">{{ 'action.form.noManualAction' | transloco }}</p>
+      }
+      @if (choiceError()) {
+        <p class="error">{{ choiceError() | transloco }}</p>
+      }
+    </fieldset>
+  }
+
   @case ('wait') {
     <div class="stack">
       <app-field

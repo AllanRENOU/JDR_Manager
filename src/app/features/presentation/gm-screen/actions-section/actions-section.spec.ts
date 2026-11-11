@@ -48,16 +48,80 @@ describe('ActionsSection', () => {
     });
     expect(el.textContent).not.toContain('Toutes les actions ont été effectuées');
     const toggle = el.querySelector('.toggle') as HTMLButtonElement;
-    expect(toggle.textContent).toContain('Voir toutes les actions (1 effectuée)');
+    expect(toggle.textContent).toContain('Voir toutes les actions (1 masquée)');
     toggle.click();
     await fixture.whenStable();
     expect(names()).toEqual(['Le garde']);
     expect(el.querySelector('.action--done')?.textContent).toContain('Relancer');
-    expect(toggle.textContent).toContain('Masquer les actions effectuées');
+    expect(toggle.textContent).toContain('Masquer les actions effectuées ou masquées');
 
     const textsBefore = engine.feed().length;
     (el.querySelector('.action--done') as HTMLButtonElement).click();
     await fixture.whenStable();
     expect(engine.feed()).toHaveLength(textsBefore);
+  });
+
+  it('action affichée pendant la scène : animation d’arrivée, pas à l’ouverture (ACT-12)', async () => {
+    await seedPresentation([
+      anAction('A', {
+        id: 'garde',
+        name: 'Le garde',
+        order: 2,
+        elements: [{ id: 'sa', type: 'show-action', actionId: 'fuite' }],
+      }),
+      anAction('A', {
+        id: 'fuite',
+        name: 'La fuite',
+        order: 3,
+        hidden: true,
+        elements: [{ id: 't', type: 'add-text', text: 'Ils fuient.' }],
+      }),
+      anAction('A', { id: 'porte', name: 'La porte', order: 4, elements: [] }),
+    ]);
+    const engine = await startPresentation();
+    const fixture = TestBed.createComponent(ActionsSection);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const arrived = () =>
+      [...el.querySelectorAll('.action--arrived .action__name')].map((n) => n.textContent?.trim());
+    expect(arrived()).toEqual([]);
+
+    await engine.runAction('garde');
+    await fixture.whenStable();
+    expect(arrived()).toEqual(['La fuite']);
+
+    // Fin de l'animation : ligne ordinaire.
+    el.querySelector('.action--arrived')!.dispatchEvent(new Event('animationend'));
+    await fixture.whenStable();
+    expect(arrived()).toEqual([]);
+  });
+
+  it('action masquée au départ : rangée avec les effectuées, lançable depuis « Voir toutes les actions » (ACT-12)', async () => {
+    await seedPresentation([
+      anAction('A', {
+        id: 'fuite',
+        name: 'La fuite',
+        order: 2,
+        hidden: true,
+        elements: [{ id: 't', type: 'add-text', text: 'Ils fuient.' }],
+      }),
+    ]);
+    const engine = await startPresentation();
+    const fixture = TestBed.createComponent(ActionsSection);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('.action')).toHaveLength(0);
+    expect(el.textContent).toContain('Toutes les actions sont effectuées ou masquées.');
+    const toggle = el.querySelector('.toggle') as HTMLButtonElement;
+    expect(toggle.textContent).toContain('Voir toutes les actions (1 masquée)');
+
+    toggle.click();
+    await fixture.whenStable();
+    const hidden = el.querySelector('.action--done') as HTMLButtonElement;
+    expect(hidden.textContent).toContain('La fuite');
+    expect(hidden.textContent).toContain('masquée au départ');
+    expect(hidden.textContent).not.toContain('Relancer');
+    hidden.click();
+    await vi.waitFor(() => expect(engine.manualActions()[0].done).toBe(true));
   });
 });

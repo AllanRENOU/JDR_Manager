@@ -12,7 +12,10 @@ describe('ActionEditor', () => {
   beforeEach(() => TestBed.configureTestingModule({ imports: [getTranslocoTestingModule()] }));
   afterEach(() => TestBed.inject(Modals).closeAll());
 
-  function open(action: Action | null): {
+  function open(
+    action: Action | null,
+    context: ActionEditorData['context'] = { soundNames: {}, battlemaps: [], sceneNodes: [] },
+  ): {
     ref: DialogRef<ActionEditorResult>;
     dialog: HTMLElement;
     result: Promise<ActionEditorResult | undefined>;
@@ -24,7 +27,7 @@ describe('ActionEditor', () => {
         sceneId: 's1',
         projectId: 'p1',
         sceneName: 'La taverne',
-        context: { soundNames: {}, battlemaps: [], sceneNodes: [] },
+        context,
         defaultName: 'Nouvelle action',
       },
     });
@@ -61,7 +64,7 @@ describe('ActionEditor', () => {
     button(dialog, 'Enregistrer').click();
     expect(await result).toEqual({
       kind: 'save',
-      draft: { name: 'Bagarre', trigger: 'scene-open', elements: [] },
+      draft: { name: 'Bagarre', trigger: 'scene-open', hidden: false, elements: [] },
     });
   });
 
@@ -116,6 +119,62 @@ describe('ActionEditor', () => {
     expect(await result).toEqual({ kind: 'delete' });
   });
 
+  it('« Masquer l’action au départ » : seulement pour « Clic du MJ » (ACT-12)', async () => {
+    const { dialog, result } = open(anAction('s1', { name: 'La fuite', trigger: 'manual' }));
+    const checkbox = () => dialog.querySelector<HTMLInputElement>('.trigger input[type=checkbox]');
+    expect(checkbox()?.checked).toBe(false);
+    expect(dialog.textContent).toContain('Masquer l’action au départ');
+    // Explication en infobulle, plus de texte d'aide visible sous la case.
+    const label = checkbox()!.closest('label')!;
+    expect(label.getAttribute('title')).toContain('masquée comme une action terminée');
+    expect(dialog.querySelector('.trigger__hint')).toBeNull();
+    expect(checkbox()!.getAttribute('aria-describedby')).toBe('action-hidden-help');
+    checkbox()!.click();
+    TestBed.tick();
+
+    // Passée à l'ouverture de la scène : la case disparaît et la propriété n'est pas gardée.
+    segments(dialog)[0].click();
+    TestBed.tick();
+    expect(checkbox()).toBeNull();
+    segments(dialog)[1].click();
+    TestBed.tick();
+    expect(checkbox()?.checked).toBe(true);
+    button(dialog, 'Enregistrer').click();
+    expect(await result).toMatchObject({ kind: 'save', draft: { hidden: true } });
+  });
+
+  it('déclencheur « Ouverture de la scène » : jamais masquée', async () => {
+    const { dialog, result } = open(
+      anAction('s1', { name: 'Entrée', trigger: 'manual', hidden: true }),
+    );
+    segments(dialog)[0].click();
+    TestBed.tick();
+    button(dialog, 'Enregistrer').click();
+    expect(await result).toMatchObject({ draft: { trigger: 'scene-open', hidden: false } });
+  });
+
+  it('suppression d’une action affichée par une autre : l’avertit (ACT-12, PRS-07)', async () => {
+    const target = anAction('s1', { id: 'fuite', name: 'La fuite' });
+    const user = anAction('s1', {
+      id: 'garde',
+      name: 'Le garde',
+      elements: [{ id: 'e', type: 'show-action', actionId: 'fuite' }],
+    });
+    const { dialog } = open(target, {
+      soundNames: {},
+      battlemaps: [],
+      sceneNodes: [],
+      actions: [target, user],
+    });
+    button(dialog, 'Supprimer l’action').click();
+    await vi.waitFor(() => {
+      TestBed.tick();
+      expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
+        'Elle est affichée par 1 autre action, qui la signalera comme introuvable.',
+      );
+    });
+  });
+
   describe('éléments (8.2)', () => {
     const text = (id: string, value: string) => ({ id, type: 'add-text' as const, text: value });
     const titles = (dialog: HTMLElement) =>
@@ -123,14 +182,14 @@ describe('ActionEditor', () => {
         `${c.querySelector('.card__type')?.textContent?.trim()} ${c.querySelector('.card__detail')?.textContent?.trim()}`.trim(),
       );
 
-    it('ajoute un élément par le menu des 8 types, à la fin et déplié (8.2.3)', async () => {
+    it('ajoute un élément par le menu des 9 types, à la fin et déplié (8.2.3)', async () => {
       const { dialog, result } = open(
         anAction('s1', { name: 'Bagarre', elements: [text('a', 'Un')] }),
       );
       button(dialog, 'Ajouter un élément').click();
       await vi.waitFor(() => {
         TestBed.tick();
-        expect(document.querySelectorAll('.types-menu .app-menu-item')).toHaveLength(8);
+        expect(document.querySelectorAll('.types-menu .app-menu-item')).toHaveLength(9);
       });
       const items = [...document.querySelectorAll<HTMLButtonElement>('.types-menu .app-menu-item')];
       expect(items.map((i) => i.textContent?.trim())).toEqual([
@@ -140,10 +199,11 @@ describe('ActionEditor', () => {
         'Arrêter tous les sons',
         'Afficher un texte',
         'Changer de scène',
+        'Afficher l’action',
         'Attendre',
         'Clic de l’utilisateur',
       ]);
-      items[6].click();
+      items[7].click();
       TestBed.tick();
       expect(titles(dialog)).toEqual(['Afficher un texte Un', 'Attendre 1 s']);
       expect(dialog.querySelectorAll('app-element-card')[1].classList).toContain('expanded');
@@ -227,6 +287,7 @@ describe('ActionEditor', () => {
       draft: {
         name: 'Bagarre',
         trigger: 'manual',
+        hidden: false,
         elements: [
           { id: 'e1', type: 'add-text', text: 'Bonjour' },
           { id: 'e2', type: 'user-click', text: 'Il approche.' },

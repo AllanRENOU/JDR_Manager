@@ -15,6 +15,7 @@ import { FormField, disabled, form, maxLength, validate } from '@angular/forms/s
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { LucideDynamicIcon, LucidePlus, LucideTrash2 } from '@lucide/angular';
 
+import { pluralKey } from '../../../core/i18n/plural';
 import { Action, ActionElement, ActionElementType, Id, Trigger } from '../../../core/models';
 import { Button } from '../../../shared/ui/button/button';
 import { Field } from '../../../shared/ui/field/field';
@@ -36,6 +37,8 @@ import { ELEMENT_TYPE_INFOS, newElement } from '../element-types';
 export interface ActionDraft {
   name: string;
   trigger: Trigger;
+  /** Masquée au départ en Présentation (ACT-12) ; ignoré si le déclencheur n'est pas manuel. */
+  hidden: boolean;
   elements: ActionElement[];
 }
 
@@ -103,6 +106,7 @@ export class ActionEditor {
   protected readonly draft = signal<ActionDraft>({
     name: this.data.action?.name ?? this.data.defaultName ?? '',
     trigger: this.data.action?.trigger ?? 'manual',
+    hidden: this.data.action?.hidden ?? false,
     elements: structuredClone(this.data.action?.elements ?? []),
   });
 
@@ -206,7 +210,15 @@ export class ActionEditor {
     }
     // Copie propre : Signal Forms marque les objets des listes d'une clé Symbol.
     const draft = structuredClone(this.draft());
-    this.ref.close({ kind: 'save', draft: { ...draft, name: draft.name.trim() } });
+    this.ref.close({
+      kind: 'save',
+      draft: {
+        ...draft,
+        name: draft.name.trim(),
+        // Seule une action « au clic du MJ » peut être masquée au départ.
+        hidden: draft.trigger === 'manual' && draft.hidden,
+      },
+    });
   }
 
   private focusFirstProblem(): void {
@@ -225,9 +237,19 @@ export class ActionEditor {
   /** Supprime l'action après confirmation (NF-31) ; impossible pour « Texte de scène ». */
   protected async remove(): Promise<void> {
     const name = this.data.action?.name ?? '';
+    // Actions qui la font apparaître : elles la signaleront comme introuvable (PRS-07).
+    const id = this.data.action?.id;
+    const users = (this.data.context.actions ?? []).filter(
+      (a) => a.id !== id && a.elements.some((e) => e.type === 'show-action' && e.actionId === id),
+    ).length;
     const confirmed = await this.modals.confirm({
       title: this.transloco.translate('action.editor.deleteTitle', { name }),
-      message: this.transloco.translate('action.editor.deleteMessage'),
+      message: this.transloco.translate(
+        users > 0
+          ? pluralKey('action.editor.deleteShownMessage', users)
+          : 'action.editor.deleteMessage',
+        { count: users },
+      ),
       confirmLabel: this.transloco.translate('common.actions.delete'),
       destructive: true,
     });

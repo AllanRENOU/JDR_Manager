@@ -125,8 +125,32 @@ export class ElementForm {
   /** Scène de l'action : non sélectionnable comme cible de « Changer de scène ». */
   readonly sceneId = input.required<Id>();
   readonly projectId = input.required<Id>();
+  /** Action modifiée (`null` : nouvelle) : non sélectionnable comme cible d'« Afficher l'action ». */
+  readonly actionId = input<Id | null>(null);
 
   readonly elementChange = output<ActionElement>();
+
+  /** Cibles possibles d'« Afficher l'action » : actions « au clic du MJ » de la scène (ACT-12). */
+  protected readonly actionChoices = computed(() =>
+    (this.context().actions ?? []).filter(
+      (a) => a.trigger === 'manual' && a.id !== this.actionId(),
+    ),
+  );
+  /** L'action visée existe encore dans la scène (sinon elle est signalée, PRS-07). */
+  protected readonly actionTargetExists = computed(() => {
+    const element = this.element();
+    return (
+      element.type === 'show-action' &&
+      (this.context().actions ?? []).some((a) => a.id === element.actionId)
+    );
+  });
+
+  protected chooseAction(actionId: Id): void {
+    const element = this.element();
+    if (element.type === 'show-action') {
+      this.elementChange.emit({ ...element, actionId });
+    }
+  }
 
   protected readonly fields = linkedSignal(() => toFields(this.element()));
   protected readonly form = form(this.fields, (path) => {

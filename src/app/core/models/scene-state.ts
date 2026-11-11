@@ -15,6 +15,11 @@ export interface PlayingSound {
 export interface SceneState {
   visited: boolean;
   doneActionIds: Id[];
+  /**
+   * Actions masquées au départ (`Action.hidden`) rendues visibles par « Afficher l'action »
+   * (ACT-12). Absent dans les parties enregistrées avant cette propriété.
+   */
+  shownActionIds?: Id[];
   currentBattlemapId: Id | null;
   playingSounds: PlayingSound[];
   feed: FeedItem[];

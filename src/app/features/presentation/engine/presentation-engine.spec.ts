@@ -431,6 +431,68 @@ describe('PresentationEngine', () => {
       expect(saved?.scenes['A'].feed).toHaveLength(1);
       expect(saved?.scenes['A'].doneActionIds).not.toContain('clic');
     });
+
+    it('masquée au départ : traitée comme une terminée, puis affichée par « Afficher l’action » (ACT-12)', async () => {
+      await seed([
+        anAction('A', {
+          id: 'fuite',
+          name: 'La fuite',
+          order: 3,
+          hidden: true,
+          elements: [text('t-f', 'Ils fuient.')],
+        }),
+        anAction('A', {
+          id: 'garde',
+          name: 'Le garde',
+          order: 4,
+          elements: [{ id: 'sa', type: 'show-action', actionId: 'fuite' }],
+        }),
+      ]);
+      await startAt('A');
+      const state = () =>
+        engine.manualActions().map((m) => [m.action.id, m.done, m.hidden] as const);
+      expect(state()).toEqual([
+        ['fuite', false, true],
+        ['garde', false, false],
+      ]);
+
+      await engine.runAction('garde');
+      expect(state()).toEqual([
+        ['fuite', false, false],
+        ['garde', true, true],
+      ]);
+      expect((await savedSession())?.scenes['A'].shownActionIds).toEqual(['fuite']);
+
+      // Terminée, elle est de nouveau masquée ; « Afficher l'action » la fait réapparaître.
+      await engine.runAction('fuite');
+      expect(state()[0]).toEqual(['fuite', true, true]);
+      await engine.runAction('garde');
+      expect(state()).toEqual([
+        ['fuite', false, false],
+        ['garde', true, true],
+      ]);
+      const done = (await savedSession())?.scenes['A'].doneActionIds;
+      expect(done).toContain('garde');
+      expect(done).not.toContain('fuite');
+    });
+
+    it('« Afficher l’action » vers une action supprimée : signalé, la partie continue', async () => {
+      await seed([
+        anAction('A', {
+          id: 'garde',
+          name: 'Le garde',
+          order: 3,
+          elements: [
+            { id: 'sa', type: 'show-action', actionId: 'disparue' },
+            text('t-g', 'Halte !'),
+          ],
+        }),
+      ]);
+      await startAt('A');
+      await engine.runAction('garde');
+      expect(errors()).toContain('L’action à afficher a été supprimée : rien ne change.');
+      expect(feedTexts()).toContain('Halte !');
+    });
   });
 
   describe('Attendre : ligne du fil avec le temps restant', () => {

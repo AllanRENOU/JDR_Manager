@@ -50,7 +50,7 @@
   color: color(accent-text);
 }
 
-@each $tone in battlemap, sound, stop-all, text, wait, click, scene {
+@each $tone in battlemap, sound, stop-all, text, wait, click, scene, action {
   :host(.tone-#{$tone}) {
     background: color(el-#{$tone}-bg);
     color: color(el-#{$tone}-fg);

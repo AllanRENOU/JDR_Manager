@@ -125,7 +125,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | ACT-09 | Élément **Changer de scène** (choix de la scène cible dans la fenêtre de sélection, en sélection unique). Un avertissement indique que les éléments suivants de l'action ne seront pas exécutés. | M |
 | ACT-10 | Élément **Attendre** (durée en secondes, texte facultatif). Dans l'éditeur, le texte est affiché sur la ligne de l'attente. En Présentation, pendant l'attente, une ligne en bas du fil affiche le temps restant (compte à rebours) et le texte de l'attente à la place de « Attente en cours » ; elle disparaît à la fin de l'attente et n'est pas enregistrée. | M |
 | ACT-11 | Élément **Clic de l'utilisateur** (texte obligatoire ; met l'action en pause jusqu'au clic du MJ). | M |
-| ACT-12 | Élément **Faire apparaître une action**. | W |
+| ACT-12 | Élément **Afficher l'action** (choix parmi les actions « Clic du MJ » de la même scène) et option **« Masquer l'action au départ »** d'une action « Clic du MJ ». En Présentation, une action masquée au départ est traitée comme une action effectuée (masquée, visible avec « Voir toutes les actions », lançable) ; « Afficher l'action » la rend de nouveau disponible, qu'elle soit masquée au départ ou effectuée. Une action visée supprimée est signalée (PRS-07). | M |
 
 ### 5.6 Présentation — lancement et persistance
 
@@ -168,7 +168,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 
 | ID | Exigence | Priorité |
 |---|---|---|
-| CTL-01 | La liste des actions manuelles de la scène est accessible ; une action effectuée est masquée. | M |
+| CTL-01 | La liste des actions manuelles de la scène est accessible ; une action effectuée ou masquée au départ (ACT-12) est masquée. | M |
 | CTL-02 | Un bouton « Voir toutes les actions » affiche aussi les actions effectuées et masquées. | M |
 | CTL-03 | Une action effectuée peut être relancée ; un texte déjà présent dans le fil n'est pas dupliqué, le fil défile jusqu'à lui. | M |
 | CTL-04 | Un bouton **« Scène suivante »** flotte en bas à droite de la zone du fil d'actualité (pas de pied de page). Une seule scène suivante : le bouton l'ouvre directement. Plusieurs : un clic ouvre une liste, comme un menu déroulant, pour choisir la scène. | M |
@@ -262,7 +262,6 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 - Export `.zip` autonome hors ligne (PRJ-04)
 - Sauvegarde / restauration de projet (PRJ-05)
 - Plusieurs parties sauvegardées par projet (PRS-08)
-- Élément d'action « Faire apparaître une action » (ACT-12)
 - Battlemaps enrichies (BTM-03)
 - Stockage en ligne / multi-appareils (NF-15)
 - Safari, tablettes, tactile (NF-04)

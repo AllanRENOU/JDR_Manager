@@ -155,6 +155,8 @@
     "locked": "Action liée au texte de scène : elle ne peut pas être supprimée",
     "missingTarget": "Un élément vise un objet supprimé",
     "noAction": "Aucune action pour cette scène.",
+    "hidden": "Masquée au départ en Présentation",
+    "hiddenShort": "masquée au départ",
     "summary": {
       "text": "texte",
       "play": "lancer « {{ name }} »",
@@ -167,7 +169,9 @@
       "scene": "aller à « {{ name }} »",
       "sceneMissing": "scène supprimée",
       "wait": "attente {{ seconds }} s",
-      "click": "clic"
+      "click": "clic",
+      "showAction": "afficher « {{ name }} »",
+      "showActionMissing": "afficher une action supprimée"
     },
     "types": {
       "show-battlemap": "Afficher une battlemap",
@@ -177,7 +181,8 @@
       "add-text": "Afficher un texte",
       "change-scene": "Changer de scène",
       "wait": "Attendre",
-      "user-click": "Clic de l’utilisateur"
+      "user-click": "Clic de l’utilisateur",
+      "show-action": "Afficher l’action"
     },
     "detail": {
       "noText": "Texte à saisir",
@@ -193,6 +198,8 @@
       "nameRequired": "Donnez un nom à l’action.",
       "trigger": "Déclencheur",
       "sceneTextTrigger": "L’action « Texte de scène » se lance toujours à l’ouverture de la scène.",
+      "hidden": "Masquer l’action au départ",
+      "hiddenHelp": "En Présentation, l’action est masquée comme une action terminée, jusqu’à ce qu’un élément « Afficher l’action » la fasse apparaître.",
       "elements": "Éléments, exécutés dans l’ordre",
       "dragHint": "Glisser pour réordonner",
       "noElement": "Aucun élément pour l’instant.",
@@ -201,6 +208,10 @@
       "delete": "Supprimer l’action",
       "deleteTitle": "Supprimer « {{ name }} » ?",
       "deleteMessage": "L’action et ses éléments seront supprimés. Cette action est irréversible.",
+      "deleteShownMessage": {
+        "one": "L’action et ses éléments seront supprimés. Elle est affichée par {{ count }} autre action, qui la signalera comme introuvable. Cette action est irréversible.",
+        "other": "L’action et ses éléments seront supprimés. Elle est affichée par {{ count }} autres actions, qui la signaleront comme introuvable. Cette action est irréversible."
+      },
       "saved": "Action « {{ name }} » enregistrée.",
       "deleted": "Action « {{ name }} » supprimée.",
       "removeElement": "Supprimer l’élément {{ index }} « {{ type }} »",
@@ -248,7 +259,12 @@
       "clickHelp": "L’action s’arrête ici jusqu’à ce que le MJ clique sur « Continuer » dans le fil d’actualité.",
       "battlemapRequired": "Choisissez une battlemap.",
       "soundRequired": "Choisissez un son.",
-      "sceneRequired": "Choisissez la scène cible."
+      "sceneRequired": "Choisissez la scène cible.",
+      "targetAction": "Action à afficher",
+      "showActionHelp": "Fait apparaître l’action dans la liste de la Présentation, qu’elle soit masquée au départ ou terminée.",
+      "actionMissing": "Action supprimée",
+      "noManualAction": "Aucune autre action « Clic du MJ » dans cette scène.",
+      "actionRequired": "Choisissez l’action à afficher."
     }
   },
   "presentation": {
@@ -270,7 +286,8 @@
     "noScene": "Ce projet n’a pas encore de scène à présenter.",
     "errors": {
       "missingSound": "Un son a été supprimé du projet : il n’est pas lancé.",
-      "missingScene": "La scène cible de « Changer de scène » a été supprimée : la scène ne change pas."
+      "missingScene": "La scène cible de « Changer de scène » a été supprimée : la scène ne change pas.",
+      "missingAction": "L’action à afficher a été supprimée : rien ne change."
     },
     "launch": {
       "savedTitle": "Une partie est en cours",
@@ -317,11 +334,11 @@
       "running": "En cours",
       "relaunch": "Relancer",
       "showAll": {
-        "one": "Voir toutes les actions ({{ count }} effectuée)",
-        "other": "Voir toutes les actions ({{ count }} effectuées)"
+        "one": "Voir toutes les actions ({{ count }} masquée)",
+        "other": "Voir toutes les actions ({{ count }} masquées)"
       },
-      "hideDone": "Masquer les actions effectuées",
-      "allDone": "Toutes les actions ont été effectuées.",
+      "hideDone": "Masquer les actions effectuées ou masquées",
+      "allDone": "Toutes les actions sont effectuées ou masquées.",
       "noAction": "Aucune action manuelle dans cette scène.",
       "sounds": "Sons"
     },

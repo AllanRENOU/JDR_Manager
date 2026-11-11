@@ -89,6 +89,7 @@ Chaque type a une couleur d'icône (`-fg`) et une couleur de fond (`-bg`), utili
 | Attendre | `--el-wait-fg`, `--el-wait-bg` |
 | Clic de l'utilisateur | `--el-click-fg`, `--el-click-bg` |
 | Changer de scène | `--el-scene-fg`, `--el-scene-bg` |
+| Afficher l'action | `--el-action-fg`, `--el-action-bg` |
 
 ### 2.7 Dossiers et visuels de remplacement
 
@@ -458,6 +459,7 @@ C'est le **seul endroit** du document où figurent les valeurs des couleurs. Cha
 | `--el-wait-*` | `#C8C2B5` / `#2C2C33` | `#6B5240` / `#EDE3D6` |
 | `--el-click-*` | `#E8C377` / `#3A3220` | `#8A5A0C` / `#F6E4BE` |
 | `--el-scene-*` | `#E8C377` / `#2E2A1F` | `#A84A14` / `#F6DCC4` |
+| `--el-action-*` | `#C3B1EE` / `#2D2839` | `#6B4AA6` / `#EBE2F6` |
 
 **Dossiers et visuels de remplacement**
 

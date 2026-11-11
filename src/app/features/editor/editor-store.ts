@@ -65,6 +65,8 @@ export interface BattlemapImportResult {
 export interface ActionDraftData {
   name: string;
   trigger: Trigger;
+  /** Masquée au départ en Présentation (ACT-12) ; gardé seulement pour une action manuelle. */
+  hidden?: boolean;
   elements: ActionElement[];
 }
 
@@ -452,6 +454,12 @@ export class EditorStore {
           order: actions.length === 0 ? 0 : Math.max(...actions.map((a) => a.order)) + 1,
           isSceneText: false,
         };
+    // `hidden` n'existe que pour une action « au clic du MJ » masquée au départ (ACT-12).
+    if (action.trigger === 'manual' && action.hidden) {
+      action.hidden = true;
+    } else {
+      delete action.hidden;
+    }
     await this.repository.saveAction(action);
     this.replaceAction(action);
     this.initialSceneText.set(this.sceneText());
@@ -652,7 +660,7 @@ export class EditorStore {
   /**
    * Duplique une scène juste après elle (SCN-12) : copie de son contenu, de ses battlemaps
    * (même image, sans la recopier) et de ses actions, avec de nouveaux identifiants. Les
-   * éléments « Afficher une battlemap » visent les copies ; les scènes suivantes et les cibles
+   * éléments « Afficher une battlemap » et « Afficher l'action » visent les copies ; les scènes suivantes et les cibles
    * de « Changer de scène » restent les mêmes. Ouvre la copie.
    */
   async duplicateScene(id: Id): Promise<SceneNode | null> {
@@ -705,7 +713,7 @@ export class EditorStore {
         ...action,
         id: actionIds.get(action.id)!,
         sceneId: copyId,
-        elements: action.elements.map((e) => copyElement(e, battlemapIds)),
+        elements: action.elements.map((e) => copyElement(e, battlemapIds, actionIds)),
       });
     }
     const byId = new Map(shifted.map((n) => [n.id, n]));
@@ -818,10 +826,16 @@ function emptyScene(node: SceneNode): Scene {
 }
 
 /** Copie d'un élément d'action avec un nouvel id ; une battlemap copiée remplace l'originale. */
-function copyElement(element: ActionElement, battlemapIds: Map<Id, Id>): ActionElement {
+function copyElement(
+  element: ActionElement,
+  battlemapIds: Map<Id, Id>,
+  actionIds: Map<Id, Id>,
+): ActionElement {
   const copy = { ...element, id: newId() };
   if (copy.type === 'show-battlemap') {
     copy.battlemapId = battlemapIds.get(copy.battlemapId) ?? copy.battlemapId;
+  } else if (copy.type === 'show-action') {
+    copy.actionId = actionIds.get(copy.actionId) ?? copy.actionId;
   }
   return copy;
 }

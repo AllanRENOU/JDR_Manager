@@ -7,6 +7,7 @@ import {
   ChangeSceneElement,
   Id,
   PlaySoundElement,
+  ShowActionElement,
   ShowBattlemapElement,
   StopSoundElement,
   UserClickElement,
@@ -50,6 +51,11 @@ export interface ActionContext {
    * (PRS-07).
    */
   canChangeScene(element: ChangeSceneElement): boolean;
+  /**
+   * Rend visible une action de la scène, masquée au départ ou terminée (ACT-12) ; une action
+   * introuvable est signalée.
+   */
+  showAction(element: ShowActionElement): void;
   /** Marque l'action comme effectuée dans la scène (CTL-01). */
   markDone(action: Action): void;
 }
@@ -92,6 +98,9 @@ export class ActionRunner {
           break;
         case 'stop-all-sounds':
           context.stopAllSounds();
+          break;
+        case 'show-action':
+          context.showAction(element);
           break;
         case 'wait':
           await context.wait(element, signal);

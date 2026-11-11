@@ -3,6 +3,7 @@ import { Component, computed, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
+  LucideEyeOff,
   LucideGripVertical,
   LucideHand,
   LucideLock,
@@ -41,6 +42,7 @@ const TRIGGERS: readonly Trigger[] = ['scene-open', 'manual'];
     CdkDrag,
     CdkDragHandle,
     CdkDropList,
+    LucideEyeOff,
     LucideGripVertical,
     CollapsibleSection,
     TranslocoPipe,
@@ -65,6 +67,7 @@ export class ActionsPanel {
     soundNodes: this.store.soundNodes(),
     battlemaps: this.store.battlemaps(),
     sceneNodes: this.store.sceneNodes(),
+    actions: this.store.actions(),
   }));
 
   /** Ouvre l'éditeur d'action (8.1.1) ; `null` crée une nouvelle action. */

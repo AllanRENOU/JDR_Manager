@@ -15,7 +15,8 @@ export type PillTone =
   | 'text'
   | 'wait'
   | 'click'
-  | 'scene';
+  | 'scene'
+  | 'action';
 
 /** Couleur associée à chaque type d'élément d'action (Brief §2.6). */
 export const ELEMENT_TONES: Record<ActionElementType, PillTone> = {
@@ -27,6 +28,7 @@ export const ELEMENT_TONES: Record<ActionElementType, PillTone> = {
   wait: 'wait',
   'user-click': 'click',
   'change-scene': 'scene',
+  'show-action': 'action',
 };
 
 /**

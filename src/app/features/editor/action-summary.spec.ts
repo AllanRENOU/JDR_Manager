@@ -1,5 +1,10 @@
 import { aBattlemap, aSceneNode, anAction } from '../../../testing/data-builders';
-import { SummaryContext, hasMissingTarget, summarizeElement } from './action-summary';
+import {
+  SummaryContext,
+  describeElement,
+  hasMissingTarget,
+  summarizeElement,
+} from './action-summary';
 
 describe('summarizeElement', () => {
   const scene = aSceneNode('p1', { name: 'La lisière' });
@@ -50,5 +55,25 @@ describe('summarizeElement', () => {
     ).toBe(true);
     expect(hasMissingTarget(anAction('s1', { elements: [play('absent')] }), context)).toBe(true);
     expect(hasMissingTarget(anAction('s1'), context)).toBe(false);
+  });
+
+  it('« Afficher l’action » : nom de l’action visée, ou action supprimée (ACT-12, PRS-07)', () => {
+    const withActions: SummaryContext = {
+      ...context,
+      actions: [anAction('s1', { id: 'fuite', name: 'La fuite' })],
+    };
+    expect(
+      summarizeElement({ id: 'e', type: 'show-action', actionId: 'fuite' }, withActions),
+    ).toEqual({ key: 'action.summary.showAction', params: { name: 'La fuite' }, missing: false });
+    expect(
+      summarizeElement({ id: 'e', type: 'show-action', actionId: 'absente' }, withActions),
+    ).toMatchObject({ key: 'action.summary.showActionMissing', missing: true });
+    expect(
+      describeElement({ id: 'e', type: 'show-action', actionId: 'fuite' }, withActions),
+    ).toEqual({ raw: 'La fuite', missing: false });
+    expect(describeElement({ id: 'e', type: 'show-action', actionId: '' }, withActions)).toEqual({
+      key: 'action.detail.notChosen',
+      missing: true,
+    });
   });
 });

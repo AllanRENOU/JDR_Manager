@@ -38,6 +38,11 @@ export type PresentationStatus = 'loading' | 'choose' | 'ready' | 'missing' | 'n
 export interface ManualAction {
   action: Action;
   done: boolean;
+  /**
+   * Masquée dans la liste (CTL-01, ACT-12) : terminée, ou masquée au départ (`Action.hidden`)
+   * sans avoir été affichée par « Afficher l'action ». Les deux cas sont traités de la même façon.
+   */
+  hidden: boolean;
   running: boolean;
 }
 
@@ -145,6 +150,10 @@ export class PresentationEngine {
   readonly doneActionIds = computed<ReadonlySet<Id>>(
     () => new Set(this.sceneState()?.doneActionIds ?? []),
   );
+  /** Actions masquées au départ déjà affichées par « Afficher l'action » (ACT-12). */
+  private readonly shownActionIds = computed<ReadonlySet<Id>>(
+    () => new Set(this.sceneState()?.shownActionIds ?? []),
+  );
   readonly shownBattlemap = computed<ShownBattlemap | null>(() => {
     const id = this.sceneState()?.currentBattlemapId;
     return id ? { id, battlemap: this.battlemaps().find((b) => b.id === id) ?? null } : null;
@@ -154,11 +163,15 @@ export class PresentationEngine {
     [...this.actions().values()]
       .filter((a) => a.trigger === 'manual')
       .sort((a, b) => a.order - b.order)
-      .map((action) => ({
-        action,
-        done: this.doneActionIds().has(action.id),
-        running: this.runningActionIds().has(action.id),
-      })),
+      .map((action) => {
+        const done = this.doneActionIds().has(action.id);
+        return {
+          action,
+          done,
+          hidden: done || (!!action.hidden && !this.shownActionIds().has(action.id)),
+          running: this.runningActionIds().has(action.id),
+        };
+      }),
   );
   /** Scènes suivantes existantes (CTL-04). */
   readonly nextScenes = computed<readonly SceneNode[]>(() => {
@@ -492,6 +505,22 @@ export class PresentationEngine {
         }
         this.notifications.error(this.transloco.translate('presentation.errors.missingScene'));
         return false;
+      },
+      showAction: (element) => {
+        if (!this.actions().has(element.actionId)) {
+          this.notifications.error(this.transloco.translate('presentation.errors.missingAction'));
+          return;
+        }
+        // Même traitement pour une action terminée et une action masquée au départ : elle
+        // redevient disponible dans la liste.
+        this.store.updateScene(sceneId, (state) => ({
+          ...state,
+          doneActionIds: state.doneActionIds.filter((id) => id !== element.actionId),
+          shownActionIds: [
+            ...(state.shownActionIds ?? []).filter((id) => id !== element.actionId),
+            element.actionId,
+          ],
+        }));
       },
       markDone: (action) =>
         this.store.updateScene(sceneId, (state) =>

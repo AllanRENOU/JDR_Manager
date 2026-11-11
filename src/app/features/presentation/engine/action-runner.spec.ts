@@ -21,6 +21,7 @@ describe('ActionRunner', () => {
       playSound: (e) => log.push(`lancer:${e.soundId}`),
       stopSound: (e) => log.push(`arrêter:${e.soundId}`),
       stopAllSounds: () => log.push('arrêter-tout'),
+      showAction: (e) => log.push(`afficher:${e.actionId}`),
       waitForUserClick: (_a, e, signal) =>
         new Promise<void>((resolve, reject) => {
           log.push(`clic:${e.text}`);
@@ -57,6 +58,7 @@ describe('ActionRunner', () => {
         },
         { id: 'd', type: 'stop-sound', soundId: 'pluie' },
         { id: 'e', type: 'stop-all-sounds' },
+        { id: 'g', type: 'show-action', actionId: 'fuite' },
         { id: 'f', type: 'add-text', text: 'Deux' },
       ]),
       context,
@@ -69,6 +71,7 @@ describe('ActionRunner', () => {
       'lancer:combat',
       'arrêter:pluie',
       'arrêter-tout',
+      'afficher:fuite',
       'texte:Deux',
       'effectuée:Bagarre',
     ]);

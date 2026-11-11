@@ -16,6 +16,8 @@ export function elementProblem(element: ActionElement): string | null {
       return element.soundId ? null : 'action.form.soundRequired';
     case 'change-scene':
       return element.sceneId ? null : 'action.form.sceneRequired';
+    case 'show-action':
+      return element.actionId ? null : 'action.form.actionRequired';
     case 'user-click':
       return element.text.trim() ? null : 'action.form.clickTextRequired';
     case 'wait':

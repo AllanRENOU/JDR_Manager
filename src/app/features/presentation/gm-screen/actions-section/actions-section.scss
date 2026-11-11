@@ -106,3 +106,26 @@
   font-weight: font-weight(medium);
   cursor: pointer;
 }
+
+// Action qui arrive dans la liste pendant la scène (« Afficher l'action », ACT-12) : elle glisse
+// depuis le haut en fondu, puis sa teinte d'accent s'efface. Désactivée par « mouvements réduits »
+// (`_base.scss`).
+.action--arrived {
+  animation: action-arrive duration(appear) easing(out);
+}
+
+@keyframes action-arrive {
+  0% {
+    border-color: color(accent);
+    background: color(accent-tint-strong);
+    opacity: 0;
+    transform: translateY(calc(-1 * #{space(8)}));
+  }
+
+  40% {
+    border-color: color(accent);
+    background: color(accent-tint-strong);
+    opacity: 1;
+    transform: none;
+  }
+}

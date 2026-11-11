@@ -200,7 +200,7 @@ export class GmScreenPage {
     } else if (key === '?') {
       run(() => this.showShortcuts());
     } else if (/^[1-9]$/.test(key)) {
-      const available = this.engine.manualActions().filter((a) => !a.done && !a.running);
+      const available = this.engine.manualActions().filter((a) => !a.hidden && !a.running);
       const action = available[Number(key) - 1];
       if (action) {
         run(() => this.engine.runAction(action.action.id));

@@ -7,6 +7,8 @@ export interface SummaryContext {
   soundNodes?: readonly SoundNode[];
   battlemaps: readonly Battlemap[];
   sceneNodes: readonly SceneNode[];
+  /** Actions de la scène : cible de « Afficher l'action » (ACT-12). */
+  actions?: readonly Action[];
 }
 
 /** Partie de résumé d'un élément : clé de traduction et paramètres ; `missing` = cible supprimée (PRS-07). */
@@ -48,6 +50,12 @@ export function summarizeElement(element: ActionElement, context: SummaryContext
       return { key: 'action.summary.wait', params: { seconds: element.seconds }, missing: false };
     case 'user-click':
       return { key: 'action.summary.click', params: {}, missing: false };
+    case 'show-action': {
+      const target = context.actions?.find((a) => a.id === element.actionId);
+      return target
+        ? { key: 'action.summary.showAction', params: { name: target.name }, missing: false }
+        : { key: 'action.summary.showActionMissing', params: {}, missing: true };
+    }
   }
 }
 
@@ -91,6 +99,11 @@ export function describeElement(element: ActionElement, context: SummaryContext)
       );
     case 'wait':
       return { key: 'action.detail.seconds', params: { count: element.seconds }, missing: false };
+    case 'show-action':
+      return target(
+        element.actionId,
+        context.actions?.find((a) => a.id === element.actionId)?.name,
+      );
     case 'stop-all-sounds':
       return { missing: false };
   }

@@ -33,6 +33,21 @@
         @if (isSceneText) {
           <p class="trigger__hint">{{ 'action.editor.sceneTextTrigger' | transloco }}</p>
         }
+        @if (draft().trigger === 'manual') {
+          <!-- Masquée au départ en Présentation, comme une action terminée (ACT-12). Explication
+               en infobulle, et lue par les lecteurs d'écran via aria-describedby. -->
+          <label class="app-check" [title]="'action.editor.hiddenHelp' | transloco">
+            <input
+              type="checkbox"
+              aria-describedby="action-hidden-help"
+              [formField]="form.hidden"
+            />
+            {{ 'action.editor.hidden' | transloco }}
+          </label>
+          <span id="action-hidden-help" class="visually-hidden">{{
+            'action.editor.hiddenHelp' | transloco
+          }}</span>
+        }
       </div>
     </div>
 
@@ -71,6 +86,7 @@
                   [context]="data.context"
                   [sceneId]="data.sceneId"
                   [projectId]="data.projectId"
+                  [actionId]="data.action?.id ?? null"
                   (elementChange)="updateElement($event)"
                 />
               </app-element-card>

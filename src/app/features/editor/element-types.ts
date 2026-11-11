@@ -1,6 +1,7 @@
 import {
   LucideAudioLines,
   LucideClapperboard,
+  LucideEye,
   LucideHourglass,
   LucideIcon,
   LucideMap,
@@ -31,6 +32,7 @@ const ICONS: Record<ActionElementType, LucideIcon> = {
   'change-scene': LucideClapperboard,
   wait: LucideHourglass,
   'user-click': LucideMousePointerClick,
+  'show-action': LucideEye,
 };
 
 /** Ordre du menu « Ajouter un élément » (spécifications §4.3). */
@@ -41,6 +43,7 @@ const MENU_ORDER: readonly ActionElementType[] = [
   'stop-all-sounds',
   'add-text',
   'change-scene',
+  'show-action',
   'wait',
   'user-click',
 ];
@@ -80,5 +83,7 @@ export function newElement(type: ActionElementType): ActionElement {
       return { id, type, seconds: 1 };
     case 'user-click':
       return { id, type, text: '' };
+    case 'show-action':
+      return { id, type, actionId: '' };
   }
 }

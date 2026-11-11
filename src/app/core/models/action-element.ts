@@ -57,6 +57,16 @@ export interface WaitElement extends BaseElement {
   text?: string;
 }
 
+/**
+ * Rend visible, dans la liste des actions de la Présentation, une action « au clic du MJ » de la
+ * même scène : masquée par sa propriété `hidden` ou parce qu'elle est terminée (ACT-12).
+ */
+export interface ShowActionElement extends BaseElement {
+  type: 'show-action';
+  /** Id d'une action de la même scène. */
+  actionId: Id;
+}
+
 /** Affiche un texte et attend le clic « Cliquer pour continuer ». */
 export interface UserClickElement extends BaseElement {
   type: 'user-click';
@@ -72,7 +82,8 @@ export type ActionElement =
   | AddTextElement
   | ChangeSceneElement
   | WaitElement
-  | UserClickElement;
+  | UserClickElement
+  | ShowActionElement;
 
 /** Type d'élément d'action. */
 export type ActionElementType = ActionElement['type'];
@@ -87,4 +98,5 @@ export const ACTION_ELEMENT_TYPES: readonly ActionElementType[] = [
   'wait',
   'user-click',
   'change-scene',
+  'show-action',
 ];

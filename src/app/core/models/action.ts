@@ -14,5 +14,10 @@ export interface Action {
   order: number;
   /** `true` = action « Texte de scène » (non supprimable). */
   isSceneText: boolean;
+  /**
+   * Action « au clic du MJ » masquée au départ dans la Présentation, comme une action terminée,
+   * jusqu'à un élément « Afficher l'action » (ACT-12). Ignoré pour les autres déclencheurs.
+   */
+  hidden?: boolean;
   elements: ActionElement[];
 }
