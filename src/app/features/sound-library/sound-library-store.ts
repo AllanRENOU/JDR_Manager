@@ -52,7 +52,9 @@ export interface ImportResult {
  * et le dossier ouvert. Fourni par `SoundLibraryPage` (une instance par écran) ; toutes les
  * écritures passent par le dépôt (SON-01, SON-04).
  *
- * Les arborescences n'affichent que les dossiers ; les sons du dossier ouvert sont dans le tableau.
+ * Les arborescences montrent les dossiers et les sons ; le tableau détaille les sons du dossier
+ * ouvert. Choisir un son dans l'arborescence ouvre son dossier et le met en évidence
+ * (`selectedSoundId`).
  */
 @Injectable()
 export class SoundLibraryStore {
@@ -66,12 +68,15 @@ export class SoundLibraryStore {
   );
   readonly opened = signal<OpenedFolder>({ libraryId: GLOBAL_SOUND_LIBRARY, folderId: null });
 
-  /** Arborescences du volet gauche : une par bibliothèque, dossiers seuls. */
+  /** Son choisi dans l'arborescence, mis en évidence dans le tableau ; `null` si aucun. */
+  readonly selectedSoundId = signal<Id | null>(null);
+
+  /** Arborescences du volet gauche : une par bibliothèque, dossiers et sons. */
   readonly trees = computed(() =>
     this.libraries().map((libraryId) => ({
       libraryId,
       isGlobal: libraryId === GLOBAL_SOUND_LIBRARY,
-      folders: this.foldersOf(libraryId),
+      nodes: this.nodesOf(libraryId),
     })),
   );
 
@@ -149,11 +154,6 @@ export class SoundLibraryStore {
     return this.nodesByLibrary()[libraryId] ?? [];
   }
 
-  /** Dossiers d'une bibliothèque (contenu de son arborescence). */
-  foldersOf(libraryId: SoundLibraryId): SoundNode[] {
-    return this.nodesOf(libraryId).filter((n) => n.kind === 'folder');
-  }
-
   /**
    * Sons contenus dans un dossier (sous-dossiers compris) et ceux qui sont utilisés par des
    * actions : avertissement avant de supprimer le dossier.
@@ -166,10 +166,36 @@ export class SoundLibraryStore {
     return { sounds: sounds.length, used: sounds.filter((n) => (usages[n.id] ?? 0) > 0).length };
   }
 
+  /** Nombre d'actions qui utilisent un son. */
+  soundUsages(id: Id): number {
+    return this.usages()[id] ?? 0;
+  }
+
   /** Ouvre un dossier (et quitte la recherche). */
   open(libraryId: SoundLibraryId, folderId: Id | null): void {
     this.opened.set({ libraryId, folderId });
+    this.selectedSoundId.set(null);
     this.query.set('');
+  }
+
+  /**
+   * Choix d'un nœud dans l'arborescence : un dossier s'ouvre ; un son ouvre son dossier et est
+   * mis en évidence dans le tableau.
+   */
+  select(libraryId: SoundLibraryId, id: Id | null): void {
+    const node = id ? this.nodesOf(libraryId).find((n) => n.id === id) : undefined;
+    if (node?.kind !== 'item') {
+      this.open(libraryId, node?.id ?? null);
+      return;
+    }
+    this.open(libraryId, node.parentId);
+    this.selectedSoundId.set(node.id);
+  }
+
+  /** Nœud sélectionné dans l'arborescence d'une bibliothèque : le son choisi, sinon le dossier ouvert. */
+  selectedIn(libraryId: SoundLibraryId): Id | null {
+    const opened = this.opened();
+    return opened.libraryId === libraryId ? (this.selectedSoundId() ?? opened.folderId) : null;
   }
 
   isOpened(libraryId: SoundLibraryId, folderId: Id | null): boolean {
@@ -183,7 +209,7 @@ export class SoundLibraryStore {
     parentId: Id | null,
     name: string,
   ): Promise<SoundNode> {
-    const siblings = this.foldersOf(libraryId).filter((n) => n.parentId === parentId);
+    const siblings = this.nodesOf(libraryId).filter((n) => n.parentId === parentId);
     const folder: SoundNode = {
       id: newId(),
       libraryId,
@@ -216,9 +242,7 @@ export class SoundLibraryStore {
         // Durée lue avant l'enregistrement (6.7) ; inconnue, le tableau affiche « — ».
         const durationMs = (await this.durations.read(file)) ?? undefined;
         const mediaId = await this.repository.uploadMedia(file, { durationMs });
-        const siblings = this.nodesOf(libraryId).filter(
-          (n) => n.kind === 'item' && n.parentId === folderId,
-        );
+        const siblings = this.nodesOf(libraryId).filter((n) => n.parentId === folderId);
         const node: SoundNode = {
           id: newId(),
           libraryId,
@@ -256,8 +280,11 @@ export class SoundLibraryStore {
     );
   }
 
-  /** Supprime un nœud et son contenu ; si le dossier ouvert disparaît, ouvre la racine. */
-  async remove(libraryId: SoundLibraryId, id: Id): Promise<void> {
+  /**
+   * Supprime un nœud et son contenu ; si le dossier ouvert disparaît, ouvre la racine. Renvoie les
+   * identifiants supprimés (ex. pour arrêter la pré-écoute d'un son supprimé).
+   */
+  async remove(libraryId: SoundLibraryId, id: Id): Promise<ReadonlySet<Id>> {
     const nodes = this.nodesOf(libraryId);
     const removed = descendantIds(nodes, id).add(id);
     await this.repository.deleteSoundNode(id);
@@ -269,14 +296,19 @@ export class SoundLibraryStore {
     if (opened.libraryId === libraryId && opened.folderId && removed.has(opened.folderId)) {
       this.open(libraryId, null);
     }
+    const selected = this.selectedSoundId();
+    if (selected && removed.has(selected)) {
+      this.selectedSoundId.set(null);
+    }
+    return removed;
   }
 
   /**
-   * Déplace un dossier. Le rang (`move.order`) est calculé par l'arborescence parmi les dossiers
-   * seuls : seuls les dossiers sont renumérotés, les sons gardent leur ordre.
+   * Déplace un dossier ou un son (glisser-déposer dans l'arborescence). Le rang (`move.order`)
+   * est calculé parmi tous les nœuds du dossier cible, dossiers et sons.
    */
   async move(libraryId: SoundLibraryId, move: TreeMoveEvent): Promise<void> {
-    const changed = applyMove(this.foldersOf(libraryId), move);
+    const changed = applyMove(this.nodesOf(libraryId), move);
     if (changed.length === 0) {
       return;
     }

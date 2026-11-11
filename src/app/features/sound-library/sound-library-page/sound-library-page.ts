@@ -15,6 +15,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   LucideArrowLeft,
   LucideFolderPlus,
+  LucideMusic,
   LucidePencil,
   LucidePencilRuler,
   LucidePlay,
@@ -49,9 +50,10 @@ import { ListenButton } from '../listen-button/listen-button';
 import { SoundLibraryStore, SoundRow } from '../sound-library-store';
 import { SoundPreview } from '../sound-preview';
 
-/** Libellés des arborescences de sons (TEC-61) : seuls les dossiers y figurent. */
+/** Libellés des arborescences de sons (TEC-61) : dossiers et sons. */
 const SOUND_TREE_LABELS: Partial<TreeLabels> = {
   deleteFolderMessage: 'sound.deleteFolderMessage',
+  deleteItemMessage: 'sound.deleteMessage',
 };
 import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
 
@@ -78,6 +80,7 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
     TranslocoPipe,
     LucideArrowLeft,
     LucideFolderPlus,
+    LucideMusic,
     LucidePencil,
     LucidePencilRuler,
     LucidePlay,
@@ -95,6 +98,7 @@ export class SoundLibraryPage {
   private readonly notifications = inject(Notifications);
   private readonly transloco = inject(TranslocoService);
   private readonly modals = inject(Modals);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   protected readonly store = inject(SoundLibraryStore);
   protected readonly preview = inject(SoundPreview);
   protected readonly progressPercent = computed(() => Math.round(this.preview.progress() * 100));
@@ -146,6 +150,15 @@ export class SoundLibraryPage {
         input.select();
       }
     });
+    // Son choisi dans l'arborescence : sa ligne du tableau est amenée à l'écran.
+    afterRenderEffect(() => {
+      const id = this.store.selectedSoundId();
+      if (id) {
+        this.host.nativeElement
+          .querySelector(`[data-sound-id="${CSS.escape(id)}"]`)
+          ?.scrollIntoView?.({ block: 'nearest' });
+      }
+    });
     effect(() => {
       this.store.load(this.projectId()).catch((error) => this.notifications.fromError(error));
     });
@@ -194,20 +207,26 @@ export class SoundLibraryPage {
     }
   }
 
-  /** Messages de suppression des dossiers, par bibliothèque (fonctions stables pour `app-tree`). */
-  private readonly folderDeleteMessages = new Map<
+  /** Messages de suppression de l'arborescence, par bibliothèque (fonctions stables pour `app-tree`). */
+  private readonly treeDeleteMessages = new Map<
     SoundLibraryId,
     (node: SoundNode) => string | null
   >();
 
   /**
-   * Avertissement à la suppression d'un dossier qui contient des sons utilisés par des actions
-   * (NF-31, décision d'Allan) ; sinon, message générique de l'arborescence.
+   * Avertissement à la suppression d'un son utilisé par des actions, ou d'un dossier qui en
+   * contient (NF-31, décision d'Allan) ; sinon, message générique de l'arborescence.
    */
-  protected folderDeleteMessage(libraryId: SoundLibraryId): (node: SoundNode) => string | null {
-    let message = this.folderDeleteMessages.get(libraryId);
+  protected treeDeleteMessage(libraryId: SoundLibraryId): (node: SoundNode) => string | null {
+    let message = this.treeDeleteMessages.get(libraryId);
     if (!message) {
       message = (node) => {
+        if (node.kind === 'item') {
+          const count = this.store.soundUsages(node.id);
+          return count === 0
+            ? null
+            : this.transloco.translate(pluralKey('sound.deleteUsedMessage', count), { count });
+        }
         const { sounds, used } = this.store.folderUsage(libraryId, node.id);
         return used === 0
           ? null
@@ -216,7 +235,7 @@ export class SoundLibraryPage {
               sounds,
             });
       };
-      this.folderDeleteMessages.set(libraryId, message);
+      this.treeDeleteMessages.set(libraryId, message);
     }
     return message;
   }
@@ -321,8 +340,21 @@ export class SoundLibraryPage {
       .catch((error) => this.notifications.fromError(error));
   }
 
-  protected remove(libraryId: SoundLibraryId, id: Id): void {
-    this.store.remove(libraryId, id).catch((error) => this.notifications.fromError(error));
+  /** Suppression confirmée dans l'arborescence (dossier ou son) ; arrête la pré-écoute d'un son supprimé. */
+  protected async remove(libraryId: SoundLibraryId, id: Id): Promise<void> {
+    const node = this.store.nodesOf(libraryId).find((n) => n.id === id);
+    try {
+      const removed = await this.store.remove(libraryId, id);
+      const playing = this.preview.playingId();
+      if (playing && removed.has(playing)) {
+        this.preview.stop();
+      }
+      if (node?.kind === 'item') {
+        this.notifications.info(this.transloco.translate('sound.deleted', { name: node.name }));
+      }
+    } catch (error) {
+      this.notifications.fromError(error);
+    }
   }
 
   protected move(libraryId: SoundLibraryId, move: TreeMoveEvent): void {

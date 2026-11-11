@@ -232,7 +232,7 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 ## Bibliothèques de sons (lot 6)
 
 - Écran `SoundLibraryPage` sur `/projects/:projectId/sounds` (projet + globale) et `/sounds` (globale seule). Navigation Scènes / Sons : `app-project-nav` (`shared/project-nav`) dans l'en-tête.
-- État : `SoundLibraryStore` (`features/sound-library`), même modèle que `EditorStore`. Les arborescences ne montrent que les dossiers (`store.trees()`), le dossier ouvert est `store.opened()` (`folderId: null` = racine). `store.rows()` = sons du dossier ouvert, ou résultats de `store.query()`.
+- État : `SoundLibraryStore` (`features/sound-library`), même modèle que `EditorStore`. Les arborescences montrent dossiers et sons (`store.trees()`) ; choisir un son (`store.select()`) ouvre son dossier et le met en évidence (`store.selectedSoundId()`). Le dossier ouvert est `store.opened()` (`folderId: null` = racine). `store.rows()` = sons du dossier ouvert, ou résultats de `store.query()`.
 - Import : `store.importFiles(files)` (bouton et `appFileDrop`) lit la durée avec `AudioDuration` (`core/media`) puis `uploadMedia(file, { durationMs })` ; une erreur de quota est renvoyée dans `failure`, pas levée.
 - Pré-écoute : `SoundPreview` (fourni par l'écran, un seul `<audio>`, URL via `MediaUrls`) et `app-listen-button`. Le lecteur de Présentation (Web Audio) est un autre service, lot 9.
 - Dépôt : `countSoundUsages()` (« Utilisé dans », avertissement à la suppression), `getMediaInfo(ids)` (infos d'un média sans le `Blob`).

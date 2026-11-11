@@ -72,23 +72,28 @@
           </div>
           <app-tree
             #tree
-            [nodes]="lib.folders"
+            [nodes]="lib.nodes"
             [labels]="treeLabels"
             [canCreateItems]="false"
-            [deleteMessage]="folderDeleteMessage(lib.libraryId)"
+            [deleteMessage]="treeDeleteMessage(lib.libraryId)"
             [folderTone]="lib.isGlobal ? 'global' : 'project'"
             [ariaLabel]="(lib.isGlobal ? 'sound.globalTree' : 'sound.projectTree') | transloco"
-            [selectedId]="
-              store.opened().libraryId === lib.libraryId ? store.opened().folderId : null
-            "
-            (selectedIdChange)="store.open(lib.libraryId, $event)"
+            [selectedId]="store.selectedIn(lib.libraryId)"
+            (selectedIdChange)="store.select(lib.libraryId, $event)"
             (create)="createFolder(lib.libraryId, $event, tree)"
             (rename)="rename(lib.libraryId, $event)"
             (remove)="remove(lib.libraryId, $event)"
             (move)="move(lib.libraryId, $event)"
-          />
-          @if (lib.folders.length === 0) {
-            <p class="lib__empty">{{ 'sound.noFolder' | transloco }}</p>
+          >
+            <ng-template #item let-node>
+              <span class="tree-sound">
+                <svg lucideMusic class="tree-sound__icon" aria-hidden="true"></svg>
+                <span class="tree-sound__name">{{ node.name }}</span>
+              </span>
+            </ng-template>
+          </app-tree>
+          @if (lib.nodes.length === 0) {
+            <p class="lib__empty">{{ 'sound.emptyLibrary' | transloco }}</p>
           }
         </section>
       }
@@ -170,7 +175,12 @@
           <tbody>
             @for (row of store.rows(); track row.node.id) {
               @let playing = preview.playingId() === row.node.id;
-              <tr class="sound" [class.sound--playing]="playing">
+              <tr
+                class="sound"
+                [class.sound--playing]="playing"
+                [class.sound--selected]="store.selectedSoundId() === row.node.id"
+                [attr.data-sound-id]="row.node.id"
+              >
                 <td>
                   <app-listen-button
                     class="listen-cell"

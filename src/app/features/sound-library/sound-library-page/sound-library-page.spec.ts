@@ -68,13 +68,14 @@ describe('SoundLibraryPage', () => {
     });
   });
 
-  it('affiche « Ce projet » puis « Bibliothèque globale », chacune avec ses dossiers (6.2)', async () => {
+  it('affiche « Ce projet » puis « Bibliothèque globale », chacune avec ses dossiers et ses sons (6.2)', async () => {
     const project = aProject();
+    const weather = aSoundNode(GLOBAL_SOUND_LIBRARY, { kind: 'folder', name: 'Météo' });
     await TestBed.inject(DATA_REPOSITORY).saveProject(project);
     await TestBed.inject(DATA_REPOSITORY).saveSoundNodes([
       aSoundNode(project.id, { kind: 'folder', name: 'Ambiances' }),
-      aSoundNode(GLOBAL_SOUND_LIBRARY, { kind: 'folder', name: 'Météo' }),
-      aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Pluie' }),
+      weather,
+      aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Pluie', parentId: weather.id }),
     ]);
     const { fixture, el } = await render(project.id);
     await vi.waitFor(async () => {
@@ -84,7 +85,10 @@ describe('SoundLibraryPage', () => {
     const roots = [...el.querySelectorAll('.lib__root')].map((b) => b.textContent?.trim());
     expect(roots).toEqual(['Ce projet', 'Bibliothèque globale']);
     const trees = [...el.querySelectorAll('app-tree')];
-    expect(trees.map((t) => t.textContent?.trim())).toEqual(['Ambiances', 'Météo']);
+    const rowNames = (tree: Element) =>
+      [...tree.querySelectorAll('.tree__label')].map((l) => l.textContent?.trim());
+    expect(trees.map(rowNames)).toEqual([['Ambiances'], ['Météo', 'Pluie']]);
+    expect(trees[1].querySelector('.tree-sound svg')).not.toBeNull();
     expect(trees[1].classList).toContain('tree--global');
     expect(el.querySelector('.lib__root')?.getAttribute('aria-current')).toBe('true');
 
@@ -92,6 +96,13 @@ describe('SoundLibraryPage', () => {
     await fixture.whenStable();
     expect(el.querySelector('.lib__root')?.getAttribute('aria-current')).toBeNull();
     expect(trees[1].querySelector('.tree__row--selected')?.textContent).toContain('Météo');
+
+    // Un son choisi dans l'arborescence : son dossier s'ouvre et sa ligne est mise en évidence.
+    (trees[1].querySelectorAll('.tree__row')[1] as HTMLElement).click();
+    await fixture.whenStable();
+    expect(trees[1].querySelector('.tree__row--selected')?.textContent).toContain('Pluie');
+    expect(el.querySelector('.content__name')?.textContent).toContain('Météo');
+    expect(el.querySelector('.sound--selected .sound__name')?.textContent).toBe('Pluie');
   });
 
   it('crée un dossier à la racine avec le bouton de la bibliothèque, en renommage (6.2)', async () => {

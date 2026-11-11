@@ -317,7 +317,7 @@ Tant qu'aucune image n'est importée, une battlemap ou une vignette de projet es
 | **Accueil** | En-tête + titre « Mes projets » + grille de cartes, carte « Créer un projet » en dernier |
 | **Édition — scène** | Arborescence à gauche ; textes au centre (texte de scène puis textes d'action, chacun sous le nom de l'action en sous-titre) ; volet droit Actions / Battlemaps / Enchaînement |
 | **Édition — action** | Modale 900 px : nom, déclencheur (contrôle segmenté), éléments dépliables réordonnables, « Ajouter un élément » |
-| **Bibliothèque de sons** | Arborescence « Ce projet » + « Bibliothèque globale » à gauche ; tableau des sons avec pré-écoute ; bouton « Importer des sons » ; calque de dépôt au glisser |
+| **Bibliothèque de sons** | Arborescence « Ce projet » + « Bibliothèque globale » à gauche (dossiers et sons ; choisir un son ouvre son dossier et le met en évidence) ; tableau des sons avec pré-écoute ; bouton « Importer des sons » ; calque de dépôt au glisser |
 | **Présentation — lancement** | Modale : dernière scène, choix d'affichage (cartes radio), Recommencer / Continuer |
 | **Présentation — MJ (PC)** | En-tête avec scène et « Aller à une scène » ; fil au centre avec bouton flottant « Scène suivante » ; volet droit Battlemap / Actions / Sons |
 | **Présentation — MJ (tablette)** | Fil à gauche, volet à onglets à droite, « Scène suivante » en bas, cibles ≥ 48 px |

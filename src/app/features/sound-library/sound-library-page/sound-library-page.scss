@@ -86,6 +86,24 @@
   color: color(accent-text);
 }
 
+// Son dans l'arborescence : icône discrète devant le nom (comme les scènes de l'éditeur).
+.tree-sound {
+  display: flex;
+  align-items: center;
+  gap: space(8);
+  min-width: 0;
+}
+
+.tree-sound__icon {
+  flex-shrink: 0;
+  color: color(text-tertiary);
+}
+
+.tree-sound__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .lib__empty {
   padding: 0 space(8);
   color: color(text-tertiary);
@@ -213,6 +231,11 @@
 
 .sound--playing {
   background: color(bg-card);
+}
+
+// Son choisi dans l'arborescence.
+.sound--selected {
+  background: color(accent-tint);
 }
 
 .progress {
