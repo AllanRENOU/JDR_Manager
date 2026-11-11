@@ -15,7 +15,7 @@ import { DATA_REPOSITORY } from '../../../core/data/data-repository';
 import { Action, ActionElement, Id, PlaySession } from '../../../core/models';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { ActionRunner } from './action-runner';
-import { PlaySessionStore } from './play-session-store';
+import { PlaySessionStore, newSceneState } from './play-session-store';
 import { DISPLAY_GAP_MS, PresentationEngine } from './presentation-engine';
 
 describe('PresentationEngine', () => {
@@ -661,6 +661,43 @@ describe('PresentationEngine', () => {
       await engine.load('p1');
       await engine.continueSession();
       await vi.waitFor(() => expect(engine.scene()?.id).toBe('A'));
+    });
+  });
+
+  describe('mode démo', () => {
+    it('commence à la scène demandée, sans lire ni modifier la partie sauvegardée', async () => {
+      await seed();
+      // Partie sauvegardée : scène B déjà visitée, texte déjà affiché.
+      const before: PlaySession = {
+        projectId: 'p1',
+        currentSceneId: 'A',
+        scenes: { B: { ...newSceneState(null), doneActionIds: ['texte-b'] } },
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      };
+      await repository().savePlaySession(before);
+      const save = vi.spyOn(repository(), 'savePlaySession');
+      const remove = vi.spyOn(repository(), 'deletePlaySession');
+
+      await engine.startDemo('p1', 'B');
+      await vi.waitFor(() => expect(engine.scene()?.id).toBe('B'));
+      expect(engine.demo()).toBe(true);
+      expect(engine.savedSession()).toBeNull();
+      // Scène jamais visitée pour la démo : son texte d'ouverture est rejoué.
+      await vi.waitFor(() => expect(engine.feed().map((item) => item.type)).toContain('text'));
+      await engine.openScene('A');
+      await engine.stop();
+      await TestBed.inject(PlaySessionStore).flush();
+
+      expect(save).not.toHaveBeenCalled();
+      expect(remove).not.toHaveBeenCalled();
+      expect(await repository().getPlaySession('p1')).toEqual(before);
+    });
+
+    it('scène inconnue : commence à la première scène', async () => {
+      await seed();
+      await engine.startDemo('p1', 'absente');
+      await vi.waitFor(() => expect(engine.scene()?.id).toBe('A'));
+      await engine.stop();
     });
   });
 

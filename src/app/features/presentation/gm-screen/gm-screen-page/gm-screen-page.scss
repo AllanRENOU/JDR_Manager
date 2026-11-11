@@ -89,3 +89,8 @@
   border-left: 1px solid color(border-subtle);
   background: color(bg-panel);
 }
+
+// Mode démo : rien n'est enregistré.
+.demo-pill {
+  flex-shrink: 0;
+}

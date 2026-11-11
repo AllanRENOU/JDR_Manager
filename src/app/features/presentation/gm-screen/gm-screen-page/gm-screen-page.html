@@ -4,8 +4,9 @@
     headerStart
     appButton="icon"
     size="header"
-    routerLink="/projects"
-    [attr.aria-label]="'project.backToProjects' | transloco"
+    [routerLink]="backLink()"
+    [queryParams]="backQuery()"
+    [attr.aria-label]="(demo() ? 'presentation.demo.back' : 'project.backToProjects') | transloco"
   >
     <svg lucideArrowLeft aria-hidden="true"></svg>
   </a>
@@ -20,6 +21,14 @@
       role="img"
       [attr.aria-label]="'project.presentMode' | transloco"
     ></svg>
+    @if (demo()) {
+      <app-pill
+        class="demo-pill"
+        tone="accent"
+        [attr.title]="'presentation.demo.hint' | transloco"
+        >{{ 'presentation.demo.label' | transloco }}</app-pill
+      >
+    }
     @if (playerWindow.open()) {
       <span class="player-pill">
         <svg lucideMonitor aria-hidden="true"></svg
@@ -27,7 +36,9 @@
       </span>
     }
   }
-  @if (engine.status() === 'ready' && displayMode() === 'dual' && !playerWindow.open()) {
+  @if (
+    engine.status() === 'ready' && (displayMode() === 'dual' || demo()) && !playerWindow.open()
+  ) {
     <button headerEnd appButton="quiet" size="header" type="button" (click)="openPlayerWindow()">
       <svg lucideMonitorUp aria-hidden="true"></svg>{{ 'presentation.player.open' | transloco }}
     </button>

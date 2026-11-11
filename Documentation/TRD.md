@@ -179,7 +179,7 @@ public/i18n/fr.json
 | `/projects/:projectId/sounds` | Mode Édition — sons du projet et bibliothèque globale (onglet « Sons ») |
 | `/settings` | Paramètres (Apparence) |
 | `/projects/:projectId/edit` | Mode Édition |
-| `/projects/:projectId/play` | Mode Présentation — écran du MJ |
+| `/projects/:projectId/play` | Mode Présentation — écran du MJ. `?demo=1&scene=<id>` : mode démo (PRS-09), partie en mémoire seulement, à partir de `scene` (sinon la dernière scène ouverte dans l’éditeur) |
 | `/projects/:projectId/player` | Mode Présentation — fenêtre joueurs |
 
 

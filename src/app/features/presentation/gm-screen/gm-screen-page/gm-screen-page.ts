@@ -1,6 +1,7 @@
 import {
   Component,
   DestroyRef,
+  booleanAttribute,
   computed,
   effect,
   inject,
@@ -22,6 +23,10 @@ import {
 } from '@lucide/angular';
 
 import { Id } from '../../../../core/models';
+import { lastEditedSceneKey } from '../../../../core/preferences/last-edited-scene';
+import { UiPreferences } from '../../../../core/preferences/ui-preferences';
+import { Pill } from '../../../../shared/ui/pill/pill';
+import { AudioPlayer } from '../../audio/audio-player';
 import { Selections } from '../../../../shared/selection-dialog/selections';
 import { pathTo } from '../../../../shared/tree/tree-model';
 import { Alert } from '../../../../shared/ui/alert/alert';
@@ -58,6 +63,7 @@ import { SettingsButton } from '../../../settings/settings-button/settings-butto
     SettingsButton,
     AppHeader,
     Alert,
+    Pill,
     Button,
     RouterLink,
     Feed,
@@ -83,6 +89,8 @@ export class GmScreenPage {
   private readonly notifications = inject(Notifications);
   private readonly modals = inject(Modals);
   private readonly router = inject(Router);
+  private readonly audio = inject(AudioPlayer);
+  private readonly preferences = inject(UiPreferences);
 
   private readonly selections = inject(Selections);
   private readonly nextScene = viewChild(NextSceneButton);
@@ -106,14 +114,35 @@ export class GmScreenPage {
 
   /** Paramètre de route `:projectId`. */
   readonly projectId = input.required<Id>();
+  /**
+   * Paramètre `?demo=1` : démo lancée depuis l'éditeur ou l'écran Sons. Démarrage direct à la
+   * scène `scene`, partie en mémoire seulement (rien n'est lu ni enregistré).
+   */
+  readonly demo = input(false, { transform: booleanAttribute });
+  /** Paramètre `?scene=` (démo) : scène de départ ; absent, la dernière scène ouverte dans l'éditeur. */
+  readonly scene = input<Id>();
+
+  /** Flèche de retour : l'éditeur sur la scène en cours en démo, sinon l'accueil. */
+  protected readonly backLink = computed(() =>
+    this.demo() ? ['/projects', this.projectId(), 'edit'] : ['/projects'],
+  );
+  protected readonly backQuery = computed(() => {
+    const scene = this.engine.scene()?.id;
+    return this.demo() && scene ? { scene } : null;
+  });
 
   constructor() {
     effect(() => {
       const projectId = this.projectId();
-      // Seul le projet relance la Présentation : les signals lus par le moteur ne sont pas suivis.
+      const demo = this.demo();
+      const scene = this.scene();
+      // Seuls les paramètres de route relancent la Présentation : les signals lus par le moteur
+      // ne sont pas suivis.
       untracked(() =>
         // Une erreur n'interrompt jamais la partie (NF-25) : on la signale.
-        this.launch(projectId).catch((error) => this.notifications.fromError(error)),
+        (demo ? this.launchDemo(projectId, scene) : this.launch(projectId)).catch((error) =>
+          this.notifications.fromError(error),
+        ),
       );
     });
     inject(DestroyRef).onDestroy(() => {
@@ -193,6 +222,18 @@ export class GmScreenPage {
     if (chosen?.[0]) {
       await this.engine.openScene(chosen[0]);
     }
+  }
+
+  /**
+   * Démo : pas de fenêtre de lancement, un seul écran (la fenêtre joueurs reste ouvrable depuis
+   * l'en-tête). L'audio a été débloqué par le clic sur « Présenter » ; on le redemande ici, sans
+   * effet si la page n'a encore reçu aucun clic (ex. rechargement).
+   */
+  private async launchDemo(projectId: Id, sceneId: Id | undefined): Promise<void> {
+    void this.audio.unlock();
+    this.playerWindow.connect(projectId);
+    const start = sceneId ?? this.preferences.get<Id | null>(lastEditedSceneKey(projectId), null);
+    await this.engine.startDemo(projectId, start);
   }
 
   /** Charge le projet puis ouvre la fenêtre de lancement (10.1). */

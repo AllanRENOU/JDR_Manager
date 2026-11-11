@@ -3,6 +3,8 @@ import { TestBed } from '@angular/core/testing';
 import { aProject, anAction } from '../../../../../testing/data-builders';
 import { seedPresentation, usePresentation } from '../../../../../testing/presentation-harness';
 import { DATA_REPOSITORY } from '../../../../core/data/data-repository';
+import { lastEditedSceneKey } from '../../../../core/preferences/last-edited-scene';
+import { UiPreferences } from '../../../../core/preferences/ui-preferences';
 import { Notifications } from '../../../../shared/ui/notification-host/notifications';
 import { PresentationEngine } from '../../engine/presentation-engine';
 import { GmScreenPage } from './gm-screen-page';
@@ -89,6 +91,51 @@ describe('GmScreenPage', () => {
     await vi.waitFor(async () => {
       await page.fixture.whenStable();
       expect(page.el.querySelector('h1')?.textContent).toContain('La forêt');
+    });
+  });
+
+  describe('mode démo', () => {
+    async function renderDemo(scene?: string) {
+      const fixture = TestBed.createComponent(GmScreenPage);
+      fixture.componentRef.setInput('projectId', 'p1');
+      fixture.componentRef.setInput('demo', '1');
+      if (scene) {
+        fixture.componentRef.setInput('scene', scene);
+      }
+      const engine = fixture.debugElement.injector.get(PresentationEngine);
+      await vi.waitFor(async () => {
+        await fixture.whenStable();
+        expect(engine.status()).toBe('ready');
+      });
+      await fixture.whenStable();
+      return { el: fixture.nativeElement as HTMLElement, fixture, engine };
+    }
+
+    it('démarre sans fenêtre de lancement à la scène demandée ; pastille et retour à l’éditeur', async () => {
+      await seedPresentation();
+      const { el, engine, fixture } = await renderDemo('B');
+      TestBed.tick();
+      expect(document.querySelector('app-launch-dialog')).toBeNull();
+      expect(engine.scene()?.id).toBe('B');
+      expect(engine.demo()).toBe(true);
+      expect(el.querySelector('.demo-pill')?.textContent).toContain('Démo');
+      expect(button(el, 'Ouvrir la fenêtre joueurs')).toBeDefined();
+
+      await engine.openScene('C');
+      await fixture.whenStable();
+      const back = el.querySelector('app-header a') as HTMLAnchorElement;
+      expect(back.getAttribute('aria-label')).toBe('Retour à l’éditeur');
+      expect(back.getAttribute('href')).toBe('/projects/p1/edit?scene=C');
+      await engine.stop();
+      expect(await TestBed.inject(DATA_REPOSITORY).getPlaySession('p1')).toBeUndefined();
+    });
+
+    it('sans scène demandée : dernière scène ouverte dans l’éditeur', async () => {
+      await seedPresentation();
+      TestBed.inject(UiPreferences).set(lastEditedSceneKey('p1'), 'C');
+      const { engine } = await renderDemo();
+      expect(engine.scene()?.id).toBe('C');
+      await engine.stop();
     });
   });
 

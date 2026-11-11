@@ -46,6 +46,7 @@ import { Input } from '../../../shared/ui/input/input';
 import { Modals } from '../../../shared/ui/modal/modals';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { formatDuration } from '../../../shared/util/duration';
+import { AudioPlayer } from '../../presentation/audio/audio-player';
 import { ListenButton } from '../listen-button/listen-button';
 import { SoundLibraryStore, SoundRow } from '../sound-library-store';
 import { SoundPreview } from '../sound-preview';
@@ -99,6 +100,7 @@ export class SoundLibraryPage {
   private readonly transloco = inject(TranslocoService);
   private readonly modals = inject(Modals);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly audio = inject(AudioPlayer);
   protected readonly store = inject(SoundLibraryStore);
   protected readonly preview = inject(SoundPreview);
   protected readonly progressPercent = computed(() => Math.round(this.preview.progress() * 100));
@@ -162,6 +164,11 @@ export class SoundLibraryPage {
     effect(() => {
       this.store.load(this.projectId()).catch((error) => this.notifications.fromError(error));
     });
+  }
+
+  /** « Présenter » lance une démo sans fenêtre de lancement : l'audio est débloqué dans le clic (TEC-43). */
+  protected unlockAudio(): void {
+    void this.audio.unlock();
   }
 
   /** Fichiers choisis avec « Importer des sons » (SON-02). */

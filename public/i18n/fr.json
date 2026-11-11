@@ -32,6 +32,7 @@
     "new": "Nouveau projet",
     "edit": "Éditer",
     "present": "Présenter",
+    "presentDemoHint": "Démo à partir de la scène ouverte : rien n’est enregistré",
     "import": "Importer un projet",
     "export": "Exporter",
     "empty": "Aucun projet pour l’instant. Créez votre premier scénario.",
@@ -245,6 +246,11 @@
     }
   },
   "presentation": {
+    "demo": {
+      "label": "Démo",
+      "hint": "Mode démo : la partie n’est pas enregistrée et la partie sauvegardée n’est pas modifiée.",
+      "back": "Retour à l’éditeur"
+    },
     "nextScene": "Scène suivante",
     "nextSceneNamed": "Scène suivante : {{name}}",
     "clickToContinue": "Cliquer pour continuer",

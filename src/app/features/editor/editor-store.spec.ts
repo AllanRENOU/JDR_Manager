@@ -5,6 +5,8 @@ import { useNodeBlob } from '../../../testing/node-blob';
 import { useTestRepository } from '../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../testing/transloco-testing';
 import { DATA_REPOSITORY } from '../../core/data/data-repository';
+import { lastEditedSceneKey } from '../../core/preferences/last-edited-scene';
+import { UiPreferences } from '../../core/preferences/ui-preferences';
 import { EditorStore } from './editor-store';
 
 describe('EditorStore', () => {
@@ -40,6 +42,23 @@ describe('EditorStore', () => {
     expect(store.selectedSceneId()).toBe(b.id);
     expect(store.scene()?.id).toBe(b.id);
     expect(store.isFirstScene(b.id)).toBe(true);
+  });
+
+  it('ouvre la scène demandée (retour de la démo) et mémorise la dernière scène ouverte', async () => {
+    const project = aProject();
+    const a = aSceneNode(project.id, { name: 'A', order: 0 });
+    const b = aSceneNode(project.id, { name: 'B', order: 1 });
+    await repository().saveProject({ ...project, firstSceneId: a.id });
+    await repository().saveSceneNodes([a, b]);
+    const preferences = TestBed.inject(UiPreferences);
+
+    await store.load(project.id, b.id);
+    expect(store.selectedSceneId()).toBe(b.id);
+    expect(preferences.get(lastEditedSceneKey(project.id), null)).toBe(b.id);
+
+    await store.load(project.id, 'inconnue');
+    expect(store.selectedSceneId()).toBe(a.id);
+    expect(preferences.get(lastEditedSceneKey(project.id), null)).toBe(a.id);
   });
 
   describe('création de la première scène (4.3)', () => {

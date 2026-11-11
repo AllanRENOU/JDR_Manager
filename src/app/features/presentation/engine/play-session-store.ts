@@ -19,6 +19,9 @@ export function newSceneState(defaultBattlemapId: Id | null): SceneState {
  * Partie en cours (TRD §6.1) : applique chaque événement à la `PlaySession` et l'enregistre
  * aussitôt (TEC-52, NF-24). Les écritures sont enchaînées : la dernière enregistrée est toujours
  * la plus récente. Fourni par l'écran de Présentation.
+ *
+ * Mode démo (`enableDemo()`) : la partie ne vit qu'en mémoire ; la partie sauvegardée n'est ni
+ * lue, ni effacée, ni remplacée.
  */
 @Injectable()
 export class PlaySessionStore {
@@ -27,10 +30,17 @@ export class PlaySessionStore {
   private writes: Promise<void> = Promise.resolve();
 
   readonly session = signal<PlaySession | null>(null);
+  /** Mode démo : rien n'est lu ni enregistré. */
+  readonly demo = signal(false);
+
+  /** Passe en mode démo, avant tout chargement. */
+  enableDemo(): void {
+    this.demo.set(true);
+  }
 
   /** Partie sauvegardée du projet, s'il y en a une (choix Continuer / Recommencer, PRS-02). */
-  findSaved(projectId: Id): Promise<PlaySession | undefined> {
-    return this.repository.getPlaySession(projectId);
+  async findSaved(projectId: Id): Promise<PlaySession | undefined> {
+    return this.demo() ? undefined : this.repository.getPlaySession(projectId);
   }
 
   /** Reprend une partie sauvegardée (PRS-05). */
@@ -38,10 +48,12 @@ export class PlaySessionStore {
     this.session.set(structuredClone(session));
   }
 
-  /** Nouvelle partie : l'ancienne est effacée (PRS-03). */
+  /** Nouvelle partie : l'ancienne est effacée (PRS-03), sauf en démo. */
   async restart(projectId: Id, firstSceneId: Id): Promise<void> {
     await this.writes;
-    await this.repository.deletePlaySession(projectId);
+    if (!this.demo()) {
+      await this.repository.deletePlaySession(projectId);
+    }
     this.session.set({
       projectId,
       currentSceneId: firstSceneId,
@@ -86,7 +98,7 @@ export class PlaySessionStore {
 
   private save(): void {
     const snapshot = structuredClone(this.session());
-    if (!snapshot) {
+    if (!snapshot || this.demo()) {
       return;
     }
     const write = this.writes.then(() => this.repository.savePlaySession(snapshot));

@@ -30,7 +30,7 @@ describe('EditorPage', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('affiche le projet en mode Édition avec un lien vers la Présentation et le retour', async () => {
+  it('affiche le projet en mode Édition avec un lien vers la Présentation (démo) et le retour', async () => {
     const project = aProject({ name: 'La crypte' });
     await TestBed.inject(DATA_REPOSITORY).saveProject(project);
     const el = await render(project.id);
@@ -40,7 +40,7 @@ describe('EditorPage', () => {
       '/projects',
     );
     expect(el.querySelector('.header__end a')?.getAttribute('href')).toBe(
-      `/projects/${project.id}/play`,
+      `/projects/${project.id}/play?demo=1`,
     );
   });
 

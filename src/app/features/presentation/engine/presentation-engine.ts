@@ -221,6 +221,26 @@ export class PresentationEngine {
     }
   }
 
+  /** La partie est une démo : rien n'est lu ni enregistré. */
+  readonly demo = this.store.demo.asReadonly();
+
+  /**
+   * Démo (lancée depuis l'éditeur ou l'écran Sons) : partie neuve en mémoire seulement, qui
+   * commence à `sceneId` (ou à la première scène si elle n'existe plus). La partie sauvegardée
+   * n'est ni lue ni modifiée.
+   */
+  async startDemo(projectId: Id, sceneId: Id | null): Promise<void> {
+    this.store.enableDemo();
+    await this.load(projectId);
+    const project = this.project();
+    const start = sceneId && this.sceneExists(sceneId) ? sceneId : this.firstSceneId();
+    if (this.status() !== 'choose' || !project || !start) {
+      return;
+    }
+    await this.store.restart(project.id, start);
+    await this.openScene(start);
+  }
+
   /** Première scène du projet (fenêtre de lancement, Recommencer). */
   firstScene(): SceneNode | null {
     const id = this.firstSceneId();

@@ -30,7 +30,16 @@
     </span>
   }
   @if (project) {
-    <a headerEnd appButton size="header" [routerLink]="['/projects', project.id, 'play']">
+    <!-- Démo à partir de la scène ouverte : rien n'est lu ni enregistré. -->
+    <a
+      headerEnd
+      appButton
+      size="header"
+      [routerLink]="['/projects', project.id, 'play']"
+      [queryParams]="{ demo: 1, scene: store.scene()?.id }"
+      [attr.title]="'project.presentDemoHint' | transloco"
+      (click)="unlockAudio()"
+    >
       <svg lucidePlay aria-hidden="true"></svg>{{ 'project.present' | transloco }}
     </a>
   }

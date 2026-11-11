@@ -3,6 +3,8 @@ import { TranslocoService } from '@jsverse/transloco';
 
 import { DATA_REPOSITORY, SceneLink } from '../../core/data/data-repository';
 import { resolveMediaType } from '../../core/media/media-types';
+import { lastEditedSceneKey } from '../../core/preferences/last-edited-scene';
+import { UiPreferences } from '../../core/preferences/ui-preferences';
 import {
   Action,
   ActionElement,
@@ -87,6 +89,7 @@ export const AUTO_SAVE_DELAY = 500;
 export class EditorStore {
   private readonly repository = inject(DATA_REPOSITORY);
   private readonly transloco = inject(TranslocoService);
+  private readonly preferences = inject(UiPreferences);
 
   readonly status = signal<EditorStatus>('loading');
   readonly project = signal<Project | null>(null);
@@ -199,8 +202,11 @@ export class EditorStore {
     () => this.sceneNodes().find((n) => n.id === this.selectedSceneId()) ?? null,
   );
 
-  /** Charge le projet et ouvre la première scène (ou la première de l'arborescence). */
-  async load(projectId: Id): Promise<void> {
+  /**
+   * Charge le projet et ouvre `sceneId` (retour de la démo) s'il existe, sinon la première scène
+   * (ou la première de l'arborescence).
+   */
+  async load(projectId: Id, sceneId?: Id): Promise<void> {
     this.status.set('loading');
     const project = await this.repository.getProject(projectId);
     if (!project) {
@@ -218,7 +224,8 @@ export class EditorStore {
     this.soundNodes.set([...projectSounds, ...globalSounds]);
     await this.refreshSceneLinks();
     const firstItem = nodes.find((n) => n.kind === 'item');
-    const initial = project.firstSceneId ?? firstItem?.id ?? null;
+    const requested = nodes.some((n) => n.id === sceneId && n.kind === 'item');
+    const initial = requested ? sceneId! : (project.firstSceneId ?? firstItem?.id ?? null);
     await this.openScene(initial);
     this.status.set('ready');
   }
@@ -516,6 +523,7 @@ export class EditorStore {
       return;
     }
     this.selectedSceneId.set(id);
+    this.preferences.set(lastEditedSceneKey(node.projectId), id);
     const [scene, actions, battlemaps] = await Promise.all([
       this.repository.getScene(id),
       this.repository.listActions(id),

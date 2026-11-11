@@ -57,7 +57,7 @@ describe('SoundLibraryPage', () => {
     });
     const links = [...el.querySelectorAll('app-project-nav a')].map((a) => a.getAttribute('href'));
     expect(links).toEqual([`/projects/${project.id}/edit`, `/projects/${project.id}/sounds`]);
-    expect(el.querySelector(`a[href="/projects/${project.id}/play"]`)).not.toBeNull();
+    expect(el.querySelector(`a[href="/projects/${project.id}/play?demo=1"]`)).not.toBeNull();
   });
 
   it('signale un projet introuvable', async () => {

@@ -23,7 +23,16 @@
     <h1 class="title">{{ 'sound.global' | transloco }}</h1>
   }
   @if (project.value(); as p) {
-    <a headerEnd appButton size="header" [routerLink]="['/projects', p.id, 'play']">
+    <!-- Démo à partir de la dernière scène ouverte dans l'éditeur : rien n'est lu ni enregistré. -->
+    <a
+      headerEnd
+      appButton
+      size="header"
+      [routerLink]="['/projects', p.id, 'play']"
+      [queryParams]="{ demo: 1 }"
+      [attr.title]="'project.presentDemoHint' | transloco"
+      (click)="unlockAudio()"
+    >
       <svg lucidePlay aria-hidden="true"></svg>{{ 'project.present' | transloco }}
     </a>
   }

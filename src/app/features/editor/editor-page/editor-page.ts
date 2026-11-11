@@ -28,6 +28,7 @@ import { Button } from '../../../shared/ui/button/button';
 import { Field } from '../../../shared/ui/field/field';
 import { Input } from '../../../shared/ui/input/input';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
+import { AudioPlayer } from '../../presentation/audio/audio-player';
 import { ActionPause } from '../action-pause/action-pause';
 import { ActionsPanel } from '../actions-panel/actions-panel';
 import { BattlemapsPanel } from '../battlemaps-panel/battlemaps-panel';
@@ -78,6 +79,7 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
 export class EditorPage {
   protected readonly store = inject(EditorStore);
   private readonly notifications = inject(Notifications);
+  private readonly audio = inject(AudioPlayer);
 
   private readonly transloco = inject(TranslocoService);
   private readonly tree = viewChild<Tree<SceneNode>>('tree');
@@ -114,15 +116,27 @@ export class EditorPage {
 
   /** Paramètre de route `:projectId`. */
   readonly projectId = input.required<Id>();
+  /** Paramètre `?scene=` : scène à ouvrir (retour de la démo) ; sinon la première scène. */
+  readonly scene = input<Id>();
 
   constructor() {
     effect(() => {
-      this.store.load(this.projectId()).catch((error) => this.notifications.fromError(error));
+      this.store
+        .load(this.projectId(), this.scene())
+        .catch((error) => this.notifications.fromError(error));
     });
     // Rien ne se perd en quittant l'écran : la saisie en attente est enregistrée.
     inject(DestroyRef).onDestroy(() => {
       this.store.flush().catch((error) => this.notifications.fromError(error));
     });
+  }
+
+  /**
+   * « Présenter » : démo à partir de la scène ouverte. L'audio est débloqué dans le clic (TEC-43),
+   * la démo démarrant sans fenêtre de lancement.
+   */
+  protected unlockAudio(): void {
+    void this.audio.unlock();
   }
 
   /** Fermeture ou rechargement de l'onglet : enregistrement de la saisie en attente. */

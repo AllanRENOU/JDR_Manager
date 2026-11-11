@@ -139,6 +139,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | PRS-06 | Revenir sur une scène déjà visitée restaure son état, sans relancer ses actions d'ouverture. | M |
 | PRS-07 | Si le projet a été modifié : une action supprimée n'est plus visible ; une battlemap supprimée affiche un message d'erreur ; un son supprimé n'est pas lancé et un message d'erreur s'affiche ; un élément « Changer de scène » dont la scène cible a été supprimée ne change pas de scène et un message d'erreur s'affiche (il est aussi signalé dans l'éditeur d'action). | M |
 | PRS-08 | Plusieurs parties sauvegardées par projet (ex. une par groupe). | W |
+| PRS-09 | **Mode démo** : le bouton « Présenter » de l’en-tête d’un projet ouvert (éditeur, écran Sons) lance la Présentation à partir de la scène ouverte (depuis l’écran Sons : la dernière scène ouverte dans l’éditeur), sans fenêtre de lancement. La partie sauvegardée n’est pas lue, et rien de ce qui est fait en démo n’est enregistré. Une pastille « Démo » le signale ; la flèche de retour ramène à l’éditeur, sur la scène en cours. La vraie partie se lance depuis la carte du projet (accueil). | S |
 
 ### 5.7 Présentation — affichage
 

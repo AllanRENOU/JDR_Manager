@@ -51,6 +51,22 @@ describe('PlaySessionStore', () => {
     expect(store.sceneState('A')?.currentBattlemapId).toBe('b2');
   });
 
+  it('mode démo : ne lit, n’efface ni n’enregistre la partie sauvegardée', async () => {
+    await store.restart('p1', 'A');
+    store.setCurrentScene('B');
+    await store.flush();
+    const before = await repository().getPlaySession('p1');
+
+    const demo = TestBed.runInInjectionContext(() => new PlaySessionStore());
+    demo.enableDemo();
+    expect(await demo.findSaved('p1')).toBeUndefined();
+    await demo.restart('p1', 'C');
+    demo.updateScene('C', () => newSceneState('b1'));
+    await demo.flush();
+    expect(demo.session()?.currentSceneId).toBe('C');
+    expect(await repository().getPlaySession('p1')).toEqual(before);
+  });
+
   it('une écriture ratée est signalée et n’empêche pas les suivantes (NF-25)', async () => {
     const save = vi
       .spyOn(repository(), 'savePlaySession')
