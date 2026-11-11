@@ -8,7 +8,6 @@ import {
   input,
   resource,
   signal,
-  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -42,7 +41,6 @@ import { TreeMoveEvent, pathTo } from '../../../shared/tree/tree-model';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { AppHeader } from '../../../shared/ui/app-header/app-header';
 import { Button } from '../../../shared/ui/button/button';
-import { Input } from '../../../shared/ui/input/input';
 import { Modals } from '../../../shared/ui/modal/modals';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { formatDuration } from '../../../shared/util/duration';
@@ -56,7 +54,8 @@ const SOUND_TREE_LABELS: Partial<TreeLabels> = {
   deleteFolderMessage: 'sound.deleteFolderMessage',
   deleteItemMessage: 'sound.deleteMessage',
 };
-import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
+import { Input } from '../../../shared/ui/input/input';
+import { SoundName } from '../sound-name/sound-name';
 
 /**
  * Bibliothèques de sons (SON-01, Brief §7.2).
@@ -67,7 +66,8 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
 @Component({
   selector: 'app-sound-library-page',
   imports: [
-    Capitalize,
+    SoundName,
+    Input,
     SettingsButton,
     AppHeader,
     Alert,
@@ -88,7 +88,6 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
     LucideSearch,
     LucideTrash2,
     LucideUpload,
-    Input,
   ],
   providers: [SoundLibraryStore, SoundPreview],
   templateUrl: './sound-library-page.html',
@@ -141,17 +140,8 @@ export class SoundLibraryPage {
 
   /** Son en cours de renommage dans le tableau (6.8). */
   protected readonly editingId = signal<Id | null>(null);
-  private readonly renameInput = viewChild<ElementRef<HTMLInputElement>>('renameInput');
 
   constructor() {
-    // Focus sur le champ de renommage dès qu'il apparaît, texte sélectionné.
-    afterRenderEffect(() => {
-      const input = this.renameInput()?.nativeElement;
-      if (input && document.activeElement !== input) {
-        input.focus();
-        input.select();
-      }
-    });
     // Son choisi dans l'arborescence : sa ligne du tableau est amenée à l'écran.
     afterRenderEffect(() => {
       const id = this.store.selectedSoundId();

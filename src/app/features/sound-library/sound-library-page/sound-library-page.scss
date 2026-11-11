@@ -168,20 +168,6 @@
   }
 }
 
-// Nom cliquable : passe en renommage, comme le bouton crayon.
-.sound__name {
-  display: block;
-  max-width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-weight: font-weight(semibold);
-  text-align: left;
-  cursor: text;
-}
-
 .sound__path {
   display: block;
   margin-top: space(2);

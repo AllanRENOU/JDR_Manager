@@ -200,32 +200,13 @@
                   />
                 </td>
                 <td>
-                  @if (editingId() === row.node.id) {
-                    <input
-                      #renameInput
-                      appInput
-                      appCapitalize
-                      class="sound__rename"
-                      type="text"
-                      maxlength="120"
-                      [value]="row.node.name"
-                      [attr.aria-label]="'sound.renameField' | transloco: { name: row.node.name }"
-                      (keydown.enter)="commitRename(row, renameInput.value)"
-                      (keydown.escape)="cancelRename()"
-                      (blur)="commitRename(row, renameInput.value)"
-                    />
-                  } @else {
-                    <!-- Clic sur le nom = renommer, comme le crayon (seul arrêt clavier : le crayon). -->
-                    <button
-                      class="sound__name"
-                      type="button"
-                      tabindex="-1"
-                      [title]="'sound.renameAction' | transloco: { name: row.node.name }"
-                      (click)="startRename(row.node.id)"
-                    >
-                      {{ row.node.name }}
-                    </button>
-                  }
+                  <app-sound-name
+                    [name]="row.node.name"
+                    [editing]="editingId() === row.node.id"
+                    (renameRequested)="startRename(row.node.id)"
+                    (committed)="commitRename(row, $event)"
+                    (cancelled)="cancelRename()"
+                  />
                   @if (playing) {
                     <span
                       class="progress"

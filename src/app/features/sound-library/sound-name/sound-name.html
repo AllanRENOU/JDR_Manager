@@ -1,0 +1,26 @@
+<!-- Clic sur le nom = renommer, comme le crayon (seul arrêt clavier : le crayon). -->
+<button
+  class="sound__name"
+  [class.sound__name--editing]="editing()"
+  type="button"
+  tabindex="-1"
+  [title]="'sound.renameAction' | transloco: { name: name() }"
+  (click)="renameRequested.emit()"
+>
+  {{ name() }}
+</button>
+@if (editing()) {
+  <input
+    #field
+    appInput
+    appCapitalize
+    class="sound__rename"
+    type="text"
+    maxlength="120"
+    [value]="name()"
+    [attr.aria-label]="'sound.renameField' | transloco: { name: name() }"
+    (keydown.enter)="committed.emit(field.value)"
+    (keydown.escape)="cancelled.emit()"
+    (blur)="committed.emit(field.value)"
+  />
+}

@@ -1,0 +1,41 @@
+@use 'functions' as *;
+
+// Repère du champ de renommage, posé hors du flux par-dessus le nom.
+:host {
+  position: relative;
+  display: block;
+}
+
+.sound__name {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: font-weight(semibold);
+  text-align: left;
+  cursor: text;
+}
+
+// Renommage : le nom garde sa place (masqué), la ligne et la colonne ne bougent pas.
+.sound__name--editing {
+  visibility: hidden;
+}
+
+// Texte du champ aligné sur celui du nom (marge intérieure + bordure compensées) ; le débord est
+// pris sur l'espacement des cellules voisines.
+.sound__rename {
+  --rename-offset: calc(#{space(8)} + 1px);
+
+  position: absolute;
+  top: 50%;
+  left: calc(-1 * var(--rename-offset));
+  width: calc(100% + 2 * var(--rename-offset));
+  height: control-height(sm);
+  padding: 0 space(8);
+  font-size: font-size(body);
+  font-weight: font-weight(semibold);
+  transform: translateY(-50%);
+}
