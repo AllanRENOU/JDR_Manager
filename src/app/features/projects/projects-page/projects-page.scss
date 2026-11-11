@@ -7,11 +7,20 @@
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  gap: space(10);
   color: color(accent-text);
   font-family: font-family(title);
   font-size: font-size(section);
   font-weight: font-weight(bold);
   letter-spacing: letter-spacing(logo);
+}
+
+// Icône du logo : or de l'accent, comme le favicon (thème Automne : rouille).
+.logo__mark {
+  flex-shrink: 0;
+  color: color(accent);
 }
 
 .page {

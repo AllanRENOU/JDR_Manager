@@ -31,6 +31,9 @@ describe('ProjectsPage (4.1)', () => {
   it('affiche un message sans projet et la carte « Créer un projet » en dernier', async () => {
     const { el } = await render();
     expect(el.querySelector('h1')?.textContent).toContain('Mes projets');
+    const logo = el.querySelector('.logo') as HTMLElement;
+    expect(logo.textContent?.trim()).toBe('JDR Manager');
+    expect(logo.querySelector('svg.logo__mark')?.getAttribute('aria-hidden')).toBe('true');
     expect(el.querySelector('.page__empty')?.textContent).toContain('Aucun projet');
     expect(el.querySelector('.grid li:last-child')?.textContent).toContain('Créer un projet');
     const settings = el.querySelector('a[href="/settings"]') as HTMLAnchorElement;
