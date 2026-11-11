@@ -7,13 +7,14 @@ describe('FeedWait', () => {
   beforeEach(() => vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] }));
   afterEach(() => vi.useRealTimers());
 
-  function render(durationMs: number) {
+  function render(durationMs: number, text?: string) {
     TestBed.configureTestingModule({ imports: [FeedWait, getTranslocoTestingModule()] });
     const fixture = TestBed.createComponent(FeedWait);
     fixture.componentRef.setInput('wait', {
       id: 'w',
       endsAt: Date.now() + durationMs,
       durationMs,
+      ...(text ? { text } : {}),
     });
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
@@ -48,5 +49,12 @@ describe('FeedWait', () => {
     const { fixture } = render(10_000);
     const timer = fixture.nativeElement.querySelector('[role="timer"]');
     expect(timer.getAttribute('aria-label')).toBe('Temps restant');
+  });
+
+  it('affiche le texte de l’attente à la place de « Attente en cours », toujours lu au lecteur d’écran', () => {
+    const { fixture } = render(10_000, 'Le garde passe.');
+    const label = fixture.nativeElement.querySelector('.wait__label') as HTMLElement;
+    expect(label.textContent?.trim()).toBe('Attente en cours : Le garde passe.');
+    expect(label.querySelector('.visually-hidden')?.textContent).toContain('Attente en cours');
   });
 });

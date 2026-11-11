@@ -33,3 +33,10 @@
   font-size: font-size(small);
   white-space: pre-line;
 }
+
+// Texte facultatif d'une attente : sous la durée, en couleur principale.
+.pause__note {
+  display: block;
+  margin-top: space(2);
+  color: color(text-primary);
+}

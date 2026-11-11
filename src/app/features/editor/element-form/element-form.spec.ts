@@ -187,6 +187,22 @@ describe('ElementForm', () => {
     expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'wait', seconds: 3.5 });
   });
 
+  it('Attendre : texte facultatif, absent de l’élément quand il est vide', () => {
+    const { el, emitted } = render({ id: 'e1', type: 'wait', seconds: 2, text: 'Le garde passe.' });
+    const textarea = el.querySelector<HTMLTextAreaElement>('textarea')!;
+    expect(textarea.value).toBe('Le garde passe.');
+    expect(el.textContent).toContain('Texte (facultatif)');
+    type(textarea, 'La porte grince.');
+    expect(emitted.at(-1)).toEqual({
+      id: 'e1',
+      type: 'wait',
+      seconds: 2,
+      text: 'La porte grince.',
+    });
+    type(textarea, '  ');
+    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'wait', seconds: 2 });
+  });
+
   it('Clic de l’utilisateur : texte obligatoire (8.3.8)', () => {
     const { el } = render({ id: 'e1', type: 'user-click', text: 'Il approche.' });
     expect(el.textContent).toContain('(obligatoire)');

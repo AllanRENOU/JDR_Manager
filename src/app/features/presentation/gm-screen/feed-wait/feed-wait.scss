@@ -56,3 +56,10 @@
   font-weight: font-weight(semibold);
   font-variant-numeric: tabular-nums;
 }
+
+// Texte de l'attente : lisible comme un texte du fil, retours à la ligne conservés.
+.wait__label--text {
+  color: color(text-primary);
+  font-size: font-size(body);
+  white-space: pre-line;
+}

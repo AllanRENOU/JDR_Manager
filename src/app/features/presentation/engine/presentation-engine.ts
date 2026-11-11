@@ -71,6 +71,8 @@ export interface PendingWait {
   /** Fin de l'attente (`Date.now()`, ms). */
   endsAt: number;
   durationMs: number;
+  /** Texte facultatif de l'élément « Attendre », montré à la place de « Attente en cours ». */
+  text?: string;
 }
 
 /** Clic de l'utilisateur en attente : promesse de l'action et retour arrière à l'annulation. */
@@ -413,7 +415,7 @@ export class PresentationEngine {
   /** Texte d'une entrée du fil, relu dans l'action ; `null` si l'action ou l'élément a été supprimé. */
   textOf(item: FeedItem): string | null {
     const element = this.elementOf(item);
-    return element && 'text' in element ? element.text : null;
+    return element && 'text' in element ? (element.text ?? null) : null;
   }
 
   /** Quitte la Présentation : actions arrêtées, sons coupés en fondu, partie enregistrée. */
@@ -567,7 +569,13 @@ export class PresentationEngine {
 
   private async wait(element: WaitElement, signal: AbortSignal): Promise<void> {
     const durationMs = Math.max(0, element.seconds * 1000);
-    const pending: PendingWait = { id: newId(), endsAt: Date.now() + durationMs, durationMs };
+    const text = element.text?.trim();
+    const pending: PendingWait = {
+      id: newId(),
+      endsAt: Date.now() + durationMs,
+      durationMs,
+      ...(text ? { text } : {}),
+    };
     this.waits.update((waits) => [...waits, pending]);
     try {
       await delay(durationMs, signal);

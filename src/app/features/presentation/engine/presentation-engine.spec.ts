@@ -442,19 +442,28 @@ describe('PresentationEngine', () => {
         anAction('A', {
           id: 'pause',
           name: 'Pause',
-          elements: [{ id: 'w', type: 'wait', seconds: 3 }, text('t-apres', 'Après.')],
+          elements: [
+            { id: 'w', type: 'wait', seconds: 3, text: ' La ronde passe. ' },
+            text('t-apres', 'Après.'),
+          ],
         }),
       ]);
       await startAt('A');
       const start = Date.now();
       void engine.runAction('pause');
       await vi.waitFor(() => expect(engine.waits()).toHaveLength(1));
-      expect(engine.waits()[0]).toMatchObject({ durationMs: 3000, endsAt: start + 3000 });
+      // Texte facultatif de l'attente, sans les espaces autour.
+      expect(engine.waits()[0]).toMatchObject({
+        durationMs: 3000,
+        endsAt: start + 3000,
+        text: 'La ronde passe.',
+      });
 
       await vi.advanceTimersByTimeAsync(3000);
       await vi.waitFor(() => expect(feedTexts()).toContain('Après.'));
       expect(engine.waits()).toEqual([]);
       expect(JSON.stringify(await savedSession())).not.toContain('wait');
+      expect(JSON.stringify(await savedSession())).not.toContain('ronde');
     });
 
     it('scène quittée pendant l’attente : la ligne disparaît', async () => {

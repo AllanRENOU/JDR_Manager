@@ -282,7 +282,7 @@ type ActionElement =
   | { id: Id; type: 'stop-all-sounds' }
   | { id: Id; type: 'add-text'; text: string }
   | { id: Id; type: 'change-scene'; sceneId: Id }
-  | { id: Id; type: 'wait'; seconds: number }
+  | { id: Id; type: 'wait'; seconds: number; text?: string } // texte facultatif, montré pendant l'attente
   | { id: Id; type: 'user-click'; text: string };
 
 /** Partie sauvegardée (une par projet en V1) */

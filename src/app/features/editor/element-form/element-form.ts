@@ -41,7 +41,12 @@ interface ElementFields {
 
 function toFields(element: ActionElement): ElementFields {
   return {
-    text: element.type === 'add-text' || element.type === 'user-click' ? element.text : '',
+    text:
+      element.type === 'add-text' || element.type === 'user-click'
+        ? element.text
+        : element.type === 'wait'
+          ? (element.text ?? '')
+          : '',
     seconds: element.type === 'wait' ? element.seconds : 1,
     volume: element.type === 'play-sound' ? Math.round(element.volume * 100) : 100,
     loop: element.type === 'play-sound' ? element.loop : false,
@@ -63,8 +68,16 @@ function applyFields(element: ActionElement, fields: ElementFields): ActionEleme
     case 'add-text':
     case 'user-click':
       return { ...element, text: fields.text };
-    case 'wait':
-      return { ...element, seconds: num(fields.seconds, element.seconds, positive) };
+    case 'wait': {
+      const updated = { ...element, seconds: num(fields.seconds, element.seconds, positive) };
+      // Texte facultatif : absent de l'élément quand il est vide.
+      if (fields.text.trim()) {
+        updated.text = fields.text;
+      } else {
+        delete updated.text;
+      }
+      return updated;
+    }
     case 'play-sound': {
       const volume = num(fields.volume, element.volume * 100, (v) => v >= 0 && v <= 100);
       const fadeIn = num(fields.fadeIn, element.fadeInMs / 1000, notNegative);

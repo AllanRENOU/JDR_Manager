@@ -18,6 +18,17 @@ describe('ActionPause', () => {
     expect(el.classList).not.toContain('pause--click');
   });
 
+  it('affiche le texte facultatif d’une attente sous sa durée', async () => {
+    const el = await render({ id: 'w', type: 'wait', seconds: 5, text: 'Le garde passe.' });
+    expect(el.textContent).toContain('Attendre 5 s');
+    expect(el.querySelector('.pause__note')?.textContent?.trim()).toBe('Le garde passe.');
+  });
+
+  it('attente sans texte (ou texte vide) : pas de ligne de texte', async () => {
+    const el = await render({ id: 'w', type: 'wait', seconds: 5, text: '  ' });
+    expect(el.querySelector('.pause__note')).toBeNull();
+  });
+
   it('affiche le texte d’un clic de l’utilisateur, en lecture seule', async () => {
     const el = await render({ id: 'c', type: 'user-click', text: 'On continue ?' });
     expect(el.querySelector('.visually-hidden')?.textContent?.trim()).toBe(

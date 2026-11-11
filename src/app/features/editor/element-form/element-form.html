@@ -145,23 +145,37 @@
   }
 
   @case ('wait') {
-    <app-field
-      class="duration"
-      [label]="'action.form.duration' | transloco"
-      [error]="error('seconds') ? (error('seconds') | transloco) : ''"
-      #secondsField
-    >
-      <span class="duration__row">
-        <input
+    <div class="stack">
+      <app-field
+        class="duration"
+        [label]="'action.form.duration' | transloco"
+        [error]="error('seconds') ? (error('seconds') | transloco) : ''"
+        #secondsField
+      >
+        <span class="duration__row">
+          <input
+            appInput
+            type="number"
+            step="0.5"
+            [id]="secondsField.controlId"
+            [formField]="form.seconds"
+          />
+          <span>{{ 'action.form.seconds' | transloco }}</span>
+        </span>
+      </app-field>
+      <app-field
+        [label]="'action.form.waitText' | transloco"
+        [hint]="'action.form.waitHelp' | transloco"
+        #waitTextField
+      >
+        <textarea
           appInput
-          type="number"
-          step="0.5"
-          [id]="secondsField.controlId"
-          [formField]="form.seconds"
-        />
-        <span>{{ 'action.form.seconds' | transloco }}</span>
-      </span>
-    </app-field>
+          rows="2"
+          [id]="waitTextField.controlId"
+          [formField]="form.text"
+        ></textarea>
+      </app-field>
+    </div>
   }
 
   @case ('user-click') {

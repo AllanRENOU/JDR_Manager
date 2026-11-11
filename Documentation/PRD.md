@@ -123,7 +123,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | ACT-07 | Élément **Arrêter tous les sons**. | M |
 | ACT-08 | Élément **Ajouter un texte** (texte ajouté au fil d'actualité). | M |
 | ACT-09 | Élément **Changer de scène** (choix de la scène cible dans la fenêtre de sélection, en sélection unique). Un avertissement indique que les éléments suivants de l'action ne seront pas exécutés. | M |
-| ACT-10 | Élément **Attendre** (durée en secondes). En Présentation, pendant l'attente, une ligne en bas du fil affiche le temps restant (compte à rebours) ; elle disparaît à la fin de l'attente et n'est pas enregistrée. | M |
+| ACT-10 | Élément **Attendre** (durée en secondes, texte facultatif). Dans l'éditeur, le texte est affiché sur la ligne de l'attente. En Présentation, pendant l'attente, une ligne en bas du fil affiche le temps restant (compte à rebours) et le texte de l'attente à la place de « Attente en cours » ; elle disparaît à la fin de l'attente et n'est pas enregistrée. | M |
 | ACT-11 | Élément **Clic de l'utilisateur** (texte obligatoire ; met l'action en pause jusqu'au clic du MJ). | M |
 | ACT-12 | Élément **Faire apparaître une action**. | W |
 

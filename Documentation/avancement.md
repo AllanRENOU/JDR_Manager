@@ -31,9 +31,9 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
 | 11 | Fenêtre joueurs | 7 | 7 | Terminé |
 | 12 | Reprise et cohérence des données | 6 | 6 | Terminé |
 | 12 bis | Hors ligne et tablette | 8 | 0 | À faire |
-| 13 | Robustesse, performance, accessibilité | 14 | 13 | En cours |
+| 13 | Robustesse, performance, accessibilité | 15 | 14 | En cours |
 | 14 | Recette V1 | 6 | 0 | À faire |
-| **Total** | | **221** | **206** | |
+| **Total** | | **222** | **207** | |
 
 ---
 
@@ -694,6 +694,8 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
   - Note : ℹ️ Raccourcis à une touche dans la Présentation (`GmScreenPage.onShortcut`) : C clic à continuer, S scène suivante (ouvre le menu s'il y en a plusieurs), A aller à une scène, P tout lire / tout mettre en pause, 1 à 9 n-ième action disponible, ? aide (`ShortcutsDialog`, aussi par le bouton clavier de l'en-tête). Ignorés pendant une saisie, avec Ctrl / Alt / Cmd, ou si une fenêtre est ouverte (`Modals.isOpen()`). `aria-keyshortcuts` sur les boutons concernés. Vérifié dans Chromium.
 - [x] **13.4.4** Mode démo de la Présentation, lancé par « Présenter » depuis un projet ouvert. [PRS-09]
   - Note : ✅ Décision (Allan, 11/11/2026) : le bouton « Présenter » de l’en-tête de l’éditeur et de l’écran Sons lance une **démo** (`/projects/:id/play?demo=1&scene=<id>`) ; la vraie partie (Continuer / Recommencer) se lance depuis la carte du projet sur l’accueil. Démo : démarrage direct sans fenêtre de lancement, sur un écran (la fenêtre joueurs reste ouvrable depuis l’en-tête) ; départ = scène ouverte dans l’éditeur, ou, depuis l’écran Sons, la dernière scène ouverte dans l’éditeur (préférence `editor.lastScene.<projectId>`, `core/preferences/last-edited-scene.ts`), à défaut la première scène ; pastille « Démo » ; la flèche de retour ramène à l’éditeur sur la scène en cours (`?scene=`, nouvelle entrée `scene` de `EditorPage`). Implémentation : `PlaySessionStore.enableDemo()` (ni lecture, ni effacement, ni enregistrement de la partie) et `PresentationEngine.startDemo(projectId, sceneId)`. L’audio est débloqué dans le clic sur « Présenter » (TEC-43). ⚠️ Alerte : une démo ouverte par rechargement de la page (sans clic préalable) peut rester muette tant que le navigateur bloque l’audio ; une démo et une vraie partie ouvertes en même temps partagent le canal de la fenêtre joueurs du projet.
+- [x] **13.4.5** Texte facultatif sur l'élément « Attendre ». [ACT-10]
+  - Note : ✅ Décision (Allan, 11/11/2026) : texte facultatif (`WaitElement.text`, absent quand il est vide, pas de migration de la base). Éditeur d'action : champ « Texte (facultatif) » sous la durée. Éditeur de scène : texte affiché sous « Attendre N s » sur la ligne de l'attente (`ActionPause`). Présentation : texte affiché **pendant l'attente** à la place de « Attente en cours » (`PendingWait.text`, `FeedWait` ; « Attente en cours » reste lu par les lecteurs d'écran), puis retiré avec la ligne ; rien n'est ajouté au fil ni enregistré (choix d'Allan).
 
 ---
 

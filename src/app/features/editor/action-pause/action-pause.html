@@ -9,6 +9,10 @@
 @if (el.type === 'wait') {
   <p class="pause__text">
     {{ 'scene.pause.wait' | transloco: { seconds: (el.seconds | number) } }}
+    @if (el.text?.trim()) {
+      <!-- Texte facultatif de l'attente, montré aussi pendant l'attente en Présentation. -->
+      <span class="pause__note">{{ el.text }}</span>
+    }
   </p>
 } @else {
   <p class="pause__text">

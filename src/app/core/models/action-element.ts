@@ -50,6 +50,11 @@ export interface ChangeSceneElement extends BaseElement {
 export interface WaitElement extends BaseElement {
   type: 'wait';
   seconds: number;
+  /**
+   * Texte facultatif, montré sur la ligne de l'attente dans l'éditeur et pendant l'attente en
+   * Présentation (rien n'est ajouté au fil). Absent ou vide : pas de texte.
+   */
+  text?: string;
 }
 
 /** Affiche un texte et attend le clic « Cliquer pour continuer ». */

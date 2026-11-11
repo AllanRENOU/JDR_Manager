@@ -1,6 +1,13 @@
 <div class="wait">
   <span class="wait__icon" aria-hidden="true"><svg lucideHourglass></svg></span>
-  <span class="wait__label">{{ 'presentation.waiting' | transloco }}</span>
+  @if (wait().text; as text) {
+    <!-- Texte de l'élément « Attendre » ; « Attente en cours » reste lu par les lecteurs d'écran. -->
+    <span class="wait__label wait__label--text">
+      <span class="visually-hidden">{{ 'presentation.waiting' | transloco }} : </span>{{ text }}
+    </span>
+  } @else {
+    <span class="wait__label">{{ 'presentation.waiting' | transloco }}</span>
+  }
   <span
     class="wait__time"
     role="timer"

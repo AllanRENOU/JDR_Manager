@@ -151,3 +151,10 @@
     width: layout(menu-min);
   }
 }
+
+// Champs empilés (« Attendre » : durée puis texte facultatif).
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: space(14);
+}

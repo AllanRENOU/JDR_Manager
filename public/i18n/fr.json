@@ -241,6 +241,8 @@
       "duration": "Durée",
       "seconds": "secondes",
       "durationInvalid": "Indiquez une durée positive, en secondes.",
+      "waitText": "Texte (facultatif)",
+      "waitHelp": "Affiché sur la ligne de l’attente dans l’éditeur et pendant l’attente en Présentation.",
       "clickText": "Texte affiché au MJ",
       "clickTextRequired": "Ce texte est obligatoire.",
       "clickHelp": "L’action s’arrête ici jusqu’à ce que le MJ clique sur « Continuer » dans le fil d’actualité.",
