@@ -35,7 +35,7 @@ describe('SoundLibraryStore', () => {
   it('charge la bibliothèque du projet puis la globale ; dossiers et sons dans les arborescences', async () => {
     await repository().saveSoundNodes([
       aSoundNode('p1', { kind: 'folder', name: 'Ambiances' }),
-      aSoundNode('p1', { name: 'Taverne' }),
+      aSoundNode('p1', { name: 'Taverne', order: 1 }),
       aSoundNode('global', { kind: 'folder', name: 'Météo' }),
     ]);
     await store.load('p1');

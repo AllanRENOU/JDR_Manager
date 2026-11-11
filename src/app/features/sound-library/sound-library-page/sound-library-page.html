@@ -206,7 +206,16 @@
                       (blur)="commitRename(row, renameInput.value)"
                     />
                   } @else {
-                    <span class="sound__name">{{ row.node.name }}</span>
+                    <!-- Clic sur le nom = renommer, comme le crayon (seul arrêt clavier : le crayon). -->
+                    <button
+                      class="sound__name"
+                      type="button"
+                      tabindex="-1"
+                      [title]="'sound.renameAction' | transloco: { name: row.node.name }"
+                      (click)="startRename(row.node.id)"
+                    >
+                      {{ row.node.name }}
+                    </button>
                   }
                   @if (playing) {
                     <span

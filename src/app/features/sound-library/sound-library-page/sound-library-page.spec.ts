@@ -102,7 +102,7 @@ describe('SoundLibraryPage', () => {
     await fixture.whenStable();
     expect(trees[1].querySelector('.tree__row--selected')?.textContent).toContain('Pluie');
     expect(el.querySelector('.content__name')?.textContent).toContain('Météo');
-    expect(el.querySelector('.sound--selected .sound__name')?.textContent).toBe('Pluie');
+    expect(el.querySelector('.sound--selected .sound__name')?.textContent?.trim()).toBe('Pluie');
   });
 
   it('crée un dossier à la racine avec le bouton de la bibliothèque, en renommage (6.2)', async () => {
@@ -277,7 +277,7 @@ describe('SoundLibraryPage', () => {
     expect(saved.find((n) => n.name === 'orage')?.parentId).toBe(folder.id);
   });
 
-  it('renomme un son dans le tableau : Entrée valide, Échap annule (6.8)', async () => {
+  it('renomme un son dans le tableau : Entrée valide, Échap annule ; clic sur le nom aussi (6.8)', async () => {
     const sound = aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Pluie' });
     await TestBed.inject(DATA_REPOSITORY).saveSoundNodes([sound]);
     const { fixture, el } = await render();
@@ -308,6 +308,14 @@ describe('SoundLibraryPage', () => {
       await fixture.whenStable();
       expect(el.querySelector('.sound__name')?.textContent).toContain('Pluie fine');
     });
+    // Un clic sur le nom passe aussi en renommage.
+    (el.querySelector('.sound__name') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(el.querySelector('.sound__rename'));
+    (el.querySelector('.sound__rename') as HTMLInputElement).dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape' }),
+    );
+    await fixture.whenStable();
     const [saved] = await TestBed.inject(DATA_REPOSITORY).listSoundNodes(GLOBAL_SOUND_LIBRARY);
     expect(saved.name).toBe('Pluie fine');
     el.remove();
