@@ -20,6 +20,7 @@
     appButton="icon"
     size="sm"
     type="button"
+    class="card__remove"
     [attr.aria-label]="'action.editor.removeElement' | transloco: { index: index(), type }"
     (click)="removed.emit()"
   >
@@ -29,6 +30,7 @@
     appButton="icon"
     size="sm"
     type="button"
+    class="card__toggle"
     [attr.aria-expanded]="expanded()"
     [attr.aria-controls]="bodyId"
     [attr.aria-label]="'action.editor.toggleElement' | transloco: { index: index(), type }"

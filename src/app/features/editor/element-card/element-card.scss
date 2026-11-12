@@ -16,7 +16,9 @@
 }
 
 .card__head {
+  position: relative;
   display: flex;
+  cursor: pointer;
   align-items: center;
   gap: space(12);
   min-height: control-height(xl);
@@ -24,6 +26,8 @@
 }
 
 .card__grip {
+  position: relative;
+  z-index: 1;
   flex-shrink: 0;
   width: space(16);
   height: space(16);
@@ -80,11 +84,37 @@
   font-style: italic;
 }
 
+// Toute l'en-tête déplie / replie la carte : la zone de clic du bouton s'étend sur l'en-tête
+// (le bouton reste le seul élément focalisable). Poignée et Supprimer passent au-dessus.
+.card__toggle::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+}
+
+.card__remove {
+  position: relative;
+  z-index: 1;
+}
+
 .card__chevron {
   transition: transform duration(fast) easing(out);
 }
 
-:host(.expanded) .card__chevron {
+:host(.expanded) // Toute l'en-tête déplie / replie la carte : la zone de clic du bouton s'étend sur l'en-tête
+// (le bouton reste le seul élément focalisable). Poignée et Supprimer passent au-dessus.
+.card__toggle::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+}
+
+.card__remove {
+  position: relative;
+  z-index: 1;
+}
+
+.card__chevron {
   transform: rotate(180deg);
 }
 
