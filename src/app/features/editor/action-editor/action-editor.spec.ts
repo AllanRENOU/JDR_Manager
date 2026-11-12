@@ -182,10 +182,13 @@ describe('ActionEditor', () => {
         `${c.querySelector('.card__type')?.textContent?.trim()} ${c.querySelector('.card__detail')?.textContent?.trim()}`.trim(),
       );
 
-    it('ajoute un élément par le menu des 9 types, à la fin et déplié (8.2.3)', async () => {
+    it('ajoute un élément par le menu des 9 types, à la fin, seul déplié (8.2.3)', async () => {
       const { dialog, result } = open(
         anAction('s1', { name: 'Bagarre', elements: [text('a', 'Un')] }),
       );
+      dialog.querySelector<HTMLButtonElement>('.card__toggle')?.click();
+      TestBed.tick();
+      expect(dialog.querySelectorAll('app-element-card')[0].classList).toContain('expanded');
       button(dialog, 'Ajouter un élément').click();
       await vi.waitFor(() => {
         TestBed.tick();
@@ -206,7 +209,8 @@ describe('ActionEditor', () => {
       items[7].click();
       TestBed.tick();
       expect(titles(dialog)).toEqual(['Afficher un texte Un', 'Attendre 1 s']);
-      expect(dialog.querySelectorAll('app-element-card')[1].classList).toContain('expanded');
+      const cards = [...dialog.querySelectorAll('app-element-card')];
+      expect(cards.map((c) => c.classList.contains('expanded'))).toEqual([false, true]);
 
       button(dialog, 'Enregistrer').click();
       const saved = await result;

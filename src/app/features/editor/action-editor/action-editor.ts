@@ -149,11 +149,11 @@ export class ActionEditor {
       : new Set(),
   );
 
-  /** Ajoute un élément à la fin, déplié (8.2.3). */
+  /** Ajoute un élément à la fin, seul déplié : les autres se replient (8.2.3). */
   protected addElement(type: ActionElementType): void {
     const element = newElement(type);
     this.draft.update((d) => ({ ...d, elements: [...d.elements, element] }));
-    this.setExpanded(element.id, true);
+    this.expandedIds.set(new Set([element.id]));
   }
 
   /** Élément modifié dans son formulaire (8.3). */
