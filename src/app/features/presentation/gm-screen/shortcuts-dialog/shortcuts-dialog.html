@@ -3,10 +3,12 @@
   [subtitle]="'presentation.shortcuts.subtitle' | transloco"
 >
   <dl class="list">
-    @for (shortcut of shortcuts; track shortcut.keys) {
+    @for (shortcut of shortcuts; track shortcut.labelKey) {
       <div class="list__row">
         <dt>
-          <kbd class="key">{{ shortcut.keys }}</kbd>
+          <kbd class="key">{{
+            shortcut.keysKey ? (shortcut.keysKey | transloco) : shortcut.keys
+          }}</kbd>
         </dt>
         <dd>{{ shortcut.labelKey | transloco }}</dd>
       </div>

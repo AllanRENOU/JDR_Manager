@@ -47,7 +47,7 @@
                   appButton
                   size="lg"
                   type="button"
-                  aria-keyshortcuts="C"
+                  [attr.aria-keyshortcuts]="$last ? 'Enter C' : 'C'"
                   (click)="engine.continueClick(item.id)"
                 >
                   {{ 'presentation.clickToContinue' | transloco }}

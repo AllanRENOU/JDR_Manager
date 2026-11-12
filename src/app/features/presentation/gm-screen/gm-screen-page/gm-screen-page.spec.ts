@@ -231,4 +231,47 @@ describe('GmScreenPage', () => {
     press('p');
     expect(open).not.toHaveBeenCalled();
   });
+
+  it('Entrée valide le clic en attente quand il termine le fil, sauf sur un bouton', async () => {
+    await seedPresentation([
+      anAction('A', {
+        id: 'm1',
+        name: 'Le garde',
+        trigger: 'manual',
+        order: 2,
+        elements: [
+          { id: 'uc', type: 'user-click', text: 'Il approche.' },
+          { id: 't-m1', type: 'add-text', text: 'Il parle.' },
+        ],
+      }),
+    ]);
+    const page = await render('p1');
+    await launch('Commencer la partie', page);
+    const press = (key: string, target: EventTarget = document.body) =>
+      target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+    const continueClick = vi.spyOn(page.engine, 'continueClick');
+
+    press('1');
+    await vi.waitFor(async () => {
+      await page.fixture.whenStable();
+      expect(page.el.querySelector('.click')?.textContent).toContain('Il approche.');
+    });
+    const clickButton = page.el.querySelector('.click__button') as HTMLButtonElement;
+    expect(clickButton.getAttribute('aria-keyshortcuts')).toBe('Enter C');
+
+    // Bouton qui a le focus : Entrée l'active déjà, le raccourci ne fait rien de plus.
+    press('Enter', clickButton);
+    expect(continueClick).not.toHaveBeenCalled();
+
+    press('Enter');
+    await vi.waitFor(async () => {
+      await page.fixture.whenStable();
+      expect(page.el.textContent).toContain('Il parle.');
+    });
+    expect(continueClick).toHaveBeenCalledOnce();
+
+    // Plus de clic en attente à la fin du fil : Entrée ne fait rien.
+    press('Enter');
+    expect(continueClick).toHaveBeenCalledOnce();
+  });
 });

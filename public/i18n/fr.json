@@ -364,6 +364,8 @@
     "shortcuts": {
       "title": "Raccourcis clavier",
       "subtitle": "Ignorés pendant une saisie ou quand une fenêtre est ouverte.",
+      "enterKey": "Entrée",
+      "continueLast": "Cliquer pour continuer, si c’est le dernier élément du fil",
       "continue": "Cliquer pour continuer (dernier clic en attente)",
       "nextScene": "Scène suivante",
       "goToScene": "Aller à une scène",

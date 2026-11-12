@@ -14,8 +14,12 @@ describe('ShortcutsDialog', () => {
       row.querySelector('kbd')?.textContent?.trim(),
       row.querySelector('dd')?.textContent?.trim(),
     ]);
-    expect(rows).toHaveLength(6);
-    expect(rows[0]).toEqual(['C', 'Cliquer pour continuer (dernier clic en attente)']);
-    expect(rows.map((r) => r[0])).toEqual(['C', 'S', 'A', 'P', '1 – 9', '?']);
+    expect(rows).toHaveLength(7);
+    expect(rows[0]).toEqual([
+      'Entrée',
+      'Cliquer pour continuer, si c’est le dernier élément du fil',
+    ]);
+    expect(rows[1]).toEqual(['C', 'Cliquer pour continuer (dernier clic en attente)']);
+    expect(rows.map((r) => r[0])).toEqual(['Entrée', 'C', 'S', 'A', 'P', '1 – 9', '?']);
   });
 });

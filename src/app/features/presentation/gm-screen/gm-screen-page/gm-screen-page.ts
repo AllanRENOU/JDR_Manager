@@ -184,7 +184,18 @@ export class GmScreenPage {
       event.preventDefault();
       Promise.resolve(action()).catch((error) => this.notifications.fromError(error));
     };
-    if (key === 'c') {
+    if (key === 'enter') {
+      // Entrée : seulement si le fil se termine par un clic en attente, et pas sur un bouton ou
+      // un lien qui a le focus (Entrée l'active déjà).
+      const last = this.engine.feed().at(-1);
+      if (
+        last?.type === 'user-click' &&
+        !last.validated &&
+        !target?.closest('button, a[href], [role="button"], [role^="menuitem"], summary')
+      ) {
+        run(() => this.engine.continueClick(last.id));
+      }
+    } else if (key === 'c') {
       const pending = [...this.engine.feed()]
         .reverse()
         .find((item) => item.type === 'user-click' && !item.validated);
