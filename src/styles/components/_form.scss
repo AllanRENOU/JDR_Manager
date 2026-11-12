@@ -40,12 +40,17 @@
   }
 }
 
+// Zone de texte : sa hauteur suit le texte (`field-sizing`, ou la directive `appInput` dans les
+// navigateurs qui ne le gèrent pas), au moins `rows` lignes (`--app-input-rows`, posée par la
+// directive).
 textarea.app-input {
   height: auto;
-  min-height: calc(#{control-height(lg)} * 2);
+  min-height: calc(var(--app-input-rows, 2) * 1lh + #{space(14)} * 2 + 2px);
   padding: space(14) space(16);
+  overflow-y: hidden;
   line-height: line-height(input);
   resize: none;
+  field-sizing: content;
 }
 
 // Cases à cocher, boutons radio, curseurs : couleur d'accent (Brief §6.2).

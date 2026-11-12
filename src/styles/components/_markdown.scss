@@ -116,7 +116,12 @@
   display: block;
   color: transparent;
   caret-color: color(text-primary);
-  scrollbar-gutter: stable;
+
+  // Le texte sélectionné reste invisible (seul le fond de sélection se voit, sous le calque) :
+  // le style global de `::selection` le rendrait visible, décalé du texte dessiné par-dessus.
+  &::selection {
+    color: transparent;
+  }
 
   &:has(~ .app-markdown-preview:hover) {
     border-color: color(border-strong);

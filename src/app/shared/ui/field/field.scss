@@ -67,9 +67,9 @@
   line-height: line-height(input);
 }
 
+// Le `<textarea>` grandit avec son texte, sans barre de défilement (`appInput`).
 .field__source {
   overflow: hidden;
-  scrollbar-gutter: stable;
   pointer-events: none;
 }
 
