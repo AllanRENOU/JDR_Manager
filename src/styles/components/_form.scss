@@ -83,8 +83,12 @@ input[type='range'] {
 }
 
 // Texte réservé aux lecteurs d'écran.
+// `top` / `left` : sans eux, l'élément reste à sa place dans le flux ; si son repère positionné est
+// hors d'une zone qui défile (ex. le document), il dépasse de cette zone et fait défiler la page.
 .visually-hidden {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 1px;
   height: 1px;
   margin: calc(#{space(2)} / -2);
