@@ -106,12 +106,19 @@
   z-index: 1;
 }
 
-.action__lock,
-.action__warning {
+// Icônes avec infobulle : au-dessus du pseudo-élément du nom, sinon le survol ne les atteint pas.
+// Le `title` est sur un <span>, car un <svg> n'affiche pas l'attribut `title`.
+.action__tip {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
   flex-shrink: 0;
-  width: space(14);
-  height: space(14);
   color: color(text-tertiary);
+
+  svg {
+    width: space(14);
+    height: space(14);
+  }
 }
 
 .action__warning,

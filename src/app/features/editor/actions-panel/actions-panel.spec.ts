@@ -79,6 +79,40 @@ describe('ActionsPanel', () => {
     expect(el.querySelector('button[sectionAction]')?.textContent).toContain('Nouvelle');
   });
 
+  it('signale une action masquée au départ qu’aucune autre action n’affiche', async () => {
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    const project = aProject();
+    const node = aSceneNode(project.id);
+    await repository.saveProject({ ...project, firstSceneId: node.id });
+    await repository.saveSceneNodes([node]);
+    await repository.saveScene(aScene(project.id, node.id));
+    await repository.saveAction(
+      anAction(node.id, { id: 'cachee', name: 'Cachée', order: 1, hidden: true }),
+    );
+    await repository.saveAction(
+      anAction(node.id, { id: 'revelee', name: 'Révélée', order: 2, hidden: true }),
+    );
+    await repository.saveAction(
+      anAction(node.id, {
+        id: 'visible',
+        name: 'Visible',
+        order: 3,
+        elements: [{ id: 's', type: 'show-action', actionIds: ['revelee'] }],
+      }),
+    );
+    await TestBed.inject(EditorStore).load(project.id);
+
+    const fixture = TestBed.createComponent(ActionsPanel);
+    await fixture.whenStable();
+    const rows = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.action')];
+
+    const warning = rows[0].querySelector('.action__never-shown');
+    expect(warning?.getAttribute('title')).toBe('Cette action n’est jamais affichée');
+    expect(warning?.nextElementSibling?.classList).toContain('action__icon');
+    expect(rows[1].querySelector('.action__never-shown')).toBeNull();
+    expect(rows[2].querySelector('.action__never-shown')).toBeNull();
+  });
+
   it('« Nouvelle » ouvre l’éditeur d’action et enregistre la nouvelle action (8.1.1)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const project = aProject();

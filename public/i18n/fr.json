@@ -158,6 +158,7 @@
     "missingTarget": "Un élément vise un objet supprimé",
     "noAction": "Aucune action pour cette scène.",
     "hidden": "Masquée au départ en Présentation",
+    "neverShown": "Cette action n’est jamais affichée",
     "hiddenShort": "masquée au départ",
     "summary": {
       "text": "texte",

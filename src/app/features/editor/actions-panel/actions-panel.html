@@ -34,6 +34,15 @@
             @if (!row.action.isSceneText) {
               <svg lucideGripVertical cdkDragHandle class="action__grip" aria-hidden="true"></svg>
             }
+            @if (row.neverShown) {
+              <span
+                class="action__tip action__warning action__never-shown"
+                role="img"
+                [attr.aria-label]="'action.neverShown' | transloco"
+                [attr.title]="'action.neverShown' | transloco"
+                ><svg lucideTriangleExclamationPoint aria-hidden="true"></svg
+              ></span>
+            }
             @if (row.action.trigger === 'scene-open') {
               <svg lucidePlay class="action__icon" aria-hidden="true"></svg>
             } @else {
@@ -43,31 +52,31 @@
               {{ row.action.name }}
             </button>
             @if (row.action.isSceneText) {
-              <svg
-                lucideLock
-                class="action__lock"
+              <span
+                class="action__tip action__lock"
                 role="img"
                 [attr.aria-label]="'action.locked' | transloco"
                 [attr.title]="'action.locked' | transloco"
-              ></svg>
+                ><svg lucideLock aria-hidden="true"></svg
+              ></span>
             }
             @if (row.action.hidden) {
-              <svg
-                lucideEyeOff
-                class="action__lock"
+              <span
+                class="action__tip action__lock"
                 role="img"
                 [attr.aria-label]="'action.hidden' | transloco"
                 [attr.title]="'action.hidden' | transloco"
-              ></svg>
+                ><svg lucideEyeOff aria-hidden="true"></svg
+              ></span>
             }
             @if (row.missing) {
-              <svg
-                lucideTriangleExclamationPoint
-                class="action__warning"
+              <span
+                class="action__tip action__warning"
                 role="img"
                 [attr.aria-label]="'action.missingTarget' | transloco"
                 [attr.title]="'action.missingTarget' | transloco"
-              ></svg>
+                ><svg lucideTriangleExclamationPoint aria-hidden="true"></svg
+              ></span>
             }
           </div>
           <p class="action__summary">

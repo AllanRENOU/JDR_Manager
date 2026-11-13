@@ -13,7 +13,7 @@ import {
 } from '@lucide/angular';
 
 import { pluralKey } from '../../../core/i18n/plural';
-import { Action, Trigger } from '../../../core/models';
+import { Action, Id, Trigger } from '../../../core/models';
 import { Button } from '../../../shared/ui/button/button';
 import { Modals } from '../../../shared/ui/modal/modals';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
@@ -27,6 +27,8 @@ interface ActionRow {
   action: Action;
   parts: ElementSummary[];
   missing: boolean;
+  /** Masquée au départ, et aucun élément « Afficher l'action » d'une autre action ne la vise. */
+  neverShown: boolean;
 }
 
 const TRIGGERS: readonly Trigger[] = ['scene-open', 'manual'];
@@ -111,6 +113,7 @@ export class ActionsPanel {
   /** Actions groupées par déclencheur (groupes vides omis). */
   protected readonly groups = computed(() => {
     const context = this.context();
+    const shownIds = shownActionIds(this.store.actions());
     return TRIGGERS.map((trigger) => ({
       trigger,
       rows: this.store
@@ -118,8 +121,31 @@ export class ActionsPanel {
         .filter((a) => a.trigger === trigger)
         .map<ActionRow>((action) => {
           const parts = action.elements.map((e) => summarizeElement(e, context));
-          return { action, parts, missing: parts.some((p) => p.missing) };
+          return {
+            action,
+            parts,
+            missing: parts.some((p) => p.missing),
+            neverShown: !!action.hidden && !shownIds.get(action.id)?.some((id) => id !== action.id),
+          };
         }),
     })).filter((group) => group.rows.length > 0);
   });
+}
+
+/**
+ * Pour chaque action visée par un élément « Afficher l'action », les ids des actions qui
+ * contiennent cet élément.
+ */
+function shownActionIds(actions: readonly Action[]): Map<Id, Id[]> {
+  const result = new Map<Id, Id[]>();
+  for (const action of actions) {
+    for (const element of action.elements) {
+      if (element.type === 'show-action') {
+        for (const target of element.actionIds) {
+          result.set(target, [...(result.get(target) ?? []), action.id]);
+        }
+      }
+    }
+  }
+  return result;
 }
