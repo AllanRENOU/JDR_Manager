@@ -16,6 +16,7 @@
           cdkFocusInitial
           type="text"
           [id]="nameField.controlId"
+          [placeholder]="'action.editor.namePlaceholder' | transloco"
           [formField]="form.name"
           [attr.aria-invalid]="nameError() ? true : null"
           (blur)="form.name().markAsTouched()"

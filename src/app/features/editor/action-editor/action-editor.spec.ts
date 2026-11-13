@@ -28,7 +28,6 @@ describe('ActionEditor', () => {
         projectId: 'p1',
         sceneName: 'La taverne',
         context,
-        defaultName: 'Nouvelle action',
       },
     });
     TestBed.tick();
@@ -44,11 +43,12 @@ describe('ActionEditor', () => {
     ...dialog.querySelectorAll<HTMLButtonElement>('app-segmented-control button'),
   ];
 
-  it('nouvelle action : nom proposé, clic du MJ par défaut, sans bouton Supprimer (8.1.1)', async () => {
+  it('nouvelle action : nom vide avec indication, clic du MJ par défaut, sans bouton Supprimer (8.1.1)', async () => {
     const { dialog, result } = open(null);
     expect(dialog.textContent).toContain('Nouvelle action');
     expect(dialog.textContent).toContain('Scène : La taverne');
-    expect(nameInput(dialog).value).toBe('Nouvelle action');
+    expect(nameInput(dialog).value).toBe('');
+    expect(nameInput(dialog).placeholder).toBe('Nom de l’action');
     expect(
       segments(dialog).map((s) => [s.textContent?.trim(), s.getAttribute('aria-checked')]),
     ).toEqual([

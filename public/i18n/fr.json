@@ -204,6 +204,7 @@
       "newTitle": "Nouvelle action",
       "subtitle": "Scène : {{ scene }}",
       "name": "Nom",
+      "namePlaceholder": "Nom de l’action",
       "nameRequired": "Donnez un nom à l’action.",
       "trigger": "Déclencheur",
       "sceneTextTrigger": "L’action « Texte de scène » se lance toujours à l’ouverture de la scène.",

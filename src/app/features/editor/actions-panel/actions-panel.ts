@@ -81,7 +81,6 @@ export class ActionsPanel {
         projectId: this.store.project()?.id ?? '',
         sceneName: this.store.selectedNode()?.name ?? '',
         context: this.context(),
-        defaultName: this.transloco.translate('action.new'),
       },
     });
     const result = await firstValueFrom(ref.closed);

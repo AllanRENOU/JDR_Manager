@@ -52,8 +52,6 @@ export interface ActionEditorData {
   sceneName: string;
   /** Noms des sons, battlemaps et scènes, pour présenter les éléments. */
   context: SummaryContext;
-  /** Nom proposé pour une nouvelle action (déjà traduit). */
-  defaultName?: string;
 }
 
 /** Résultat : action à enregistrer, ou à supprimer (confirmation déjà faite). */
@@ -104,7 +102,7 @@ export class ActionEditor {
 
   /** Copie de travail : rien n'est enregistré avant « Enregistrer ». */
   protected readonly draft = signal<ActionDraft>({
-    name: this.data.action?.name ?? this.data.defaultName ?? '',
+    name: this.data.action?.name ?? '',
     trigger: this.data.action?.trigger ?? 'manual',
     hidden: this.data.action?.hidden ?? false,
     elements: structuredClone(this.data.action?.elements ?? []),
