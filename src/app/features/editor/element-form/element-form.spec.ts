@@ -241,6 +241,73 @@ describe('ElementForm', () => {
     expect(el.textContent).toContain('Aucune autre action « Clic du MJ » dans cette scène.');
   });
 
+  it('Masquer l’action : même choix qu’« Afficher l’action », aide et erreur propres', () => {
+    const fixture = TestBed.createComponent(ElementForm);
+    fixture.componentRef.setInput('element', { id: 'e1', type: 'hide-action', actionId: '' });
+    fixture.componentRef.setInput('context', {
+      ...context,
+      actions: [
+        anAction('s1', { id: 'self', name: 'Le garde', trigger: 'manual' }),
+        anAction('s1', { id: 'fuite', name: 'La fuite', trigger: 'manual' }),
+      ],
+    });
+    fixture.componentRef.setInput('sceneId', 's1');
+    fixture.componentRef.setInput('projectId', 'p1');
+    fixture.componentRef.setInput('actionId', 'self');
+    const emitted: ActionElement[] = [];
+    fixture.componentInstance.elementChange.subscribe((e) => emitted.push(e));
+    TestBed.tick();
+    const el = fixture.nativeElement as HTMLElement;
+
+    expect(el.textContent).toContain('Retire l’action de la liste de la Présentation');
+    const labels = [...el.querySelectorAll('label.app-check')].map((l) =>
+      l.textContent?.replace(/\s+/g, ' ').trim(),
+    );
+    expect(labels).toEqual(['Masquer toutes les actions', 'La fuite']);
+    fixture.componentInstance.revealErrors();
+    TestBed.tick();
+    expect(el.textContent).toContain('Choisissez l’action à masquer.');
+
+    el.querySelector<HTMLInputElement>('input[type=radio]')!.click();
+    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'hide-action', actionId: 'fuite' });
+  });
+
+  it('Masquer toutes les actions : case cochée, plus d’action à choisir', () => {
+    const fixture = TestBed.createComponent(ElementForm);
+    fixture.componentRef.setInput('element', { id: 'e1', type: 'hide-action', actionId: 'fuite' });
+    fixture.componentRef.setInput('context', {
+      ...context,
+      actions: [anAction('s1', { id: 'fuite', name: 'La fuite', trigger: 'manual' })],
+    });
+    fixture.componentRef.setInput('sceneId', 's1');
+    fixture.componentRef.setInput('projectId', 'p1');
+    const emitted: ActionElement[] = [];
+    fixture.componentInstance.elementChange.subscribe((e) => emitted.push(e));
+    TestBed.tick();
+    const el = fixture.nativeElement as HTMLElement;
+    const radio = () => el.querySelector<HTMLInputElement>('input[type=radio]')!;
+    const checkbox = () => el.querySelector<HTMLInputElement>('input[type=checkbox]')!;
+    expect(checkbox().parentElement?.textContent).toContain('Masquer toutes les actions');
+    expect(radio().disabled).toBe(false);
+
+    checkbox().click();
+    const all = emitted.at(-1)!;
+    expect(all).toEqual({ id: 'e1', type: 'hide-action', actionId: '', all: true });
+    fixture.componentRef.setInput('element', all);
+    TestBed.tick();
+    expect(radio().disabled).toBe(true);
+    expect(radio().checked).toBe(false);
+    expect(fixture.componentInstance.invalid()).toBe(false);
+
+    checkbox().click();
+    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'hide-action', actionId: '' });
+  });
+
+  it('Afficher l’action : pas de case « toutes les actions »', () => {
+    const { el } = render({ id: 'e1', type: 'show-action', actionId: '' });
+    expect(el.querySelector('input[type=checkbox]')).toBeNull();
+  });
+
   it('Clic de l’utilisateur : texte obligatoire (8.3.8)', () => {
     const { el } = render({ id: 'e1', type: 'user-click', text: 'Il approche.' });
     expect(el.textContent).toContain('(obligatoire)');

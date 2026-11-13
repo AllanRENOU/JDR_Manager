@@ -145,36 +145,11 @@
   }
 
   @case ('show-action') {
-    <!-- Action « au clic du MJ » de la scène à rendre visible en Présentation (ACT-12). -->
-    <fieldset class="group">
-      <legend class="label">{{ 'action.form.targetAction' | transloco }}</legend>
-      <p class="help">{{ 'action.form.showActionHelp' | transloco }}</p>
-      @if (el.actionId && !actionTargetExists()) {
-        <p class="warning">
-          <svg lucideTriangleAlert aria-hidden="true"></svg>
-          {{ 'action.form.actionMissing' | transloco }}
-        </p>
-      }
-      @for (target of actionChoices(); track target.id) {
-        <label class="app-check">
-          <input
-            type="radio"
-            [name]="'show-action-' + el.id"
-            [checked]="target.id === el.actionId"
-            (change)="chooseAction(target.id)"
-          />
-          {{ target.name }}
-          @if (target.hidden) {
-            <span class="help">· {{ 'action.hiddenShort' | transloco }}</span>
-          }
-        </label>
-      } @empty {
-        <p class="help">{{ 'action.form.noManualAction' | transloco }}</p>
-      }
-      @if (choiceError()) {
-        <p class="error">{{ choiceError() | transloco }}</p>
-      }
-    </fieldset>
+    <ng-container *ngTemplateOutlet="actionChoice" />
+  }
+
+  @case ('hide-action') {
+    <ng-container *ngTemplateOutlet="actionChoice" />
   }
 
   @case ('wait') {
@@ -254,5 +229,57 @@
   </button>
   @if (choiceError()) {
     <p class="error">{{ choiceError() | transloco }}</p>
+  }
+</ng-template>
+
+<!-- Action « au clic du MJ » de la scène à rendre visible ou à masquer en Présentation (ACT-12). -->
+<ng-template #actionChoice>
+  @if (actionElement(); as el) {
+    <fieldset class="group">
+      <legend class="label">{{ 'action.form.targetAction' | transloco }}</legend>
+      <p class="help">
+        {{
+          (el.type === 'show-action' ? 'action.form.showActionHelp' : 'action.form.hideActionHelp')
+            | transloco
+        }}
+      </p>
+      @if (el.type === 'hide-action') {
+        <label class="app-check">
+          <input
+            type="checkbox"
+            [checked]="!!el.all"
+            (change)="setHideAll($any($event.target).checked)"
+          />
+          {{ 'action.form.hideAll' | transloco }}
+        </label>
+      }
+      @if (el.actionId && !actionTargetExists()) {
+        <p class="warning">
+          <svg lucideTriangleAlert aria-hidden="true"></svg>
+          {{ 'action.form.actionMissing' | transloco }}
+        </p>
+      }
+      @let allChosen = el.type === 'hide-action' && !!el.all;
+      @for (target of actionChoices(); track target.id) {
+        <label class="app-check">
+          <input
+            type="radio"
+            [name]="el.type + '-' + el.id"
+            [checked]="target.id === el.actionId"
+            [disabled]="allChosen"
+            (change)="chooseAction(target.id)"
+          />
+          {{ target.name }}
+          @if (target.hidden) {
+            <span class="help">· {{ 'action.hiddenShort' | transloco }}</span>
+          }
+        </label>
+      } @empty {
+        <p class="help">{{ 'action.form.noManualAction' | transloco }}</p>
+      }
+      @if (choiceError()) {
+        <p class="error">{{ choiceError() | transloco }}</p>
+      }
+    </fieldset>
   }
 </ng-template>

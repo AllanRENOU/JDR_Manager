@@ -76,4 +76,33 @@ describe('summarizeElement', () => {
       missing: true,
     });
   });
+
+  it('« Masquer l’action » : nom de l’action visée, ou action supprimée (PRS-07)', () => {
+    const withActions: SummaryContext = {
+      ...context,
+      actions: [anAction('s1', { id: 'fuite', name: 'La fuite' })],
+    };
+    expect(
+      summarizeElement({ id: 'e', type: 'hide-action', actionId: 'fuite' }, withActions),
+    ).toEqual({ key: 'action.summary.hideAction', params: { name: 'La fuite' }, missing: false });
+    expect(
+      summarizeElement({ id: 'e', type: 'hide-action', actionId: 'absente' }, withActions),
+    ).toMatchObject({ key: 'action.summary.hideActionMissing', missing: true });
+    expect(
+      describeElement({ id: 'e', type: 'hide-action', actionId: 'fuite' }, withActions),
+    ).toEqual({ raw: 'La fuite', missing: false });
+  });
+
+  it('« Masquer toutes les actions » : aucune cible, jamais signalé', () => {
+    const element = { id: 'e', type: 'hide-action' as const, actionId: '', all: true };
+    expect(summarizeElement(element, context)).toEqual({
+      key: 'action.summary.hideAllActions',
+      params: {},
+      missing: false,
+    });
+    expect(describeElement(element, context)).toEqual({
+      key: 'action.detail.allActions',
+      missing: false,
+    });
+  });
 });

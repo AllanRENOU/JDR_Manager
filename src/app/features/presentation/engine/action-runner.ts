@@ -5,6 +5,7 @@ import {
   ActionElement,
   AddTextElement,
   ChangeSceneElement,
+  HideActionElement,
   Id,
   PlaySoundElement,
   ShowActionElement,
@@ -61,6 +62,11 @@ export interface ActionContext {
    * introuvable est signalée.
    */
   showAction(element: ShowActionElement): void;
+  /**
+   * Masque une action de la scène dans la liste (ou toutes avec `all`), comme une action masquée
+   * au départ (une action en cours se termine normalement) ; une action introuvable est signalée.
+   */
+  hideAction(element: HideActionElement): void;
   /** Marque l'action comme effectuée dans la scène (CTL-01). */
   markDone(action: Action): void;
 }
@@ -121,6 +127,9 @@ export class ActionRunner {
           break;
         case 'show-action':
           context.showAction(element);
+          break;
+        case 'hide-action':
+          context.hideAction(element);
           break;
         case 'wait':
           await context.wait(element, signal);

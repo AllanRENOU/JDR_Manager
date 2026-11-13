@@ -841,7 +841,7 @@ function copyElement(
   const copy = { ...element, id: newId() };
   if (copy.type === 'show-battlemap') {
     copy.battlemapId = battlemapIds.get(copy.battlemapId) ?? copy.battlemapId;
-  } else if (copy.type === 'show-action') {
+  } else if (copy.type === 'show-action' || copy.type === 'hide-action') {
     copy.actionId = actionIds.get(copy.actionId) ?? copy.actionId;
   }
   return copy;

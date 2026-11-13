@@ -29,6 +29,7 @@ export const ELEMENT_TONES: Record<ActionElementType, PillTone> = {
   'user-click': 'click',
   'change-scene': 'scene',
   'show-action': 'action',
+  'hide-action': 'action',
 };
 
 /**

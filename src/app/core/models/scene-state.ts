@@ -20,6 +20,11 @@ export interface SceneState {
    * (ACT-12). Absent dans les parties enregistrées avant cette propriété.
    */
   shownActionIds?: Id[];
+  /**
+   * Actions masquées par « Masquer l'action » ; « Afficher l'action » les en retire. Absent dans
+   * les parties enregistrées avant cette propriété.
+   */
+  hiddenActionIds?: Id[];
   currentBattlemapId: Id | null;
   playingSounds: PlayingSound[];
   feed: FeedItem[];

@@ -170,7 +170,7 @@ describe('ActionEditor', () => {
     await vi.waitFor(() => {
       TestBed.tick();
       expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
-        'Elle est affichée par 1 autre action, qui la signalera comme introuvable.',
+        'Elle est affichée ou masquée par 1 autre action, qui la signalera comme introuvable.',
       );
     });
   });
@@ -182,7 +182,7 @@ describe('ActionEditor', () => {
         `${c.querySelector('.card__type')?.textContent?.trim()} ${c.querySelector('.card__detail')?.textContent?.trim()}`.trim(),
       );
 
-    it('ajoute un élément par le menu des 9 types, à la fin, seul déplié (8.2.3)', async () => {
+    it('ajoute un élément par le menu des 10 types, à la fin, seul déplié (8.2.3)', async () => {
       const { dialog, result } = open(
         anAction('s1', { name: 'Bagarre', elements: [text('a', 'Un')] }),
       );
@@ -192,7 +192,7 @@ describe('ActionEditor', () => {
       button(dialog, 'Ajouter un élément').click();
       await vi.waitFor(() => {
         TestBed.tick();
-        expect(document.querySelectorAll('.types-menu .app-menu-item')).toHaveLength(9);
+        expect(document.querySelectorAll('.types-menu .app-menu-item')).toHaveLength(10);
       });
       const items = [...document.querySelectorAll<HTMLButtonElement>('.types-menu .app-menu-item')];
       expect(items.map((i) => i.textContent?.trim())).toEqual([
@@ -203,10 +203,11 @@ describe('ActionEditor', () => {
         'Afficher un texte',
         'Changer de scène',
         'Afficher l’action',
+        'Masquer l’action',
         'Attendre',
         'Clic de l’utilisateur',
       ]);
-      items[7].click();
+      items[8].click();
       TestBed.tick();
       expect(titles(dialog)).toEqual(['Afficher un texte Un', 'Attendre 1 s']);
       const cards = [...dialog.querySelectorAll('app-element-card')];

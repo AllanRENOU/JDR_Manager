@@ -495,6 +495,163 @@ describe('PresentationEngine', () => {
     });
   });
 
+  describe('Masquer l’action', () => {
+    const state = () => engine.manualActions().map((m) => [m.action.id, m.done, m.hidden] as const);
+
+    it('masque une action visible (œil barré), « Afficher l’action » la fait réapparaître', async () => {
+      await seed([
+        anAction('A', {
+          id: 'fuite',
+          name: 'La fuite',
+          order: 3,
+          elements: [text('t-f', 'Ils fuient.')],
+        }),
+        anAction('A', {
+          id: 'cacher',
+          name: 'Cacher',
+          order: 4,
+          elements: [{ id: 'ha', type: 'hide-action', actionId: 'fuite' }],
+        }),
+        anAction('A', {
+          id: 'montrer',
+          name: 'Montrer',
+          order: 5,
+          elements: [{ id: 'sa', type: 'show-action', actionId: 'fuite' }],
+        }),
+      ]);
+      await startAt('A');
+      expect(state()[0]).toEqual(['fuite', false, false]);
+
+      await engine.runAction('cacher');
+      expect(state()[0]).toEqual(['fuite', false, true]);
+      expect((await savedSession())?.scenes['A'].hiddenActionIds).toEqual(['fuite']);
+
+      await engine.runAction('montrer');
+      expect(state()[0]).toEqual(['fuite', false, false]);
+      expect((await savedSession())?.scenes['A'].hiddenActionIds).toEqual([]);
+    });
+
+    it('masque une action masquée au départ puis affichée', async () => {
+      await seed([
+        anAction('A', {
+          id: 'fuite',
+          name: 'La fuite',
+          order: 3,
+          hidden: true,
+          elements: [text('t-f', 'Ils fuient.')],
+        }),
+        anAction('A', {
+          id: 'montrer',
+          name: 'Montrer',
+          order: 4,
+          elements: [{ id: 'sa', type: 'show-action', actionId: 'fuite' }],
+        }),
+        anAction('A', {
+          id: 'cacher',
+          name: 'Cacher',
+          order: 5,
+          elements: [{ id: 'ha', type: 'hide-action', actionId: 'fuite' }],
+        }),
+      ]);
+      await startAt('A');
+      await engine.runAction('montrer');
+      expect(state()[0]).toEqual(['fuite', false, false]);
+      await engine.runAction('cacher');
+      expect(state()[0]).toEqual(['fuite', false, true]);
+    });
+
+    it('action terminée : reste terminée (✓) ; action en cours : se termine normalement', async () => {
+      await seed([
+        anAction('A', {
+          id: 'garde',
+          name: 'Le garde',
+          order: 3,
+          elements: [
+            { id: 'uc', type: 'user-click', text: 'Il approche.' },
+            text('t-g', 'Halte !'),
+          ],
+        }),
+        anAction('A', {
+          id: 'cacher',
+          name: 'Cacher',
+          order: 4,
+          elements: [{ id: 'ha', type: 'hide-action', actionId: 'garde' }],
+        }),
+      ]);
+      await startAt('A');
+      const running = engine.runAction('garde');
+      await vi.waitFor(() => expect(engine.feed().some((i) => i.type === 'user-click')).toBe(true));
+      await engine.runAction('cacher');
+      expect(state()[0]).toEqual(['garde', false, true]);
+      const click = engine.feed().find((i) => i.type === 'user-click')!;
+      engine.continueClick(click.id);
+      await running;
+      expect(feedTexts()).toContain('Halte !');
+      expect(state()[0]).toEqual(['garde', true, true]);
+    });
+
+    it('masquer toutes les actions : toutes les actions « Clic du MJ » de la scène sont masquées', async () => {
+      await seed([
+        anAction('A', {
+          id: 'fuite',
+          name: 'La fuite',
+          order: 3,
+          elements: [text('t-f', 'Ils fuient.')],
+        }),
+        anAction('A', {
+          id: 'garde',
+          name: 'Le garde',
+          order: 4,
+          hidden: true,
+          elements: [text('t-g', 'Halte !')],
+        }),
+        anAction('A', {
+          id: 'montrer',
+          name: 'Montrer',
+          order: 5,
+          elements: [{ id: 'sa', type: 'show-action', actionId: 'garde' }],
+        }),
+        anAction('A', {
+          id: 'tout',
+          name: 'Tout masquer',
+          order: 6,
+          elements: [{ id: 'ha', type: 'hide-action', actionId: '', all: true }],
+        }),
+      ]);
+      await startAt('A');
+      await engine.runAction('montrer');
+      expect(
+        engine
+          .manualActions()
+          .filter((m) => !m.hidden)
+          .map((m) => m.action.id),
+      ).toEqual(['fuite', 'garde', 'tout']);
+
+      await engine.runAction('tout');
+      expect(engine.manualActions().every((m) => m.hidden)).toBe(true);
+      expect(errors()).toEqual([]);
+      expect(state().find(([id]) => id === 'fuite')).toEqual(['fuite', false, true]);
+    });
+
+    it('« Masquer l’action » vers une action supprimée : signalé, la partie continue', async () => {
+      await seed([
+        anAction('A', {
+          id: 'cacher',
+          name: 'Cacher',
+          order: 3,
+          elements: [
+            { id: 'ha', type: 'hide-action', actionId: 'disparue' },
+            text('t-c', 'Après.'),
+          ],
+        }),
+      ]);
+      await startAt('A');
+      await engine.runAction('cacher');
+      expect(errors()).toContain('L’action à masquer a été supprimée : rien ne change.');
+      expect(feedTexts()).toContain('Après.');
+    });
+  });
+
   describe('Attendre : ligne du fil avec le temps restant', () => {
     beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] }));
     afterEach(() => vi.useRealTimers());

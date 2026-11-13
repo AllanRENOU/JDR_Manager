@@ -125,29 +125,50 @@ export class ElementForm {
   /** Scène de l'action : non sélectionnable comme cible de « Changer de scène ». */
   readonly sceneId = input.required<Id>();
   readonly projectId = input.required<Id>();
-  /** Action modifiée (`null` : nouvelle) : non sélectionnable comme cible d'« Afficher l'action ». */
+  /**
+   * Action modifiée (`null` : nouvelle) : non sélectionnable comme cible d'« Afficher l'action » ou
+   * de « Masquer l'action ».
+   */
   readonly actionId = input<Id | null>(null);
 
   readonly elementChange = output<ActionElement>();
 
-  /** Cibles possibles d'« Afficher l'action » : actions « au clic du MJ » de la scène (ACT-12). */
+  /**
+   * Cibles possibles d'« Afficher l'action » et de « Masquer l'action » : actions « au clic du MJ »
+   * de la scène (ACT-12).
+   */
   protected readonly actionChoices = computed(() =>
     (this.context().actions ?? []).filter(
       (a) => a.trigger === 'manual' && a.id !== this.actionId(),
     ),
   );
+  /** Élément « Afficher l'action » ou « Masquer l'action » ; `null` pour les autres types. */
+  protected readonly actionElement = computed(() => {
+    const element = this.element();
+    return element.type === 'show-action' || element.type === 'hide-action' ? element : null;
+  });
   /** L'action visée existe encore dans la scène (sinon elle est signalée, PRS-07). */
   protected readonly actionTargetExists = computed(() => {
-    const element = this.element();
-    return (
-      element.type === 'show-action' &&
-      (this.context().actions ?? []).some((a) => a.id === element.actionId)
-    );
+    const element = this.actionElement();
+    return !!element && (this.context().actions ?? []).some((a) => a.id === element.actionId);
   });
 
-  protected chooseAction(actionId: Id): void {
+  /** « Masquer toutes les actions » : plus d'action à choisir (le choix précédent est effacé). */
+  protected setHideAll(all: boolean): void {
     const element = this.element();
-    if (element.type === 'show-action') {
+    if (element.type !== 'hide-action') {
+      return;
+    }
+    this.elementChange.emit(
+      all
+        ? { ...element, actionId: '', all: true }
+        : { id: element.id, type: element.type, actionId: element.actionId },
+    );
+  }
+
+  protected chooseAction(actionId: Id): void {
+    const element = this.actionElement();
+    if (element) {
       this.elementChange.emit({ ...element, actionId });
     }
   }

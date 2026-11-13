@@ -67,6 +67,19 @@ export interface ShowActionElement extends BaseElement {
   actionId: Id;
 }
 
+/**
+ * Masque, dans la liste des actions de la Présentation, une action « au clic du MJ » de la même
+ * scène, comme une action masquée au départ ; une action en cours d'exécution se termine
+ * normalement. « Afficher l'action » la rend de nouveau visible.
+ */
+export interface HideActionElement extends BaseElement {
+  type: 'hide-action';
+  /** Id d'une action de la même scène ; vide si `all`. */
+  actionId: Id;
+  /** Masque toutes les actions « au clic du MJ » de la scène (aucune action à choisir). */
+  all?: boolean;
+}
+
 /** Affiche un texte et attend le clic « Cliquer pour continuer ». */
 export interface UserClickElement extends BaseElement {
   type: 'user-click';
@@ -83,7 +96,8 @@ export type ActionElement =
   | ChangeSceneElement
   | WaitElement
   | UserClickElement
-  | ShowActionElement;
+  | ShowActionElement
+  | HideActionElement;
 
 /** Type d'élément d'action. */
 export type ActionElementType = ActionElement['type'];
@@ -99,4 +113,5 @@ export const ACTION_ELEMENT_TYPES: readonly ActionElementType[] = [
   'user-click',
   'change-scene',
   'show-action',
+  'hide-action',
 ];

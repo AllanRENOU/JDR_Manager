@@ -40,6 +40,7 @@ describe('Pill', () => {
   it('associe une couleur à chaque type d’élément', () => {
     expect(ELEMENT_TONES['play-sound']).toBe('sound');
     expect(ELEMENT_TONES['stop-sound']).toBe('stop-all');
-    expect(Object.keys(ELEMENT_TONES)).toHaveLength(9);
+    expect(ELEMENT_TONES['hide-action']).toBe('action');
+    expect(Object.keys(ELEMENT_TONES)).toHaveLength(10);
   });
 });

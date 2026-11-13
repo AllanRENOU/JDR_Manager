@@ -155,6 +155,10 @@ export class PresentationEngine {
   private readonly shownActionIds = computed<ReadonlySet<Id>>(
     () => new Set(this.sceneState()?.shownActionIds ?? []),
   );
+  /** Actions masquées par « Masquer l'action ». */
+  private readonly hiddenActionIds = computed<ReadonlySet<Id>>(
+    () => new Set(this.sceneState()?.hiddenActionIds ?? []),
+  );
   readonly shownBattlemap = computed<ShownBattlemap | null>(() => {
     const id = this.sceneState()?.currentBattlemapId;
     return id ? { id, battlemap: this.battlemaps().find((b) => b.id === id) ?? null } : null;
@@ -169,7 +173,10 @@ export class PresentationEngine {
         return {
           action,
           done,
-          hidden: done || (!!action.hidden && !this.shownActionIds().has(action.id)),
+          hidden:
+            done ||
+            this.hiddenActionIds().has(action.id) ||
+            (!!action.hidden && !this.shownActionIds().has(action.id)),
           running: this.runningActionIds().has(action.id),
         };
       }),
@@ -524,13 +531,47 @@ export class PresentationEngine {
           this.notifications.error(this.transloco.translate('presentation.errors.missingAction'));
           return;
         }
-        // Même traitement pour une action terminée et une action masquée au départ : elle
-        // redevient disponible dans la liste.
+        // Même traitement pour une action terminée, masquée au départ ou par « Masquer
+        // l'action » : elle redevient disponible dans la liste.
         this.store.updateScene(sceneId, (state) => ({
           ...state,
           doneActionIds: state.doneActionIds.filter((id) => id !== element.actionId),
+          hiddenActionIds: (state.hiddenActionIds ?? []).filter((id) => id !== element.actionId),
           shownActionIds: [
             ...(state.shownActionIds ?? []).filter((id) => id !== element.actionId),
+            element.actionId,
+          ],
+        }));
+      },
+      hideAction: (element) => {
+        if (element.all) {
+          // Toutes les actions « au clic du MJ » de la scène, celle-ci comprise.
+          const ids = [...this.actions().values()]
+            .filter((a) => a.trigger === 'manual')
+            .map((a) => a.id);
+          this.store.updateScene(sceneId, (state) => ({
+            ...state,
+            shownActionIds: (state.shownActionIds ?? []).filter((id) => !ids.includes(id)),
+            hiddenActionIds: [
+              ...(state.hiddenActionIds ?? []).filter((id) => !ids.includes(id)),
+              ...ids,
+            ],
+          }));
+          return;
+        }
+        if (!this.actions().has(element.actionId)) {
+          this.notifications.error(
+            this.transloco.translate('presentation.errors.missingActionToHide'),
+          );
+          return;
+        }
+        // Masquée comme au départ ; une action terminée reste terminée (✓). Une action en cours
+        // se termine normalement.
+        this.store.updateScene(sceneId, (state) => ({
+          ...state,
+          shownActionIds: (state.shownActionIds ?? []).filter((id) => id !== element.actionId),
+          hiddenActionIds: [
+            ...(state.hiddenActionIds ?? []).filter((id) => id !== element.actionId),
             element.actionId,
           ],
         }));

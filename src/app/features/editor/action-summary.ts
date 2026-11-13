@@ -7,7 +7,7 @@ export interface SummaryContext {
   soundNodes?: readonly SoundNode[];
   battlemaps: readonly Battlemap[];
   sceneNodes: readonly SceneNode[];
-  /** Actions de la scène : cible de « Afficher l'action » (ACT-12). */
+  /** Actions de la scène : cible de « Afficher l'action » et « Masquer l'action » (ACT-12). */
   actions?: readonly Action[];
 }
 
@@ -50,11 +50,16 @@ export function summarizeElement(element: ActionElement, context: SummaryContext
       return { key: 'action.summary.wait', params: { seconds: element.seconds }, missing: false };
     case 'user-click':
       return { key: 'action.summary.click', params: {}, missing: false };
-    case 'show-action': {
+    case 'show-action':
+    case 'hide-action': {
+      if (element.type === 'hide-action' && element.all) {
+        return { key: 'action.summary.hideAllActions', params: {}, missing: false };
+      }
       const target = context.actions?.find((a) => a.id === element.actionId);
+      const verb = element.type === 'show-action' ? 'showAction' : 'hideAction';
       return target
-        ? { key: 'action.summary.showAction', params: { name: target.name }, missing: false }
-        : { key: 'action.summary.showActionMissing', params: {}, missing: true };
+        ? { key: `action.summary.${verb}`, params: { name: target.name }, missing: false }
+        : { key: `action.summary.${verb}Missing`, params: {}, missing: true };
     }
   }
 }
@@ -100,6 +105,10 @@ export function describeElement(element: ActionElement, context: SummaryContext)
     case 'wait':
       return { key: 'action.detail.seconds', params: { count: element.seconds }, missing: false };
     case 'show-action':
+    case 'hide-action':
+      if (element.type === 'hide-action' && element.all) {
+        return { key: 'action.detail.allActions', missing: false };
+      }
       return target(
         element.actionId,
         context.actions?.find((a) => a.id === element.actionId)?.name,

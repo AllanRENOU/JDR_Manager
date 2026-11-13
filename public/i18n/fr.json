@@ -173,7 +173,10 @@
       "wait": "attente {{ seconds }} s",
       "click": "clic",
       "showAction": "afficher « {{ name }} »",
-      "showActionMissing": "afficher une action supprimée"
+      "showActionMissing": "afficher une action supprimée",
+      "hideAction": "masquer « {{ name }} »",
+      "hideActionMissing": "masquer une action supprimée",
+      "hideAllActions": "masquer toutes les actions"
     },
     "types": {
       "show-battlemap": "Afficher une battlemap",
@@ -184,13 +187,15 @@
       "change-scene": "Changer de scène",
       "wait": "Attendre",
       "user-click": "Clic de l’utilisateur",
-      "show-action": "Afficher l’action"
+      "show-action": "Afficher l’action",
+      "hide-action": "Masquer l’action"
     },
     "detail": {
       "noText": "Texte à saisir",
       "notChosen": "À choisir",
       "deleted": "Supprimé",
-      "seconds": "{{ count }} s"
+      "seconds": "{{ count }} s",
+      "allActions": "Toutes les actions"
     },
     "editor": {
       "editTitle": "Modifier l’action",
@@ -211,8 +216,8 @@
       "deleteTitle": "Supprimer « {{ name }} » ?",
       "deleteMessage": "L’action et ses éléments seront supprimés. Cette action est irréversible.",
       "deleteShownMessage": {
-        "one": "L’action et ses éléments seront supprimés. Elle est affichée par {{ count }} autre action, qui la signalera comme introuvable. Cette action est irréversible.",
-        "other": "L’action et ses éléments seront supprimés. Elle est affichée par {{ count }} autres actions, qui la signaleront comme introuvable. Cette action est irréversible."
+        "one": "L’action et ses éléments seront supprimés. Elle est affichée ou masquée par {{ count }} autre action, qui la signalera comme introuvable. Cette action est irréversible.",
+        "other": "L’action et ses éléments seront supprimés. Elle est affichée ou masquée par {{ count }} autres actions, qui la signaleront comme introuvable. Cette action est irréversible."
       },
       "saved": "Action « {{ name }} » enregistrée.",
       "deleted": "Action « {{ name }} » supprimée.",
@@ -264,9 +269,12 @@
       "sceneRequired": "Choisissez la scène cible.",
       "targetAction": "Action à afficher",
       "showActionHelp": "Fait apparaître l’action dans la liste de la Présentation, qu’elle soit masquée au départ ou terminée.",
+      "hideActionHelp": "Retire l’action de la liste de la Présentation, comme une action masquée au départ. Si elle est en cours, elle se termine normalement. « Afficher l’action » la fait réapparaître.",
       "actionMissing": "Action supprimée",
       "noManualAction": "Aucune autre action « Clic du MJ » dans cette scène.",
-      "actionRequired": "Choisissez l’action à afficher."
+      "actionRequired": "Choisissez l’action à afficher.",
+      "hideActionRequired": "Choisissez l’action à masquer.",
+      "hideAll": "Masquer toutes les actions"
     }
   },
   "presentation": {
@@ -291,7 +299,8 @@
     "errors": {
       "missingSound": "Un son a été supprimé du projet : il n’est pas lancé.",
       "missingScene": "La scène cible de « Changer de scène » a été supprimée : la scène ne change pas.",
-      "missingAction": "L’action à afficher a été supprimée : rien ne change."
+      "missingAction": "L’action à afficher a été supprimée : rien ne change.",
+      "missingActionToHide": "L’action à masquer a été supprimée : rien ne change."
     },
     "launch": {
       "savedTitle": "Une partie est en cours",

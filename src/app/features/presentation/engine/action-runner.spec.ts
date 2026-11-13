@@ -22,6 +22,7 @@ describe('ActionRunner', () => {
       stopSound: (e) => log.push(`arrêter:${e.soundId}`),
       stopAllSounds: () => log.push('arrêter-tout'),
       showAction: (e) => log.push(`afficher:${e.actionId}`),
+      hideAction: (e) => log.push(`masquer:${e.actionId}`),
       waitForUserClick: (_a, e, signal) =>
         new Promise<void>((resolve, reject) => {
           log.push(e.type === 'change-scene' ? `aller:${e.sceneId}` : `clic:${e.text}`);
@@ -59,6 +60,7 @@ describe('ActionRunner', () => {
         { id: 'd', type: 'stop-sound', soundId: 'pluie' },
         { id: 'e', type: 'stop-all-sounds' },
         { id: 'g', type: 'show-action', actionId: 'fuite' },
+        { id: 'h', type: 'hide-action', actionId: 'garde' },
         { id: 'f', type: 'add-text', text: 'Deux' },
       ]),
       context,
@@ -72,6 +74,7 @@ describe('ActionRunner', () => {
       'arrêter:pluie',
       'arrêter-tout',
       'afficher:fuite',
+      'masquer:garde',
       'texte:Deux',
       'effectuée:Bagarre',
     ]);

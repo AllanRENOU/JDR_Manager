@@ -285,7 +285,8 @@ type ActionElement =
   | { id: Id; type: 'change-scene'; sceneId: Id }
   | { id: Id; type: 'wait'; seconds: number; text?: string } // texte facultatif, montré pendant l'attente
   | { id: Id; type: 'user-click'; text: string }
-  | { id: Id; type: 'show-action'; actionId: Id }; // action de la même scène (ACT-12)
+  | { id: Id; type: 'show-action'; actionId: Id }  // action de la même scène (ACT-12)
+  | { id: Id; type: 'hide-action'; actionId: Id; all?: boolean }; // action de la même scène, ou toutes (`all`, `actionId` vide) (ACT-13)
 
 /** Partie sauvegardée (une par projet en V1) */
 interface PlaySession {
@@ -299,6 +300,7 @@ interface SceneState {
   visited: boolean;
   doneActionIds: Id[];
   shownActionIds?: Id[];        // masquées au départ, affichées par « Afficher l'action » (ACT-12)
+  hiddenActionIds?: Id[];       // masquées par « Masquer l'action », retirées par « Afficher l'action » (ACT-13)
   currentBattlemapId: Id | null;
   playingSounds: { soundId: Id; elementId: Id | null; paused: boolean; volume: number }[];  // elementId → paramètres de lecture ; volume = réglage en direct
   feed: FeedItem[];

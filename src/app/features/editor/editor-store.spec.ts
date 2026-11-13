@@ -292,6 +292,7 @@ describe('EditorStore', () => {
           { id: 'e1', type: 'show-battlemap', battlemapId: map.id },
           { id: 'e2', type: 'change-scene', sceneId: market.id },
           { id: 'e3', type: 'show-action', actionId: text.id },
+          { id: 'e4', type: 'hide-action', actionId: text.id },
         ],
       });
       await repository().saveBattlemap(map);
@@ -336,6 +337,7 @@ describe('EditorStore', () => {
         { id: expect.not.stringMatching(/^e2$/), type: 'change-scene', sceneId: market.id },
         // « Afficher l'action » vise la copie de l'action (ACT-12).
         { id: expect.not.stringMatching(/^e3$/), type: 'show-action', actionId: actions[0].id },
+        { id: expect.not.stringMatching(/^e4$/), type: 'hide-action', actionId: actions[0].id },
       ]);
       // L'original n'a pas changé.
       expect((await repository().listActions(tavern.id))[1].elements[0]).toMatchObject({

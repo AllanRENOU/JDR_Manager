@@ -237,10 +237,15 @@ export class ActionEditor {
   /** Supprime l'action après confirmation (NF-31) ; impossible pour « Texte de scène ». */
   protected async remove(): Promise<void> {
     const name = this.data.action?.name ?? '';
-    // Actions qui la font apparaître : elles la signaleront comme introuvable (PRS-07).
+    // Actions qui la font apparaître ou la masquent : elles la signaleront comme introuvable
+    // (PRS-07).
     const id = this.data.action?.id;
     const users = (this.data.context.actions ?? []).filter(
-      (a) => a.id !== id && a.elements.some((e) => e.type === 'show-action' && e.actionId === id),
+      (a) =>
+        a.id !== id &&
+        a.elements.some(
+          (e) => (e.type === 'show-action' || e.type === 'hide-action') && e.actionId === id,
+        ),
     ).length;
     const confirmed = await this.modals.confirm({
       title: this.transloco.translate('action.editor.deleteTitle', { name }),
