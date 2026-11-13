@@ -88,6 +88,6 @@ export function newElement(type: ActionElementType): ActionElement {
       return { id, type, text: '' };
     case 'show-action':
     case 'hide-action':
-      return { id, type, actionId: '' };
+      return { id, type, actionIds: [] };
   }
 }

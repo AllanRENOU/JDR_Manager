@@ -1,4 +1,4 @@
-import { DBSchema, IDBPDatabase, openDB } from 'idb';
+import { DBSchema, IDBPDatabase, IDBPObjectStore, openDB } from 'idb';
 
 import {
   Action,
@@ -16,7 +16,7 @@ import {
 export const DB_NAME = 'jdr-manager';
 
 /** Version courante du schéma (TEC-25). Toute modification du schéma l'incrémente. */
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 /** Schéma IndexedDB (TRD §4.2), typé pour `idb`. */
 export interface JdrDbSchema extends DBSchema {
@@ -50,7 +50,7 @@ export type JdrStoreName =
  */
 export function openJdrDb(name: string = DB_NAME): Promise<JdrDb> {
   return openDB<JdrDbSchema>(name, DB_VERSION, {
-    upgrade(db, oldVersion) {
+    upgrade(db, oldVersion, _newVersion, transaction) {
       if (oldVersion < 1) {
         db.createObjectStore('projects', { keyPath: 'id' });
 
@@ -70,10 +70,48 @@ export function openJdrDb(name: string = DB_NAME): Promise<JdrDb> {
         db.createObjectStore('media', { keyPath: 'id' });
         db.createObjectStore('playSessions', { keyPath: 'projectId' });
       }
+      if (oldVersion < 2) {
+        // « Afficher / Masquer l'action » visent une liste d'actions : `actionId` → `actionIds`.
+        void migrateActionTargets(transaction.objectStore('actions'));
+      }
     },
     blocking(_currentVersion, _blockedVersion, event) {
       // Un autre onglet ouvre une version plus récente : on libère la base pour ne pas le bloquer.
       (event.target as IDBDatabase).close();
     },
   });
+}
+
+/** Élément « Afficher / Masquer l'action » enregistré avant la version 2 du schéma. */
+interface LegacyActionTarget {
+  type: string;
+  actionId?: string;
+  actionIds?: string[];
+}
+
+/**
+ * Version 2 : les éléments `show-action` / `hide-action` passent d'une cible (`actionId`) à une
+ * liste (`actionIds`). Un `actionId` vide (« Masquer toutes les actions ») donne une liste vide.
+ */
+async function migrateActionTargets(
+  store: IDBPObjectStore<JdrDbSchema, ArrayLike<JdrStoreName>, 'actions', 'versionchange'>,
+): Promise<void> {
+  let cursor = await store.openCursor();
+  while (cursor) {
+    const action = cursor.value;
+    let changed = false;
+    const elements = action.elements.map((element) => {
+      const legacy = element as unknown as LegacyActionTarget;
+      if ((legacy.type !== 'show-action' && legacy.type !== 'hide-action') || legacy.actionIds) {
+        return element;
+      }
+      changed = true;
+      const { actionId, ...rest } = legacy;
+      return { ...rest, actionIds: actionId ? [actionId] : [] } as unknown as typeof element;
+    });
+    if (changed) {
+      await cursor.update({ ...action, elements });
+    }
+    cursor = await cursor.continue();
+  }
 }

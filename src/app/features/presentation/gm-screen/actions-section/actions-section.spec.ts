@@ -67,7 +67,7 @@ describe('ActionsSection', () => {
         id: 'garde',
         name: 'Le garde',
         order: 2,
-        elements: [{ id: 'sa', type: 'show-action', actionId: 'fuite' }],
+        elements: [{ id: 'sa', type: 'show-action', actionIds: ['fuite'] }],
       }),
       anAction('A', {
         id: 'fuite',

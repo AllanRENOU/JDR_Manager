@@ -21,8 +21,8 @@ describe('ActionRunner', () => {
       playSound: (e) => log.push(`lancer:${e.soundId}`),
       stopSound: (e) => log.push(`arrêter:${e.soundId}`),
       stopAllSounds: () => log.push('arrêter-tout'),
-      showAction: (e) => log.push(`afficher:${e.actionId}`),
-      hideAction: (e) => log.push(`masquer:${e.actionId}`),
+      showAction: (e) => log.push(`afficher:${e.actionIds.join()}`),
+      hideAction: (e) => log.push(`masquer:${e.actionIds.join()}`),
       waitForUserClick: (_a, e, signal) =>
         new Promise<void>((resolve, reject) => {
           log.push(e.type === 'change-scene' ? `aller:${e.sceneId}` : `clic:${e.text}`);
@@ -59,8 +59,8 @@ describe('ActionRunner', () => {
         },
         { id: 'd', type: 'stop-sound', soundId: 'pluie' },
         { id: 'e', type: 'stop-all-sounds' },
-        { id: 'g', type: 'show-action', actionId: 'fuite' },
-        { id: 'h', type: 'hide-action', actionId: 'garde' },
+        { id: 'g', type: 'show-action', actionIds: ['fuite'] },
+        { id: 'h', type: 'hide-action', actionIds: ['garde'] },
         { id: 'f', type: 'add-text', text: 'Deux' },
       ]),
       context,

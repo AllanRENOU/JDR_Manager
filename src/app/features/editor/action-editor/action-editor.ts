@@ -244,7 +244,10 @@ export class ActionEditor {
       (a) =>
         a.id !== id &&
         a.elements.some(
-          (e) => (e.type === 'show-action' || e.type === 'hide-action') && e.actionId === id,
+          (e) =>
+            (e.type === 'show-action' || e.type === 'hide-action') &&
+            !!id &&
+            e.actionIds.includes(id),
         ),
     ).length;
     const confirmed = await this.modals.confirm({

@@ -63,15 +63,15 @@ describe('summarizeElement', () => {
       actions: [anAction('s1', { id: 'fuite', name: 'La fuite' })],
     };
     expect(
-      summarizeElement({ id: 'e', type: 'show-action', actionId: 'fuite' }, withActions),
+      summarizeElement({ id: 'e', type: 'show-action', actionIds: ['fuite'] }, withActions),
     ).toEqual({ key: 'action.summary.showAction', params: { name: 'La fuite' }, missing: false });
     expect(
-      summarizeElement({ id: 'e', type: 'show-action', actionId: 'absente' }, withActions),
+      summarizeElement({ id: 'e', type: 'show-action', actionIds: ['absente'] }, withActions),
     ).toMatchObject({ key: 'action.summary.showActionMissing', missing: true });
     expect(
-      describeElement({ id: 'e', type: 'show-action', actionId: 'fuite' }, withActions),
+      describeElement({ id: 'e', type: 'show-action', actionIds: ['fuite'] }, withActions),
     ).toEqual({ raw: 'La fuite', missing: false });
-    expect(describeElement({ id: 'e', type: 'show-action', actionId: '' }, withActions)).toEqual({
+    expect(describeElement({ id: 'e', type: 'show-action', actionIds: [] }, withActions)).toEqual({
       key: 'action.detail.notChosen',
       missing: true,
     });
@@ -83,18 +83,43 @@ describe('summarizeElement', () => {
       actions: [anAction('s1', { id: 'fuite', name: 'La fuite' })],
     };
     expect(
-      summarizeElement({ id: 'e', type: 'hide-action', actionId: 'fuite' }, withActions),
+      summarizeElement({ id: 'e', type: 'hide-action', actionIds: ['fuite'] }, withActions),
     ).toEqual({ key: 'action.summary.hideAction', params: { name: 'La fuite' }, missing: false });
     expect(
-      summarizeElement({ id: 'e', type: 'hide-action', actionId: 'absente' }, withActions),
+      summarizeElement({ id: 'e', type: 'hide-action', actionIds: ['absente'] }, withActions),
     ).toMatchObject({ key: 'action.summary.hideActionMissing', missing: true });
     expect(
-      describeElement({ id: 'e', type: 'hide-action', actionId: 'fuite' }, withActions),
+      describeElement({ id: 'e', type: 'hide-action', actionIds: ['fuite'] }, withActions),
     ).toEqual({ raw: 'La fuite', missing: false });
   });
 
+  it('« Afficher / Masquer l’action » vers plusieurs actions : nombre et noms, supprimée signalée', () => {
+    const withActions: SummaryContext = {
+      ...context,
+      actions: [
+        anAction('s1', { id: 'fuite', name: 'La fuite' }),
+        anAction('s1', { id: 'garde', name: 'Le garde' }),
+      ],
+    };
+    expect(
+      summarizeElement(
+        { id: 'e', type: 'hide-action', actionIds: ['fuite', 'garde'] },
+        withActions,
+      ),
+    ).toEqual({ key: 'action.summary.hideActions', params: { count: 2 }, missing: false });
+    expect(
+      describeElement({ id: 'e', type: 'show-action', actionIds: ['fuite', 'garde'] }, withActions),
+    ).toEqual({ raw: 'La fuite, Le garde', missing: false });
+    const partial = { id: 'e', type: 'show-action' as const, actionIds: ['fuite', 'absente'] };
+    expect(summarizeElement(partial, withActions)).toMatchObject({
+      key: 'action.summary.showActionMissing',
+      missing: true,
+    });
+    expect(describeElement(partial, withActions)).toEqual({ raw: 'La fuite', missing: true });
+  });
+
   it('« Masquer toutes les actions » : aucune cible, jamais signalé', () => {
-    const element = { id: 'e', type: 'hide-action' as const, actionId: '', all: true };
+    const element = { id: 'e', type: 'hide-action' as const, actionIds: [], all: true };
     expect(summarizeElement(element, context)).toEqual({
       key: 'action.summary.hideAllActions',
       params: {},

@@ -173,8 +173,10 @@
       "wait": "attente {{ seconds }} s",
       "click": "clic",
       "showAction": "afficher « {{ name }} »",
+      "showActions": "afficher {{ count }} actions",
       "showActionMissing": "afficher une action supprimée",
       "hideAction": "masquer « {{ name }} »",
+      "hideActions": "masquer {{ count }} actions",
       "hideActionMissing": "masquer une action supprimée",
       "hideAllActions": "masquer toutes les actions"
     },
@@ -267,13 +269,14 @@
       "battlemapRequired": "Choisissez une battlemap.",
       "soundRequired": "Choisissez un son.",
       "sceneRequired": "Choisissez la scène cible.",
-      "targetAction": "Action à afficher",
-      "showActionHelp": "Fait apparaître l’action dans la liste de la Présentation, qu’elle soit masquée au départ ou terminée.",
-      "hideActionHelp": "Retire l’action de la liste de la Présentation, comme une action masquée au départ. Si elle est en cours, elle se termine normalement. « Afficher l’action » la fait réapparaître.",
-      "actionMissing": "Action supprimée",
+      "targetAction": "Actions visées",
+      "showActionHelp": "Fait apparaître les actions cochées dans la liste de la Présentation, qu’elles soient masquées au départ ou terminées.",
+      "hideActionHelp": "Retire les actions cochées de la liste de la Présentation, comme des actions masquées au départ. Une action en cours se termine normalement. « Afficher l’action » les fait réapparaître.",
+      "actionMissing": "Une action choisie a été supprimée.",
+      "removeMissingActions": "Retirer",
       "noManualAction": "Aucune autre action « Clic du MJ » dans cette scène.",
-      "actionRequired": "Choisissez l’action à afficher.",
-      "hideActionRequired": "Choisissez l’action à masquer.",
+      "actionRequired": "Choisissez au moins une action à afficher.",
+      "hideActionRequired": "Choisissez au moins une action à masquer, ou cochez « Masquer toutes les actions ».",
       "hideAll": "Masquer toutes les actions"
     }
   },
@@ -299,8 +302,8 @@
     "errors": {
       "missingSound": "Un son a été supprimé du projet : il n’est pas lancé.",
       "missingScene": "La scène cible de « Changer de scène » a été supprimée : la scène ne change pas.",
-      "missingAction": "L’action à afficher a été supprimée : rien ne change.",
-      "missingActionToHide": "L’action à masquer a été supprimée : rien ne change."
+      "missingAction": "Une action à afficher a été supprimée : elle est ignorée.",
+      "missingActionToHide": "Une action à masquer a été supprimée : elle est ignorée."
     },
     "launch": {
       "savedTitle": "Une partie est en cours",

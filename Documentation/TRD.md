@@ -285,8 +285,8 @@ type ActionElement =
   | { id: Id; type: 'change-scene'; sceneId: Id }
   | { id: Id; type: 'wait'; seconds: number; text?: string } // texte facultatif, montré pendant l'attente
   | { id: Id; type: 'user-click'; text: string }
-  | { id: Id; type: 'show-action'; actionId: Id }  // action de la même scène (ACT-12)
-  | { id: Id; type: 'hide-action'; actionId: Id; all?: boolean }; // action de la même scène, ou toutes (`all`, `actionId` vide) (ACT-13)
+  | { id: Id; type: 'show-action'; actionIds: Id[] }  // actions de la même scène (ACT-12) ; schéma v2 (avant : `actionId`)
+  | { id: Id; type: 'hide-action'; actionIds: Id[]; all?: boolean }; // actions de la même scène, ou toutes (`all`, `actionIds` vide) (ACT-13)
 
 /** Partie sauvegardée (une par projet en V1) */
 interface PlaySession {

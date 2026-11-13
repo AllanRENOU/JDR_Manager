@@ -55,11 +55,15 @@ export function summarizeElement(element: ActionElement, context: SummaryContext
       if (element.type === 'hide-action' && element.all) {
         return { key: 'action.summary.hideAllActions', params: {}, missing: false };
       }
-      const target = context.actions?.find((a) => a.id === element.actionId);
+      const targets = actionTargets(element.actionIds, context);
       const verb = element.type === 'show-action' ? 'showAction' : 'hideAction';
-      return target
-        ? { key: `action.summary.${verb}`, params: { name: target.name }, missing: false }
-        : { key: `action.summary.${verb}Missing`, params: {}, missing: true };
+      const [first] = targets;
+      if (!first || targets.some((t) => !t)) {
+        return { key: `action.summary.${verb}Missing`, params: {}, missing: true };
+      }
+      return targets.length === 1
+        ? { key: `action.summary.${verb}`, params: { name: first.name }, missing: false }
+        : { key: `action.summary.${verb}s`, params: { count: targets.length }, missing: false };
     }
   }
 }
@@ -109,13 +113,27 @@ export function describeElement(element: ActionElement, context: SummaryContext)
       if (element.type === 'hide-action' && element.all) {
         return { key: 'action.detail.allActions', missing: false };
       }
-      return target(
-        element.actionId,
-        context.actions?.find((a) => a.id === element.actionId)?.name,
-      );
+      if (!element.actionIds.length) {
+        return { key: 'action.detail.notChosen', missing: true };
+      }
+      return describeActionTargets(actionTargets(element.actionIds, context));
     case 'stop-all-sounds':
       return { missing: false };
   }
+}
+
+/** Actions visées, dans l'ordre de la liste ; `undefined` pour une action supprimée. */
+function actionTargets(ids: readonly Id[], context: SummaryContext): (Action | undefined)[] {
+  return ids.map((id) => context.actions?.find((a) => a.id === id));
+}
+
+/** Noms des actions visées ; signalé si l'une d'elles a été supprimée (PRS-07). */
+function describeActionTargets(targets: (Action | undefined)[]): ElementDetail {
+  const names = targets.flatMap((t) => (t ? [t.name] : []));
+  const missing = names.length < targets.length;
+  return names.length
+    ? { raw: names.join(', '), missing }
+    : { key: 'action.detail.deleted', missing: true };
 }
 
 function target(id: Id, name: string | undefined): ElementDetail {

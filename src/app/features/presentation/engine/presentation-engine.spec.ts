@@ -445,7 +445,7 @@ describe('PresentationEngine', () => {
           id: 'garde',
           name: 'Le garde',
           order: 4,
-          elements: [{ id: 'sa', type: 'show-action', actionId: 'fuite' }],
+          elements: [{ id: 'sa', type: 'show-action', actionIds: ['fuite'] }],
         }),
       ]);
       await startAt('A');
@@ -483,14 +483,14 @@ describe('PresentationEngine', () => {
           name: 'Le garde',
           order: 3,
           elements: [
-            { id: 'sa', type: 'show-action', actionId: 'disparue' },
+            { id: 'sa', type: 'show-action', actionIds: ['disparue'] },
             text('t-g', 'Halte !'),
           ],
         }),
       ]);
       await startAt('A');
       await engine.runAction('garde');
-      expect(errors()).toContain('L’action à afficher a été supprimée : rien ne change.');
+      expect(errors()).toContain('Une action à afficher a été supprimée : elle est ignorée.');
       expect(feedTexts()).toContain('Halte !');
     });
   });
@@ -510,13 +510,13 @@ describe('PresentationEngine', () => {
           id: 'cacher',
           name: 'Cacher',
           order: 4,
-          elements: [{ id: 'ha', type: 'hide-action', actionId: 'fuite' }],
+          elements: [{ id: 'ha', type: 'hide-action', actionIds: ['fuite'] }],
         }),
         anAction('A', {
           id: 'montrer',
           name: 'Montrer',
           order: 5,
-          elements: [{ id: 'sa', type: 'show-action', actionId: 'fuite' }],
+          elements: [{ id: 'sa', type: 'show-action', actionIds: ['fuite'] }],
         }),
       ]);
       await startAt('A');
@@ -544,13 +544,13 @@ describe('PresentationEngine', () => {
           id: 'montrer',
           name: 'Montrer',
           order: 4,
-          elements: [{ id: 'sa', type: 'show-action', actionId: 'fuite' }],
+          elements: [{ id: 'sa', type: 'show-action', actionIds: ['fuite'] }],
         }),
         anAction('A', {
           id: 'cacher',
           name: 'Cacher',
           order: 5,
-          elements: [{ id: 'ha', type: 'hide-action', actionId: 'fuite' }],
+          elements: [{ id: 'ha', type: 'hide-action', actionIds: ['fuite'] }],
         }),
       ]);
       await startAt('A');
@@ -575,7 +575,7 @@ describe('PresentationEngine', () => {
           id: 'cacher',
           name: 'Cacher',
           order: 4,
-          elements: [{ id: 'ha', type: 'hide-action', actionId: 'garde' }],
+          elements: [{ id: 'ha', type: 'hide-action', actionIds: ['garde'] }],
         }),
       ]);
       await startAt('A');
@@ -609,13 +609,13 @@ describe('PresentationEngine', () => {
           id: 'montrer',
           name: 'Montrer',
           order: 5,
-          elements: [{ id: 'sa', type: 'show-action', actionId: 'garde' }],
+          elements: [{ id: 'sa', type: 'show-action', actionIds: ['garde'] }],
         }),
         anAction('A', {
           id: 'tout',
           name: 'Tout masquer',
           order: 6,
-          elements: [{ id: 'ha', type: 'hide-action', actionId: '', all: true }],
+          elements: [{ id: 'ha', type: 'hide-action', actionIds: [], all: true }],
         }),
       ]);
       await startAt('A');
@@ -640,15 +640,50 @@ describe('PresentationEngine', () => {
           name: 'Cacher',
           order: 3,
           elements: [
-            { id: 'ha', type: 'hide-action', actionId: 'disparue' },
+            { id: 'ha', type: 'hide-action', actionIds: ['disparue'] },
             text('t-c', 'Après.'),
           ],
         }),
       ]);
       await startAt('A');
       await engine.runAction('cacher');
-      expect(errors()).toContain('L’action à masquer a été supprimée : rien ne change.');
+      expect(errors()).toContain('Une action à masquer a été supprimée : elle est ignorée.');
       expect(feedTexts()).toContain('Après.');
+    });
+
+    it('plusieurs actions visées : toutes masquées puis réaffichées ; une action supprimée est ignorée', async () => {
+      await seed([
+        anAction('A', { id: 'fuite', name: 'La fuite', order: 3, elements: [] }),
+        anAction('A', { id: 'garde', name: 'Le garde', order: 4, elements: [] }),
+        anAction('A', {
+          id: 'cacher',
+          name: 'Cacher',
+          order: 5,
+          elements: [{ id: 'ha', type: 'hide-action', actionIds: ['fuite', 'disparue', 'garde'] }],
+        }),
+        anAction('A', {
+          id: 'montrer',
+          name: 'Montrer',
+          order: 6,
+          elements: [{ id: 'sa', type: 'show-action', actionIds: ['garde', 'fuite'] }],
+        }),
+      ]);
+      await startAt('A');
+
+      await engine.runAction('cacher');
+      expect(state().slice(0, 2)).toEqual([
+        ['fuite', false, true],
+        ['garde', false, true],
+      ]);
+      expect((await savedSession())?.scenes['A'].hiddenActionIds).toEqual(['fuite', 'garde']);
+      expect(errors()).toEqual(['Une action à masquer a été supprimée : elle est ignorée.']);
+
+      await engine.runAction('montrer');
+      expect(state().slice(0, 2)).toEqual([
+        ['fuite', false, false],
+        ['garde', false, false],
+      ]);
+      expect((await savedSession())?.scenes['A'].hiddenActionIds).toEqual([]);
     });
   });
 

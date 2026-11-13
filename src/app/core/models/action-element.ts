@@ -58,24 +58,24 @@ export interface WaitElement extends BaseElement {
 }
 
 /**
- * Rend visible, dans la liste des actions de la Présentation, une action « au clic du MJ » de la
- * même scène : masquée par sa propriété `hidden` ou parce qu'elle est terminée (ACT-12).
+ * Rend visibles, dans la liste des actions de la Présentation, des actions « au clic du MJ » de la
+ * même scène : masquées par leur propriété `hidden` ou parce qu'elles sont terminées (ACT-12).
  */
 export interface ShowActionElement extends BaseElement {
   type: 'show-action';
-  /** Id d'une action de la même scène. */
-  actionId: Id;
+  /** Ids d'actions de la même scène, dans l'ordre de la scène (au moins une si valide). */
+  actionIds: Id[];
 }
 
 /**
- * Masque, dans la liste des actions de la Présentation, une action « au clic du MJ » de la même
- * scène, comme une action masquée au départ ; une action en cours d'exécution se termine
- * normalement. « Afficher l'action » la rend de nouveau visible.
+ * Masque, dans la liste des actions de la Présentation, des actions « au clic du MJ » de la même
+ * scène, comme des actions masquées au départ ; une action en cours d'exécution se termine
+ * normalement. « Afficher l'action » les rend de nouveau visibles.
  */
 export interface HideActionElement extends BaseElement {
   type: 'hide-action';
-  /** Id d'une action de la même scène ; vide si `all`. */
-  actionId: Id;
+  /** Ids d'actions de la même scène ; vide si `all`. */
+  actionIds: Id[];
   /** Masque toutes les actions « au clic du MJ » de la scène (aucune action à choisir). */
   all?: boolean;
 }

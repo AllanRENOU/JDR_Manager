@@ -253,21 +253,23 @@
           {{ 'action.form.hideAll' | transloco }}
         </label>
       }
-      @if (el.actionId && !actionTargetExists()) {
+      @if (missingActionIds().length) {
         <p class="warning">
           <svg lucideTriangleAlert aria-hidden="true"></svg>
           {{ 'action.form.actionMissing' | transloco }}
+          <button type="button" appButton="quiet" size="sm" (click)="removeMissingActions()">
+            {{ 'action.form.removeMissingActions' | transloco }}
+          </button>
         </p>
       }
       @let allChosen = el.type === 'hide-action' && !!el.all;
       @for (target of actionChoices(); track target.id) {
         <label class="app-check">
           <input
-            type="radio"
-            [name]="el.type + '-' + el.id"
-            [checked]="target.id === el.actionId"
+            type="checkbox"
+            [checked]="el.actionIds.includes(target.id)"
             [disabled]="allChosen"
-            (change)="chooseAction(target.id)"
+            (change)="toggleAction(target.id, $any($event.target).checked)"
           />
           {{ target.name }}
           @if (target.hidden) {

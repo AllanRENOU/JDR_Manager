@@ -17,9 +17,9 @@ export function elementProblem(element: ActionElement): string | null {
     case 'change-scene':
       return element.sceneId ? null : 'action.form.sceneRequired';
     case 'show-action':
-      return element.actionId ? null : 'action.form.actionRequired';
+      return element.actionIds.length ? null : 'action.form.actionRequired';
     case 'hide-action':
-      return element.all || element.actionId ? null : 'action.form.hideActionRequired';
+      return element.all || element.actionIds.length ? null : 'action.form.hideActionRequired';
     case 'user-click':
       return element.text.trim() ? null : 'action.form.clickTextRequired';
     case 'wait':

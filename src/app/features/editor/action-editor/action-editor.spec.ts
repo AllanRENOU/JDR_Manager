@@ -158,7 +158,7 @@ describe('ActionEditor', () => {
     const user = anAction('s1', {
       id: 'garde',
       name: 'Le garde',
-      elements: [{ id: 'e', type: 'show-action', actionId: 'fuite' }],
+      elements: [{ id: 'e', type: 'show-action', actionIds: ['fuite'] }],
     });
     const { dialog } = open(target, {
       soundNames: {},

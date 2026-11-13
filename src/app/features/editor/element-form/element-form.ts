@@ -17,6 +17,7 @@ import { LucideTriangleAlert } from '@lucide/angular';
 import { ActionElement, Id } from '../../../core/models';
 import { MarkdownEditor } from '../../../shared/markdown/markdown-editor';
 import { Selections } from '../../../shared/selection-dialog/selections';
+import { Button } from '../../../shared/ui/button/button';
 import { Field } from '../../../shared/ui/field/field';
 import { Input } from '../../../shared/ui/input/input';
 import { SummaryContext } from '../action-summary';
@@ -105,6 +106,7 @@ const sameElement = (a: ActionElement, b: ActionElement) => JSON.stringify(a) ==
   selector: 'app-element-form',
   imports: [
     BattlemapCard,
+    Button,
     Field,
     FormField,
     Input,
@@ -147,10 +149,11 @@ export class ElementForm {
     const element = this.element();
     return element.type === 'show-action' || element.type === 'hide-action' ? element : null;
   });
-  /** L'action visée existe encore dans la scène (sinon elle est signalée, PRS-07). */
-  protected readonly actionTargetExists = computed(() => {
+  /** Actions visées qui n'existent plus dans la scène (signalées, PRS-07). */
+  protected readonly missingActionIds = computed(() => {
     const element = this.actionElement();
-    return !!element && (this.context().actions ?? []).some((a) => a.id === element.actionId);
+    const existing = new Set((this.context().actions ?? []).map((a) => a.id));
+    return element ? element.actionIds.filter((id) => !existing.has(id)) : [];
   });
 
   /** « Masquer toutes les actions » : plus d'action à choisir (le choix précédent est effacé). */
@@ -161,15 +164,43 @@ export class ElementForm {
     }
     this.elementChange.emit(
       all
-        ? { ...element, actionId: '', all: true }
-        : { id: element.id, type: element.type, actionId: element.actionId },
+        ? { ...element, actionIds: [], all: true }
+        : { id: element.id, type: element.type, actionIds: element.actionIds },
     );
   }
 
-  protected chooseAction(actionId: Id): void {
+  /**
+   * Coche ou décoche une action visée. La liste suit l'ordre des actions de la scène ; les actions
+   * supprimées restent jusqu'à « Retirer » (`removeMissingActions`).
+   */
+  protected toggleAction(actionId: Id, checked: boolean): void {
     const element = this.actionElement();
+    if (!element) {
+      return;
+    }
+    const chosen = new Set(element.actionIds);
+    if (checked) {
+      chosen.add(actionId);
+    } else {
+      chosen.delete(actionId);
+    }
+    const order = (this.context().actions ?? []).map((a) => a.id);
+    const actionIds = [
+      ...order.filter((id) => chosen.has(id)),
+      ...[...chosen].filter((id) => !order.includes(id)),
+    ];
+    this.elementChange.emit({ ...element, actionIds });
+  }
+
+  /** Retire de la liste les actions visées qui ont été supprimées. */
+  protected removeMissingActions(): void {
+    const element = this.actionElement();
+    const missing = this.missingActionIds();
     if (element) {
-      this.elementChange.emit({ ...element, actionId });
+      this.elementChange.emit({
+        ...element,
+        actionIds: element.actionIds.filter((id) => !missing.includes(id)),
+      });
     }
   }
 

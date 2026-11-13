@@ -205,7 +205,7 @@ describe('ElementForm', () => {
 
   it('Afficher l’action : choix parmi les actions « Clic du MJ » de la scène, sauf elle-même (ACT-12)', () => {
     const fixture = TestBed.createComponent(ElementForm);
-    fixture.componentRef.setInput('element', { id: 'e1', type: 'show-action', actionId: '' });
+    fixture.componentRef.setInput('element', { id: 'e1', type: 'show-action', actionIds: [] });
     fixture.componentRef.setInput('context', {
       ...context,
       actions: [
@@ -229,21 +229,63 @@ describe('ElementForm', () => {
     expect(fixture.componentInstance.invalid()).toBe(true);
     fixture.componentInstance.revealErrors();
     TestBed.tick();
-    expect(el.textContent).toContain('Choisissez l’action à afficher.');
+    expect(el.textContent).toContain('Choisissez au moins une action à afficher.');
 
-    el.querySelector<HTMLInputElement>('input[type=radio]')!.click();
-    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'show-action', actionId: 'fuite' });
+    el.querySelector<HTMLInputElement>('input[type=checkbox]')!.click();
+    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'show-action', actionIds: ['fuite'] });
   });
 
-  it('Afficher l’action : action visée supprimée signalée (PRS-07)', () => {
-    const { el } = render({ id: 'e1', type: 'show-action', actionId: 'disparue' });
-    expect(el.querySelector('.warning')?.textContent).toContain('Action supprimée');
+  it('Afficher l’action : plusieurs actions, dans l’ordre de la scène', () => {
+    const fixture = TestBed.createComponent(ElementForm);
+    fixture.componentRef.setInput('element', {
+      id: 'e1',
+      type: 'show-action',
+      actionIds: ['garde'],
+    });
+    fixture.componentRef.setInput('context', {
+      ...context,
+      actions: [
+        anAction('s1', { id: 'fuite', name: 'La fuite', trigger: 'manual' }),
+        anAction('s1', { id: 'garde', name: 'Le garde', trigger: 'manual' }),
+      ],
+    });
+    fixture.componentRef.setInput('sceneId', 's1');
+    fixture.componentRef.setInput('projectId', 'p1');
+    const emitted: ActionElement[] = [];
+    fixture.componentInstance.elementChange.subscribe((e) => emitted.push(e));
+    TestBed.tick();
+    const boxes = [
+      ...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLInputElement>(
+        'input[type=checkbox]',
+      ),
+    ];
+    expect(boxes.map((b) => b.checked)).toEqual([false, true]);
+
+    boxes[0].click();
+    expect(emitted.at(-1)).toEqual({
+      id: 'e1',
+      type: 'show-action',
+      actionIds: ['fuite', 'garde'],
+    });
+    fixture.componentRef.setInput('element', emitted.at(-1));
+    TestBed.tick();
+    boxes[1].click();
+    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'show-action', actionIds: ['fuite'] });
+  });
+
+  it('Afficher l’action : action visée supprimée signalée (PRS-07), « Retirer » l’enlève', () => {
+    const { el, emitted } = render({ id: 'e1', type: 'show-action', actionIds: ['disparue'] });
+    const warning = el.querySelector('.warning')!;
+    expect(warning.textContent).toContain('Une action choisie a été supprimée.');
     expect(el.textContent).toContain('Aucune autre action « Clic du MJ » dans cette scène.');
+
+    warning.querySelector('button')!.click();
+    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'show-action', actionIds: [] });
   });
 
   it('Masquer l’action : même choix qu’« Afficher l’action », aide et erreur propres', () => {
     const fixture = TestBed.createComponent(ElementForm);
-    fixture.componentRef.setInput('element', { id: 'e1', type: 'hide-action', actionId: '' });
+    fixture.componentRef.setInput('element', { id: 'e1', type: 'hide-action', actionIds: [] });
     fixture.componentRef.setInput('context', {
       ...context,
       actions: [
@@ -259,22 +301,26 @@ describe('ElementForm', () => {
     TestBed.tick();
     const el = fixture.nativeElement as HTMLElement;
 
-    expect(el.textContent).toContain('Retire l’action de la liste de la Présentation');
+    expect(el.textContent).toContain('Retire les actions cochées de la liste de la Présentation');
     const labels = [...el.querySelectorAll('label.app-check')].map((l) =>
       l.textContent?.replace(/\s+/g, ' ').trim(),
     );
     expect(labels).toEqual(['Masquer toutes les actions', 'La fuite']);
     fixture.componentInstance.revealErrors();
     TestBed.tick();
-    expect(el.textContent).toContain('Choisissez l’action à masquer.');
+    expect(el.textContent).toContain('Choisissez au moins une action à masquer');
 
-    el.querySelector<HTMLInputElement>('input[type=radio]')!.click();
-    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'hide-action', actionId: 'fuite' });
+    el.querySelectorAll<HTMLInputElement>('input[type=checkbox]')[1].click();
+    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'hide-action', actionIds: ['fuite'] });
   });
 
   it('Masquer toutes les actions : case cochée, plus d’action à choisir', () => {
     const fixture = TestBed.createComponent(ElementForm);
-    fixture.componentRef.setInput('element', { id: 'e1', type: 'hide-action', actionId: 'fuite' });
+    fixture.componentRef.setInput('element', {
+      id: 'e1',
+      type: 'hide-action',
+      actionIds: ['fuite'],
+    });
     fixture.componentRef.setInput('context', {
       ...context,
       actions: [anAction('s1', { id: 'fuite', name: 'La fuite', trigger: 'manual' })],
@@ -285,26 +331,26 @@ describe('ElementForm', () => {
     fixture.componentInstance.elementChange.subscribe((e) => emitted.push(e));
     TestBed.tick();
     const el = fixture.nativeElement as HTMLElement;
-    const radio = () => el.querySelector<HTMLInputElement>('input[type=radio]')!;
+    const target = () => el.querySelectorAll<HTMLInputElement>('input[type=checkbox]')[1];
     const checkbox = () => el.querySelector<HTMLInputElement>('input[type=checkbox]')!;
     expect(checkbox().parentElement?.textContent).toContain('Masquer toutes les actions');
-    expect(radio().disabled).toBe(false);
+    expect(target().disabled).toBe(false);
 
     checkbox().click();
     const all = emitted.at(-1)!;
-    expect(all).toEqual({ id: 'e1', type: 'hide-action', actionId: '', all: true });
+    expect(all).toEqual({ id: 'e1', type: 'hide-action', actionIds: [], all: true });
     fixture.componentRef.setInput('element', all);
     TestBed.tick();
-    expect(radio().disabled).toBe(true);
-    expect(radio().checked).toBe(false);
+    expect(target().disabled).toBe(true);
+    expect(target().checked).toBe(false);
     expect(fixture.componentInstance.invalid()).toBe(false);
 
     checkbox().click();
-    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'hide-action', actionId: '' });
+    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'hide-action', actionIds: [] });
   });
 
   it('Afficher l’action : pas de case « toutes les actions »', () => {
-    const { el } = render({ id: 'e1', type: 'show-action', actionId: '' });
+    const { el } = render({ id: 'e1', type: 'show-action', actionIds: [] });
     expect(el.querySelector('input[type=checkbox]')).toBeNull();
   });
 
