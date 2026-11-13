@@ -361,6 +361,32 @@ describe('EditorPage', () => {
     );
   });
 
+  it('n’affiche pas le nom de l’action « Texte de scène » créée automatiquement', async () => {
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    const project = aProject();
+    const node = aSceneNode(project.id);
+    const action = anAction(node.id, {
+      name: 'Texte de scène',
+      trigger: 'scene-open',
+      isSceneText: true,
+      elements: [
+        { id: 't1', type: 'add-text', text: 'La taverne est bondée.' },
+        { id: 'w', type: 'wait', seconds: 3 },
+        { id: 't2', type: 'add-text', text: 'Un barde chante.' },
+      ],
+    });
+    await repository.saveProject({ ...project, firstSceneId: node.id });
+    await repository.saveSceneNodes([node]);
+    await repository.saveScene({ ...aScene(project.id, node.id), sceneTextActionId: action.id });
+    await repository.saveAction(action);
+    const el = await render(project.id);
+    await vi.waitFor(() => expect(el.querySelector('.action-text')).not.toBeNull());
+
+    const block = el.querySelector('.action-text') as HTMLElement;
+    expect(block.querySelector('h3')).toBeNull();
+    expect((block.querySelector('textarea') as HTMLTextAreaElement).value).toBe('Un barde chante.');
+  });
+
   it('n’affiche qu’une pastille avant les textes, attentes et clics d’une même action', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const project = aProject();
