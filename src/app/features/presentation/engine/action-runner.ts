@@ -38,9 +38,14 @@ export interface ActionContext {
   stopAllSounds(): void;
   /**
    * Affiche le bloc « Clic de l'utilisateur » ; la promesse est résolue au clic sur « Continuer »
-   * et rejetée si le signal est annulé (ACT-11, FIL-05).
+   * et rejetée si le signal est annulé (ACT-11, FIL-05). Pour un « Changer de scène », le bloc
+   * propose d'aller à la scène cible (bouton « Aller »).
    */
-  waitForUserClick(action: Action, element: UserClickElement, signal: AbortSignal): Promise<void>;
+  waitForUserClick(
+    action: Action,
+    element: UserClickElement | ChangeSceneElement,
+    signal: AbortSignal,
+  ): Promise<void>;
   /**
    * Attend la durée de l'élément en affichant le temps restant dans le fil ; rejetée si le signal
    * est annulé (ACT-10, TEC-51).
@@ -69,8 +74,11 @@ export type RunOutcome = { kind: 'done' } | { kind: 'change-scene'; sceneId: Id 
  * entre deux éléments, pendant une attente ou un clic en attente ; la promesse est alors rejetée
  * et l'action n'est pas marquée comme effectuée.
  *
- * Les éléments affichés (texte, battlemap, clic de l'utilisateur) attendent
- * `context.beforeDisplay()` ; les éléments de son, « Attendre » et « Changer de scène », non.
+ * Les éléments affichés (texte, battlemap, clic de l'utilisateur, changer de scène) attendent
+ * `context.beforeDisplay()` ; les éléments de son et « Attendre », non.
+ *
+ * « Changer de scène » ne change pas de scène tout de suite : comme un clic de l'utilisateur, il
+ * attend que le MJ clique sur « Aller » (scène cible supprimée : ni bloc ni changement).
  *
  * Une action déjà effectuée peut être relancée (CTL-03) : c'est le contexte qui évite les doublons
  * dans le fil.
@@ -80,6 +88,18 @@ export class ActionRunner {
   async run(action: Action, context: ActionContext, signal: AbortSignal): Promise<RunOutcome> {
     for (const element of action.elements) {
       signal.throwIfAborted();
+      if (element.type === 'change-scene') {
+        // Fin de l'action : les éléments suivants ne sont pas exécutés (ACT-09). La scène change
+        // au clic du MJ sur « Aller ».
+        if (!context.canChangeScene(element)) {
+          context.markDone(action);
+          return { kind: 'done' };
+        }
+        await context.beforeDisplay(signal);
+        await context.waitForUserClick(action, element, signal);
+        context.markDone(action);
+        return { kind: 'change-scene', sceneId: element.sceneId };
+      }
       if (DISPLAYED.has(element.type)) {
         await context.beforeDisplay(signal);
       }
@@ -108,13 +128,6 @@ export class ActionRunner {
         case 'user-click':
           await context.waitForUserClick(action, element, signal);
           break;
-        case 'change-scene': {
-          // Fin de l'action : les éléments suivants ne sont pas exécutés (ACT-09).
-          context.markDone(action);
-          return context.canChangeScene(element)
-            ? { kind: 'change-scene', sceneId: element.sceneId }
-            : { kind: 'done' };
-        }
       }
       // Laisse l'interface se mettre à jour entre deux éléments.
       await Promise.resolve();

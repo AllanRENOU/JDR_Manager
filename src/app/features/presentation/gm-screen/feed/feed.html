@@ -28,16 +28,26 @@
             />
           }
           @case ('user-click') {
+            <!-- Aussi le bloc d'un « Changer de scène » : la scène change au clic sur « Aller ». -->
+            @let sceneName = engine.targetSceneName(item);
             <article class="click" [class.click--done]="item.validated">
               <div class="click__body">
                 <span class="click__icon" aria-hidden="true">
                   @if (item.validated) {
                     <svg lucideCheck></svg>
+                  } @else if (sceneName !== null) {
+                    <svg lucideClapperboard></svg>
                   } @else {
                     <svg lucideMousePointerClick></svg>
                   }
                 </span>
-                <p class="click__text">{{ engine.textOf(item) }}</p>
+                <p class="click__text">
+                  @if (sceneName !== null) {
+                    {{ 'presentation.goToSceneNamed' | transloco: { name: sceneName } }}
+                  } @else {
+                    {{ engine.textOf(item) }}
+                  }
+                </p>
               </div>
               @if (item.validated) {
                 <span class="click__done">{{ 'presentation.validated' | transloco }}</span>
@@ -50,7 +60,10 @@
                   [attr.aria-keyshortcuts]="$last ? 'Enter C' : 'C'"
                   (click)="engine.continueClick(item.id)"
                 >
-                  {{ 'presentation.clickToContinue' | transloco }}
+                  {{
+                    (sceneName !== null ? 'presentation.go' : 'presentation.clickToContinue')
+                      | transloco
+                  }}
                   <svg lucideArrowRight aria-hidden="true"></svg>
                 </button>
               }

@@ -2,6 +2,8 @@
 <span class="pause__icon" aria-hidden="true">
   @if (el.type === 'wait') {
     <svg lucideHourglass></svg>
+  } @else if (el.type === 'change-scene') {
+    <svg lucideClapperboard></svg>
   } @else {
     <svg lucideMousePointerClick></svg>
   }
@@ -12,6 +14,15 @@
     @if (el.text?.trim()) {
       <!-- Texte facultatif de l'attente, montré aussi pendant l'attente en Présentation. -->
       <span class="pause__note">{{ el.text }}</span>
+    }
+  </p>
+} @else if (el.type === 'change-scene') {
+  <!-- Comme en Présentation : la scène change au clic du MJ sur « Aller ». -->
+  <p class="pause__text">
+    @if (sceneName(); as name) {
+      {{ 'scene.pause.changeScene' | transloco: { name } }}
+    } @else {
+      <span class="pause__missing">{{ 'scene.pause.sceneMissing' | transloco }}</span>
     }
   </p>
 } @else {

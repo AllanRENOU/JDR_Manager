@@ -22,6 +22,10 @@
     color: color(el-click-fg);
   }
 
+  :host(.pause--scene) & {
+    color: color(el-scene-fg);
+  }
+
   svg {
     width: space(18);
     height: space(18);
@@ -39,4 +43,9 @@
   display: block;
   margin-top: space(2);
   color: color(text-primary);
+}
+
+// Scène cible supprimée : signalée en rouge (PRS-07).
+.pause__missing {
+  color: color(danger-text);
 }

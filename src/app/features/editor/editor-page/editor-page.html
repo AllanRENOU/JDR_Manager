@@ -207,7 +207,12 @@
                     ></textarea>
                   </app-field>
                 } @else {
-                  <app-action-pause [element]="element" />
+                  <app-action-pause
+                    [element]="element"
+                    [sceneName]="
+                      element.type === 'change-scene' ? store.sceneNameOf(element.sceneId) : null
+                    "
+                  />
                 }
               }
             </div>

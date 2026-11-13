@@ -449,7 +449,14 @@ describe('EditorStore', () => {
         }),
       );
       await repository().saveAction(
-        anAction(node.id, { name: 'Fuite', order: 2, elements: [text('f1', 'Ils fuient.')] }),
+        anAction(node.id, {
+          name: 'Fuite',
+          order: 2,
+          elements: [
+            text('f1', 'Ils fuient.'),
+            { id: 'cs', type: 'change-scene', sceneId: node.id },
+          ],
+        }),
       );
       await repository().saveAction(
         anAction(node.id, {
@@ -464,7 +471,7 @@ describe('EditorStore', () => {
         store.actionTextGroups().map((g) => [g.action.name, g.elements.map((e) => e.id)]),
       ).toEqual([
         ['Bagarre', ['b1', 'w', 'b2', 'c']],
-        ['Fuite', ['f1']],
+        ['Fuite', ['f1', 'cs']],
       ]);
     });
 

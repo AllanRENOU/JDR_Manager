@@ -588,7 +588,7 @@ describe('PresentationEngine', () => {
   });
 
   describe('changer de scène (9.1.6, 9.3.4)', () => {
-    it('ouvre la scène cible ; les éléments suivants ne sont pas exécutés', async () => {
+    it('affiche « Aller à la scène » ; ouvre la scène cible au clic, sans les éléments suivants', async () => {
       await seed([
         anAction('A', {
           id: 'fuite',
@@ -597,7 +597,14 @@ describe('PresentationEngine', () => {
         }),
       ]);
       await startAt('A');
-      await engine.runAction('fuite');
+      const run = engine.runAction('fuite');
+      await vi.waitFor(() => expect(engine.feed().at(-1)).toMatchObject({ type: 'user-click' }));
+      const block = engine.feed().at(-1)!;
+      expect(block).toMatchObject({ elementId: 'cs', validated: false });
+      expect(engine.targetSceneName(block)).toBe('La forêt');
+      expect(engine.scene()?.id).toBe('A');
+      engine.continueClick(block.id);
+      await run;
       await vi.waitFor(() => expect(engine.scene()?.id).toBe('B'));
       expect(feedTexts()).toEqual(['Les arbres se resserrent.']);
       expect((await savedSession())?.scenes['A'].doneActionIds).toContain('fuite');
@@ -614,6 +621,7 @@ describe('PresentationEngine', () => {
       await startAt('A');
       await engine.runAction('fuite');
       expect(engine.scene()?.id).toBe('A');
+      expect(engine.feed().some((item) => item.type === 'user-click')).toBe(false);
       expect(errors()).toContain(
         'La scène cible de « Changer de scène » a été supprimée : la scène ne change pas.',
       );

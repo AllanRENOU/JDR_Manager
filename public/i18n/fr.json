@@ -112,7 +112,9 @@
     "nameField": "Nom de la scène",
     "actionTextLabel": "Texte de l’action « {{ name }} »",
     "pause": {
-      "wait": "Attendre {{ seconds }} s"
+      "wait": "Attendre {{ seconds }} s",
+      "changeScene": "Aller à la scène '{{name}}'",
+      "sceneMissing": "Changer de scène : scène supprimée"
     },
     "firstCheckbox": "Première scène du projet",
     "addNext": "Ajouter",
@@ -279,6 +281,8 @@
     "continue": "Continuer",
     "restart": "Recommencer",
     "goToScene": "Aller à une scène",
+    "goToSceneNamed": "Aller à la scène '{{name}}'",
+    "go": "Aller",
     "playerWindowOpen": "Fenêtre joueurs ouverte",
     "feed": "Fil d’actualité",
     "emptyFeed": "Aucun texte pour cette scène.",

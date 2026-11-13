@@ -55,6 +55,33 @@ describe('Feed', () => {
     expect(el.querySelector('.click button')).toBeNull();
   });
 
+  it('Changer de scène : bloc « Aller à la scène », la scène change au clic sur « Aller »', async () => {
+    await seedPresentation([
+      anAction('A', {
+        id: 'fuite',
+        name: 'Fuite',
+        elements: [{ id: 'cs', type: 'change-scene', sceneId: 'B' }],
+      }),
+    ]);
+    const engine = await startPresentation();
+    const { fixture, el } = await render();
+    void engine.runAction('fuite');
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.querySelector('.click')).not.toBeNull();
+    });
+    const click = el.querySelector('.click') as HTMLElement;
+    expect(click.querySelector('.click__text')?.textContent?.trim()).toBe(
+      "Aller à la scène 'La forêt'",
+    );
+    const goButton = click.querySelector('button') as HTMLButtonElement;
+    expect(goButton.textContent?.trim()).toBe('Aller');
+    expect(engine.scene()?.id).toBe('A');
+
+    goButton.click();
+    await vi.waitFor(() => expect(engine.scene()?.id).toBe('B'));
+  });
+
   it('Attendre : une ligne avec le temps restant sous le fil, retirée à la fin', async () => {
     await seedPresentation([
       anAction('A', {

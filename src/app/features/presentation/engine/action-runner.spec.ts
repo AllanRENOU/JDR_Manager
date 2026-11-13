@@ -24,7 +24,7 @@ describe('ActionRunner', () => {
       showAction: (e) => log.push(`afficher:${e.actionId}`),
       waitForUserClick: (_a, e, signal) =>
         new Promise<void>((resolve, reject) => {
-          log.push(`clic:${e.text}`);
+          log.push(e.type === 'change-scene' ? `aller:${e.sceneId}` : `clic:${e.text}`);
           clicks.push({ resolve, reject });
           signal.addEventListener('abort', () => reject(signal.reason), { once: true });
         }),
@@ -94,6 +94,8 @@ describe('ActionRunner', () => {
     );
     await vi.waitFor(() => expect(clicks).toHaveLength(1));
     clicks[0].resolve();
+    await vi.waitFor(() => expect(clicks).toHaveLength(2));
+    clicks[1].resolve();
     await run;
     expect(log).toEqual([
       'pause',
@@ -104,8 +106,10 @@ describe('ActionRunner', () => {
       'arrêter-tout',
       'pause',
       'clic:Clic',
-      'effectuée:Bagarre',
       'scène:s2',
+      'pause',
+      'aller:s2',
+      'effectuée:Bagarre',
     ]);
   });
 
@@ -199,9 +203,9 @@ describe('ActionRunner', () => {
     expect(second.log).toEqual(['clic:Attente']);
   });
 
-  it('Changer de scène termine l’action : éléments suivants ignorés (9.1.6)', async () => {
-    const { log, context } = recorder();
-    const outcome = await runner.run(
+  it('Changer de scène attend « Aller » puis termine l’action : éléments suivants ignorés (9.1.6)', async () => {
+    const { log, clicks, context } = recorder();
+    const run = runner.run(
       action([
         { id: 'a', type: 'add-text', text: 'Avant' },
         { id: 's', type: 'change-scene', sceneId: 'forêt' },
@@ -210,8 +214,25 @@ describe('ActionRunner', () => {
       context,
       new AbortController().signal,
     );
-    expect(outcome).toEqual({ kind: 'change-scene', sceneId: 'forêt' });
-    expect(log).toEqual(['texte:Avant', 'effectuée:Bagarre', 'scène:forêt']);
+    await vi.waitFor(() => expect(clicks).toHaveLength(1));
+    expect(log).toEqual(['texte:Avant', 'scène:forêt', 'aller:forêt']);
+    clicks[0].resolve();
+    expect(await run).toEqual({ kind: 'change-scene', sceneId: 'forêt' });
+    expect(log).toEqual(['texte:Avant', 'scène:forêt', 'aller:forêt', 'effectuée:Bagarre']);
+  });
+
+  it('Changer de scène interrompu avant « Aller » : pas de changement, action non effectuée', async () => {
+    const { log, clicks, context } = recorder();
+    const controller = new AbortController();
+    const run = runner.run(
+      action([{ id: 's', type: 'change-scene', sceneId: 'forêt' }]),
+      context,
+      controller.signal,
+    );
+    await vi.waitFor(() => expect(clicks).toHaveLength(1));
+    controller.abort();
+    await expect(run).rejects.toThrow();
+    expect(log).toEqual(['scène:forêt', 'aller:forêt']);
   });
 
   it('Changer de scène vers une scène supprimée : pas de changement, action terminée (9.1.6, PRS-07)', async () => {
@@ -225,7 +246,7 @@ describe('ActionRunner', () => {
       new AbortController().signal,
     );
     expect(outcome).toEqual({ kind: 'done' });
-    expect(log).toEqual(['effectuée:Bagarre', 'scène:supprimée']);
+    expect(log).toEqual(['scène:supprimée', 'effectuée:Bagarre']);
   });
 
   it('une action effectuée peut être relancée : elle s’exécute de nouveau (9.1.7)', async () => {

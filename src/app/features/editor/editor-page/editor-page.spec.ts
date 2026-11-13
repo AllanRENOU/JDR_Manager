@@ -372,6 +372,7 @@ describe('EditorPage', () => {
         { id: 'w', type: 'wait', seconds: 3 },
         { id: 't2', type: 'add-text', text: 'Le tavernier crie.' },
         { id: 'c', type: 'user-click', text: 'Les joueurs interviennent ?' },
+        { id: 'cs', type: 'change-scene', sceneId: node.id },
       ],
     });
     await repository.saveProject({ ...project, firstSceneId: node.id });
@@ -395,6 +396,7 @@ describe('EditorPage', () => {
       'Attendre 3 s',
       'texte',
       'Clic de l’utilisateur : Les joueurs interviennent ?',
+      `Aller à la scène '${node.name}'`,
     ]);
     expect(
       block.querySelectorAll('app-action-pause textarea, app-action-pause input'),

@@ -16,6 +16,7 @@ import {
   LucideArrowRight,
   LucideCheck,
   LucideChevronUp,
+  LucideClapperboard,
   LucideMousePointerClick,
 } from '@lucide/angular';
 
@@ -49,6 +50,7 @@ const SCROLLED_UP_THRESHOLD = 48;
     LucideArrowRight,
     LucideCheck,
     LucideChevronUp,
+    LucideClapperboard,
     LucideMousePointerClick,
   ],
   templateUrl: './feed.html',

@@ -1,13 +1,17 @@
 import { TestBed } from '@angular/core/testing';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
-import { UserClickElement, WaitElement } from '../../../core/models';
+import { ChangeSceneElement, UserClickElement, WaitElement } from '../../../core/models';
 import { ActionPause } from './action-pause';
 
 describe('ActionPause', () => {
-  async function render(element: WaitElement | UserClickElement): Promise<HTMLElement> {
+  async function render(
+    element: WaitElement | UserClickElement | ChangeSceneElement,
+    sceneName: string | null = null,
+  ): Promise<HTMLElement> {
     TestBed.configureTestingModule({ imports: [ActionPause, getTranslocoTestingModule()] });
     const fixture = TestBed.createComponent(ActionPause);
     fixture.componentRef.setInput('element', element);
+    fixture.componentRef.setInput('sceneName', sceneName);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;
   }
@@ -39,5 +43,21 @@ describe('ActionPause', () => {
     );
     expect(el.querySelector('textarea, input')).toBeNull();
     expect(el.classList).toContain('pause--click');
+  });
+
+  it('Changer de scène : « Aller à la scène » avec le nom de la scène cible', async () => {
+    const el = await render({ id: 's', type: 'change-scene', sceneId: 'b' }, 'La forêt');
+    expect(el.querySelector('.pause__text')?.textContent?.trim()).toBe(
+      "Aller à la scène 'La forêt'",
+    );
+    expect(el.classList).toContain('pause--scene');
+    expect(el.querySelector('.pause__missing')).toBeNull();
+  });
+
+  it('Changer de scène vers une scène supprimée : signalé (PRS-07)', async () => {
+    const el = await render({ id: 's', type: 'change-scene', sceneId: 'b' }, null);
+    expect(el.querySelector('.pause__missing')?.textContent?.trim()).toBe(
+      'Changer de scène : scène supprimée',
+    );
   });
 });

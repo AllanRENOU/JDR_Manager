@@ -10,6 +10,7 @@ import {
   ActionElement,
   AddTextElement,
   Battlemap,
+  ChangeSceneElement,
   GLOBAL_SOUND_LIBRARY,
   Id,
   Project,
@@ -44,7 +45,7 @@ export interface ActionText {
  * Élément montré sous le texte de scène : texte (éditable), attente ou clic de l'utilisateur
  * (en lecture seule).
  */
-export type ShownElement = AddTextElement | WaitElement | UserClickElement;
+export type ShownElement = AddTextElement | WaitElement | UserClickElement | ChangeSceneElement;
 
 /** Éléments montrés d'une même action, dans l'ordre de l'action, sous une seule pastille. */
 export interface ActionTextGroup {
@@ -173,7 +174,8 @@ export class EditorStore {
           (e): e is ShownElement =>
             (e.type === 'add-text' && e !== sceneTextElement) ||
             e.type === 'wait' ||
-            e.type === 'user-click',
+            e.type === 'user-click' ||
+            e.type === 'change-scene',
         ),
       }))
       .filter((group) => group.elements.length > 0);
@@ -198,6 +200,11 @@ export class EditorStore {
 
   /** Écritures enchaînées une à une : deux saisies rapprochées ne créent pas deux actions. */
   private writes: Promise<unknown> = Promise.resolve();
+
+  /** Nom d'une scène du projet ; `null` si elle a été supprimée (PRS-07). */
+  sceneNameOf(sceneId: Id): string | null {
+    return this.sceneNodes().find((n) => n.id === sceneId && n.kind === 'item')?.name ?? null;
+  }
 
   readonly hasScenes = computed(() => this.sceneNodes().some((n) => n.kind === 'item'));
   readonly selectedNode = computed(

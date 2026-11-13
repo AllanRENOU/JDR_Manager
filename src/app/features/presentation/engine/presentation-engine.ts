@@ -5,6 +5,7 @@ import { DATA_REPOSITORY } from '../../../core/data/data-repository';
 import {
   Action,
   Battlemap,
+  ChangeSceneElement,
   FeedItem,
   Id,
   PlaySession,
@@ -431,6 +432,18 @@ export class PresentationEngine {
     return element && 'text' in element ? (element.text ?? null) : null;
   }
 
+  /**
+   * Bloc d'un « Changer de scène » (« Aller à la scène … ») : nom de la scène cible, ou `null`
+   * pour un bloc « Clic de l'utilisateur ».
+   */
+  targetSceneName(item: FeedItem): string | null {
+    const element = this.elementOf(item);
+    if (element?.type !== 'change-scene') {
+      return null;
+    }
+    return this.sceneNodes().find((n) => n.id === element.sceneId)?.name ?? '';
+  }
+
   /** Quitte la Présentation : actions arrêtées, sons coupés en fondu, partie enregistrée. */
   stop(): Promise<void> {
     this.switching = true;
@@ -534,7 +547,7 @@ export class PresentationEngine {
   private waitForUserClick(
     sceneId: Id,
     action: Action,
-    element: UserClickElement,
+    element: UserClickElement | ChangeSceneElement,
     signal: AbortSignal,
   ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
