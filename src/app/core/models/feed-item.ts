@@ -15,6 +15,17 @@ export interface BattlemapFeedItem {
   battlemapId: Id;
 }
 
+/**
+ * Vidéo lancée dans la fenêtre joueurs (par une action ou à la main) : simple mention, sans
+ * contrôle (décision d'Allan, 14/11/2026). La vidéo elle-même n'est pas enregistrée (TEC-48).
+ */
+export interface VideoFeedItem {
+  id: Id;
+  type: 'video';
+  /** Nœud de bibliothèque de la vidéo ; son nom est relu à l'affichage. */
+  videoId: Id;
+}
+
 /** Bloc « Clic de l'utilisateur » ; `validated` passe à `true` après le clic. */
 export interface UserClickFeedItem {
   id: Id;
@@ -28,4 +39,4 @@ export interface UserClickFeedItem {
  * Entrée du fil d'actualité. Seules des références sont stockées : une action ou une battlemap
  * supprimée est détectée à l'affichage (PRD PRS-07).
  */
-export type FeedItem = TextFeedItem | BattlemapFeedItem | UserClickFeedItem;
+export type FeedItem = TextFeedItem | BattlemapFeedItem | UserClickFeedItem | VideoFeedItem;

@@ -138,21 +138,29 @@ export class LibraryStore {
   async load(projectId?: Id): Promise<void> {
     const libraries = projectId ? [projectId, GLOBAL_LIBRARY] : [GLOBAL_LIBRARY];
     const lists = await Promise.all(libraries.map((id) => this.repository.listLibraryNodes(id)));
+    // Infos des fichiers lues avant d'afficher les lignes : sinon chaque son passerait un instant
+    // pour un fichier introuvable (bouton « Écouter » désactivé).
+    const details = await this.loadDetails(lists.flat());
     this.nodesByLibrary.set(Object.fromEntries(libraries.map((id, i) => [id, lists[i]])));
     this.libraries.set(libraries);
     this.opened.set({ libraryId: libraries[0], folderId: null });
-    await this.refreshDetails();
+    this.applyDetails(details);
   }
 
   /** Recharge les informations des fichiers et les utilisations (après un import, une suppression…). */
   async refreshDetails(): Promise<void> {
-    const mediaIds = this.libraries()
-      .flatMap((id) => this.nodesOf(id))
-      .flatMap((n) => (n.kind === 'item' && n.mediaId ? [n.mediaId] : []));
-    const [infos, usages] = await Promise.all([
+    this.applyDetails(await this.loadDetails(this.libraries().flatMap((id) => this.nodesOf(id))));
+  }
+
+  private loadDetails(nodes: readonly LibraryNode[]) {
+    const mediaIds = nodes.flatMap((n) => (n.kind === 'item' && n.mediaId ? [n.mediaId] : []));
+    return Promise.all([
       this.repository.getMediaInfo(mediaIds),
       this.repository.countLibraryUsages(),
     ]);
+  }
+
+  private applyDetails([infos, usages]: Awaited<ReturnType<LibraryStore['loadDetails']>>): void {
     this.mediaInfo.set(Object.fromEntries(infos.map((info) => [info.id, info])));
     this.usages.set(usages);
   }

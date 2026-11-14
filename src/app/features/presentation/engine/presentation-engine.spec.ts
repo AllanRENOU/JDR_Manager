@@ -55,7 +55,13 @@ describe('PresentationEngine', () => {
   const feedTexts = () =>
     engine
       .feed()
-      .map((item) => (item.type === 'battlemap' ? `[${item.battlemapId}]` : engine.textOf(item)));
+      .map((item) =>
+        item.type === 'battlemap'
+          ? `[${item.battlemapId}]`
+          : item.type === 'video'
+            ? `[vidéo:${item.videoId}]`
+            : engine.textOf(item),
+      );
   const text = (id: string, value: string): ActionElement => ({
     id,
     type: 'add-text',
@@ -918,24 +924,30 @@ describe('PresentationEngine', () => {
       await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
     }
 
-    it('lancée par une action sans l’attendre, sons coupés, rien d’enregistré (ACT-14, VID-08, VID-11)', async () => {
+    it('lancée par une action sans l’attendre, mentionnée dans le fil, sons coupés, vidéo non enregistrée (ACT-14, VID-08, VID-11)', async () => {
       await seedVideos();
       await engine.runAction('film');
       expect(posted).toEqual([
         { type: 'play-video', videoId: 'intro', mediaId: 'm-intro', volume: 0.7 },
       ]);
       expect(engine.video()).toMatchObject({ videoId: 'intro', name: 'Intro', volume: 0.7 });
-      expect(feedTexts()).toEqual(['Odeur de bière.', 'Après le film.']);
+      // Mention « Vidéo lancée » dans le fil, avant le texte suivant (décision d'Allan, 14/11/2026).
+      expect(feedTexts()).toEqual(['Odeur de bière.', '[vidéo:intro]', 'Après le film.']);
+      expect(engine.videoName('intro')).toBe('Intro');
       expect(ducked()).toBe(true);
       // Le son continue, à son volume : seule la sortie est coupée.
       expect(engine.sounds()[0]).toMatchObject({ soundId: 'taverne', paused: false, volume: 0.5 });
-      expect(JSON.stringify(await savedSession())).not.toContain('intro');
+      // Seule la mention du fil est enregistrée : la vidéo elle-même ne l'est pas (TEC-48).
+      const saved = (await savedSession())!.scenes['A'];
+      expect(saved.feed.filter((item) => item.type === 'video')).toHaveLength(1);
+      expect(JSON.stringify({ ...saved, feed: [] })).not.toContain('intro');
     });
 
-    it('lancée à la main : à 100 % (CTL-13)', async () => {
+    it('lancée à la main : à 100 % (CTL-13), mentionnée dans le fil', async () => {
       await seedVideos();
       engine.playLibraryVideo('intro');
       expect(posted.at(-1)).toMatchObject({ type: 'play-video', videoId: 'intro', volume: 1 });
+      expect(feedTexts().at(-1)).toBe('[vidéo:intro]');
     });
 
     it('fenêtre joueurs fermée ou vidéo supprimée : message, rien n’est lancé, l’action continue (VID-07, PRS-07)', async () => {
@@ -949,11 +961,14 @@ describe('PresentationEngine', () => {
       await engine.runAction('disparue');
       expect(errors()).toEqual(['Une vidéo a été supprimée du projet : elle n’est pas lancée.']);
       expect(feedTexts()).toContain('Suite.');
+      expect(feedTexts().some((t) => t?.startsWith('[vidéo'))).toBe(false);
 
       playerOpen.set(false);
       await engine.runAction('film');
       expect(errors().at(-1)).toBe('Vidéo non diffusée : la fenêtre joueurs n’est pas ouverte.');
       expect(feedTexts()).toContain('Après le film.');
+      // Vidéo non diffusée : pas de mention dans le fil.
+      expect(feedTexts().some((t) => t?.startsWith('[vidéo'))).toBe(false);
       expect(posted).toEqual([]);
       expect(engine.video()).toBeNull();
       expect(ducked()).toBe(false);

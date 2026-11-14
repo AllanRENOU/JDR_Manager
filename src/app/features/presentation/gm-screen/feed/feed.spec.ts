@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import {
@@ -5,7 +6,9 @@ import {
   startPresentation,
   usePresentation,
 } from '../../../../../testing/presentation-harness';
-import { anAction } from '../../../../../testing/data-builders';
+import { aSoundNode, anAction } from '../../../../../testing/data-builders';
+import { DATA_REPOSITORY } from '../../../../core/data/data-repository';
+import { PlayerVideo } from '../player-video';
 import { Feed } from './feed';
 
 describe('Feed', () => {
@@ -53,6 +56,33 @@ describe('Feed', () => {
     expect(el.querySelector('.click')?.classList).toContain('click--done');
     expect(el.querySelector('.click')?.textContent).toContain('Validé');
     expect(el.querySelector('.click button')).toBeNull();
+  });
+
+  it('vidéo lancée : mention « Vidéo lancée » dans le fil, sans contrôle (décision d’Allan)', async () => {
+    await seedPresentation([
+      anAction('A', {
+        id: 'film',
+        name: 'Film',
+        elements: [
+          { id: 'pv', type: 'play-video', videoId: 'intro', volume: 1 },
+          { id: 't2', type: 'add-text', text: 'Le film commence.' },
+        ],
+      }),
+    ]);
+    await TestBed.inject(DATA_REPOSITORY).saveLibraryNodes([
+      aSoundNode('global', { id: 'intro', name: 'Intro', mediaId: 'm-intro', mediaKind: 'video' }),
+    ]);
+    TestBed.inject(PlayerVideo).attach({ post: () => undefined, open: signal(true) });
+    const engine = await startPresentation();
+    const { fixture, el } = await render();
+    await engine.runAction('film');
+    await fixture.whenStable();
+    const video = el.querySelector('.video') as HTMLElement;
+    expect(video.textContent?.trim()).toBe('Vidéo lancée : « Intro »');
+    expect(video.querySelector('button')).toBeNull();
+    // À sa place, entre le texte de scène et le texte suivant.
+    const items = [...el.querySelectorAll('.item')].map((i) => i.textContent?.trim());
+    expect(items).toEqual(['Odeur de bière.', 'Vidéo lancée : « Intro »', 'Le film commence.']);
   });
 
   it('Changer de scène : bloc « Aller à la scène », la scène change au clic sur « Aller »', async () => {

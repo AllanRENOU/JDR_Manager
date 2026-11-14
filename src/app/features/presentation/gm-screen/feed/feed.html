@@ -27,6 +27,18 @@
               [battlemaps]="engine.battlemaps()"
             />
           }
+          @case ('video') {
+            <!-- Vidéo lancée : simple mention, les contrôles sont sur la carte de la partie Sons. -->
+            @let videoName = engine.videoName(item.videoId);
+            <p class="video">
+              <svg lucideClapperboard class="video__icon" aria-hidden="true"></svg>
+              {{
+                videoName === null
+                  ? ('presentation.videoLaunchedMissing' | transloco)
+                  : ('presentation.videoLaunched' | transloco: { name: videoName })
+              }}
+            </p>
+          }
           @case ('user-click') {
             <!-- Aussi le bloc d'un « Changer de scène » : la scène change au clic sur « Aller ». -->
             @let sceneName = engine.targetSceneName(item);

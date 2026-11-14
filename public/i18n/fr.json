@@ -315,6 +315,8 @@
     "missingText": "Ce texte a été supprimé du projet.",
     "noScene": "Ce projet n’a pas encore de scène à présenter.",
     "videoNotShown": "Vidéo non diffusée : la fenêtre joueurs n’est pas ouverte.",
+    "videoLaunched": "Vidéo lancée : « {{ name }} »",
+    "videoLaunchedMissing": "Vidéo lancée (supprimée du projet depuis)",
     "videoMuted": "La vidéo passe sans le son : cliquez une fois dans la fenêtre joueurs pour l’autoriser.",
     "errors": {
       "missingSound": "Un son a été supprimé du projet : il n’est pas lancé.",

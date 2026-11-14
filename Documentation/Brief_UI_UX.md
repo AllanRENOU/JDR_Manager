@@ -265,6 +265,7 @@ Hauteurs : **44 px** (standard), 40 px (en-tête), 34–36 px (dans un volet), 4
 - Colonne centrée, largeur maximale **760 px**.
 - **Texte** : carte `--bg-card`, rayon 14, marge 22 × 24, Lora 20 px. Markdown interprété (classe `.app-markdown`) : titres en Cinzel `--accent-text`, citation avec filet gauche `--accent` 3 px en `--text-secondary` italique, liens `--accent-text`.
 - **Battlemap** : miniature cliquable (curseur loupe) qui ouvre la battlemap en grand dans une modale.
+- **Vidéo lancée** (lot 12 ter, décision d'Allan du 14/11/2026) : ligne discrète, fond `--el-video-bg`, rayon `lg`, icône `Clapperboard` en `--el-video-fg`, texte `--text-secondary` en taille `small` : « Vidéo lancée : « nom » » (« Vidéo lancée (supprimée du projet depuis) » si elle a été supprimée). Aucun contrôle : ils restent sur la carte « Vidéo en cours » (§6.12).
 - **Clic de l'utilisateur** : fond `--accent-surface`, bordure dorée 2 px ; icône dans un cercle doré, texte Inter 19 px 500, bouton principal « Cliquer pour continuer » **en bas à droite** du bloc. Une fois validé : style neutre, coche turquoise, mention « Validé ».
 - Éléments précédents estompés en haut (opacité 65 %, pleine opacité au survol ou au focus) et pastille « N éléments précédents ».
 - Bouton flottant « Revenir au dernier élément » quand le MJ a remonté le fil.

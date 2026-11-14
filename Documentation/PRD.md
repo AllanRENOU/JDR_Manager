@@ -185,7 +185,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | FIL-05 | Un élément « Clic de l'utilisateur » affiche son texte, puis un bouton **« Cliquer pour continuer »** en bas à droite du bloc ; l'action reprend après le clic ; le bloc reste ensuite dans le fil, marqué comme validé. | M |
 | FIL-06 | À chaque nouvel élément, le fil défile automatiquement pour placer cet élément en haut de l'écran. | M |
 | FIL-07 | Le MJ peut remonter dans le fil pour relire les éléments précédents. | M |
-| FIL-08 | Les sons, les vidéos et les noms des actions ne sont pas tracés dans le fil. | M |
+| FIL-08 | Les sons et les noms des actions ne sont pas tracés dans le fil. Une vidéo diffusée y est **mentionnée** (« Vidéo lancée : « nom » »), sans contrôle : ceux-ci restent sur la carte « Vidéo en cours » (décision d'Allan, 14/11/2026). | M |
 | FIL-09 | Les textes ne sont pas modifiables en Présentation. | M |
 | FIL-10 | Le Markdown des textes est interprété dans le fil (titres, gras, italique, listes, citations, liens, tableaux) ; un lien s'ouvre dans un nouvel onglet. | S |
 

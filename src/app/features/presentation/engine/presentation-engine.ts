@@ -153,7 +153,7 @@ export class PresentationEngine {
    */
   readonly feed = computed<readonly FeedItem[]>(() =>
     (this.sceneState()?.feed ?? []).filter(
-      (item) => item.type === 'battlemap' || this.elementOf(item) !== null,
+      (item) => item.type === 'battlemap' || item.type === 'video' || this.elementOf(item) !== null,
     ),
   );
   readonly doneActionIds = computed<ReadonlySet<Id>>(
@@ -466,6 +466,11 @@ export class PresentationEngine {
     return this.sceneNodes().find((n) => n.id === element.sceneId)?.name ?? '';
   }
 
+  /** Nom de la vidéo d'un bloc « Vidéo lancée » ; `null` si elle a été supprimée depuis. */
+  videoName(videoId: Id): string | null {
+    return this.soundNodes().find((n) => n.id === videoId && n.kind === 'item')?.name ?? null;
+  }
+
   /** Quitte la Présentation : actions arrêtées, sons coupés en fondu, partie enregistrée. */
   stop(): Promise<void> {
     this.switching = true;
@@ -739,8 +744,9 @@ export class PresentationEngine {
   }
 
   /**
-   * Lance une vidéo dans la fenêtre joueurs (TRD §6.2) : vidéo supprimée → message d'erreur ;
-   * fenêtre joueurs fermée → notification discrète (VID-07). La partie continue dans tous les cas.
+   * Lance une vidéo dans la fenêtre joueurs (TRD §6.2) et l'indique dans le fil ; vidéo supprimée
+   * → message d'erreur ; fenêtre joueurs fermée → notification discrète (VID-07), rien dans le fil.
+   * La partie continue dans tous les cas.
    */
   private playVideo(videoId: Id, volume: number): void {
     const node = this.soundNodes().find((n) => n.id === videoId && n.kind === 'item');
@@ -750,6 +756,13 @@ export class PresentationEngine {
     }
     if (!this.playerVideo.play({ videoId, mediaId: node.mediaId, name: node.name, volume })) {
       this.notifications.info(this.transloco.translate('presentation.videoNotShown'));
+      return;
+    }
+    // Mention dans le fil (pas d'attente : la vidéo part tout de suite) ; les contrôles restent
+    // sur la carte « Vidéo en cours » (décision d'Allan, 14/11/2026).
+    const sceneId = this.scene()?.id;
+    if (sceneId) {
+      this.addFeedItem(sceneId, { id: newId(), type: 'video', videoId });
     }
   }
 
@@ -803,7 +816,7 @@ export class PresentationEngine {
   }
 
   private elementOf(item: FeedItem) {
-    if (item.type === 'battlemap') {
+    if (item.type === 'battlemap' || item.type === 'video') {
       return null;
     }
     return (

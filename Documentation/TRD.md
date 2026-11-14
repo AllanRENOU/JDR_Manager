@@ -325,7 +325,8 @@ interface SceneState {
 type FeedItem =
   | { id: Id; type: 'text'; actionId: Id; elementId: Id }
   | { id: Id; type: 'battlemap'; battlemapId: Id }
-  | { id: Id; type: 'user-click'; actionId: Id; elementId: Id; validated: boolean };
+  | { id: Id; type: 'user-click'; actionId: Id; elementId: Id; validated: boolean }
+  | { id: Id; type: 'video'; videoId: Id };  // vidéo diffusée : simple mention (lot 12 ter, 14/11/2026)
 ```
 
 Notes :
@@ -564,7 +565,7 @@ interface TreeMenuItem<T> {
 - Côté joueurs : composant `VideoLayer` (`player-screen/video-layer`), posé dans `PlayerScreenPage` par-dessus l'image ; la page lui transmet les commandes (`handle`) et renvoie ses comptes rendus (`report`). URL du fichier par `MediaUrls.acquire` / `release`. Un clic (`pointerdown`) n'importe où dans la fenêtre autorise le son, y compris pour la vidéo en cours.
 - La fenêtre joueurs ne déduit rien d'un `show-battlemap` : c'est l'écran du MJ qui envoie `stop-video` quand une battlemap est affichée (TEC-44, §6.2).
 - `ping` (fenêtre rouverte ou rechargée) : l'écran du MJ renvoie la battlemap, jamais la vidéo ; une vidéo en cours côté MJ est considérée comme terminée (`duck(false)`, carte retirée). `clear` et `bye` terminent aussi la vidéo.
-- `video-error` : notification au MJ (`presentation.errors.videoUnreadable`), `duck(false)`, carte retirée. Vidéo en pause (bouton global ou carte) : la coupure des sons est maintenue jusqu'à la fin ou à l'arrêt de la vidéo (décision d'Allan, 14/11/2026). Aucune vidéo dans le fil d'actualité.
+- `video-error` : notification au MJ (`presentation.errors.videoUnreadable`), `duck(false)`, carte retirée. Vidéo en pause (bouton global ou carte) : la coupure des sons est maintenue jusqu'à la fin ou à l'arrêt de la vidéo (décision d'Allan, 14/11/2026). Une vidéo **diffusée** (par une action ou à la main) ajoute au fil une entrée `{ type: 'video', videoId }` (`VideoFeedItem`) : mention « Vidéo lancée : « nom » » sans contrôle, nom relu à l'affichage (`engine.videoName`), enregistrée avec le fil comme une miniature de battlemap ; la vidéo elle-même n'est pas enregistrée ni relancée (TEC-48). Pas de mention si la vidéo n'est pas diffusée (fenêtre fermée, vidéo supprimée). Décision d'Allan du 14/11/2026, qui remplace « aucune vidéo dans le fil ».
 - `PlayerVideo` (côté MJ, `gm-screen/player-video.ts`, fourni par l'écran) : `play({ videoId, mediaId, name, volume })` (renvoie `false` sans fenêtre joueurs ouverte ; lancement manuel `PresentationEngine.playLibraryVideo(videoId)` : volume 1), `pause()`, `resume()`, `stop()` (envoie `stop-video`), `setVolume(volume)`, `end()` (vidéo terminée sans commande : fenêtre fermée, `ping`, `bye`), `receive(message)` (messages joueurs → MJ ; ceux d'une vidéo remplacée sont ignorés), signal `video` (`{ videoId, name, positionMs, durationMs, paused, muted, volume } | null`, repris par `PresentationEngine.video`) qui alimente la carte « Vidéo en cours » (PRD CTL-13) ; appelle `AudioPlayer.duck()` à l'entrée et à la sortie. `video-muted` → notification `presentation.videoMuted`.
 - Dépendances : `PresentationEngine` → `PlayerVideo` ; `PlayerWindow` → `PresentationEngine` et `PlayerVideo`. `PlayerVideo` ne connaît pas `PlayerWindow` (pas de dépendance circulaire) : c'est `PlayerWindow` qui lui branche le canal (`attach({ post, open })`) et lui transmet les messages et la fermeture.
 - Tests : `useFakePlayerChannel()` sert aussi pour les vidéos ; jsdom ne lit pas la vidéo (espionner `HTMLMediaElement.prototype.play` / `pause`, simuler `ended`).

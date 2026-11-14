@@ -133,6 +133,26 @@ app-feed-battlemap {
   font-weight: font-weight(semibold);
 }
 
+// Vidéo lancée : mention discrète, aux couleurs des éléments vidéo.
+.video {
+  display: flex;
+  align-items: center;
+  gap: space(10);
+  margin: 0;
+  padding: space(12) space(18);
+  border-radius: radius(lg);
+  background: color(el-video-bg);
+  color: color(text-secondary);
+  font-size: font-size(small);
+}
+
+.video__icon {
+  flex-shrink: 0;
+  width: space(16);
+  height: space(16);
+  color: color(el-video-fg);
+}
+
 .empty {
   color: color(text-tertiary);
   font-style: italic;
