@@ -465,7 +465,7 @@ C'est le **seul endroit** du document où figurent les valeurs des couleurs. Cha
 | `--el-action-*` | `#C3B1EE` / `#2D2839` | `#6B4AA6` / `#EBE2F6` |
 | `--el-video-*` | `#7FC4E8` / `#1F3140` | `#1F6A8A` / `#D6E9F1` |
 
-> `--el-video-*` (lot 12 ter) : valeurs proposées, à valider par Allan dans les deux thèmes (bleu ciel, distinct du turquoise des sons et du bleu des textes).
+> `--el-video-*` (lot 12 ter) : valeurs retenues par Allan le 14/11/2026 (bleu ciel, distinct du turquoise des sons et du bleu des textes), posées dans les deux thèmes ; contrôle visuel sur `/dev/themes`. Utilisées par « Lancer la vidéo » / « Arrêter la vidéo » (pastille, carte d'élément, menu « Ajouter un élément ») et la carte « Vidéo en cours ».
 
 **Dossiers et visuels de remplacement**
 

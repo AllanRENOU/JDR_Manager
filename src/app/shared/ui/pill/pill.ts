@@ -16,7 +16,8 @@ export type PillTone =
   | 'wait'
   | 'click'
   | 'scene'
-  | 'action';
+  | 'action'
+  | 'video';
 
 /** Couleur associée à chaque type d'élément d'action (Brief §2.6). */
 export const ELEMENT_TONES: Record<ActionElementType, PillTone> = {
@@ -24,9 +25,8 @@ export const ELEMENT_TONES: Record<ActionElementType, PillTone> = {
   'play-sound': 'sound',
   'stop-sound': 'stop-all',
   'stop-all-sounds': 'stop-all',
-  // Couleur vidéo (jetons --el-video-*) posée en 12t.7.
-  'play-video': 'neutral',
-  'stop-video': 'neutral',
+  'play-video': 'video',
+  'stop-video': 'video',
   'add-text': 'text',
   wait: 'wait',
   'user-click': 'click',

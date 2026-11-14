@@ -123,7 +123,7 @@
   }
 }
 
-@each $tone in battlemap, sound, stop-all, text, wait, click, scene {
+@each $tone in battlemap, sound, stop-all, text, wait, click, scene, action, video {
   .types-menu__icon--#{$tone} {
     background: color(el-#{$tone}-bg);
     color: color(el-#{$tone}-fg);

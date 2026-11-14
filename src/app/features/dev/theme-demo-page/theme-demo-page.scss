@@ -108,7 +108,7 @@
   border-radius: radius(pill);
   font-size: font-size(small);
 
-  @each $type in battlemap, sound, stop-all, text, wait, click, scene {
+  @each $type in battlemap, sound, stop-all, text, wait, click, scene, action, video {
     &--#{$type} {
       color: color(el-#{$type}-fg);
       background: color(el-#{$type}-bg);

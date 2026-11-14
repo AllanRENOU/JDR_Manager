@@ -8,6 +8,8 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import {
   LucideAudioLines,
   LucideClapperboard,
+  LucideEye,
+  LucideFilm,
   LucideHourglass,
   LucideMap,
   LucideMousePointerClick,
@@ -43,6 +45,8 @@ import { Theme, ThemeId } from '../../../core/theme/theme';
     LucideHourglass,
     LucideMousePointerClick,
     LucideClapperboard,
+    LucideEye,
+    LucideFilm,
   ],
   templateUrl: './theme-demo-page.html',
   styleUrl: './theme-demo-page.scss',

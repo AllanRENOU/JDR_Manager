@@ -119,6 +119,8 @@ export class ComponentsDemoPage {
     'wait',
     'click',
     'scene',
+    'action',
+    'video',
   ];
 
   protected readonly triggerOptions: SegmentedOption<string>[] = [
