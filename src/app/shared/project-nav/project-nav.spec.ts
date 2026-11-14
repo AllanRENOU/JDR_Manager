@@ -16,18 +16,18 @@ describe('ProjectNav', () => {
       providers: [
         provideRouter([
           { path: 'projects/:projectId/edit', component: Host },
-          { path: 'projects/:projectId/sounds', component: Host },
+          { path: 'projects/:projectId/library', component: Host },
         ]),
       ],
     });
   });
 
-  it('mène aux scènes et aux sons du projet et signale la page active', async () => {
-    const harness = await RouterTestingHarness.create('/projects/p1/sounds');
+  it('mène aux scènes et à la bibliothèque du projet et signale la page active', async () => {
+    const harness = await RouterTestingHarness.create('/projects/p1/library');
     const links = [...harness.routeNativeElement!.querySelectorAll('a')];
     expect(links.map((a) => [a.textContent?.trim(), a.getAttribute('href')])).toEqual([
       ['Scènes', '/projects/p1/edit'],
-      ['Sons', '/projects/p1/sounds'],
+      ['Bibliothèque', '/projects/p1/library'],
     ]);
     expect(links[1].getAttribute('aria-current')).toBe('page');
     expect(links[0].getAttribute('aria-current')).toBeNull();

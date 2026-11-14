@@ -232,14 +232,14 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Volet droit : un composant par partie (`ActionsPanel`, `BattlemapsPanel`, `SequencePanel`) qui injecte l'`EditorStore` de l'écran et contient sa propre `app-collapsible-section` (avec `preferenceKey` `editor.*`).
 - Résumé d'une action et cibles supprimées : `summarizeElement` / `hasMissingTarget` (`features/editor/action-summary.ts`). Toute cible supprimée (son, battlemap, scène) est **signalée** en rouge (PRS-07) ; toute suppression d'un objet utilisé par des actions **avertit**.
 - Champs à enregistrement automatique : lier `[value]` à une valeur **figée à l'ouverture** (`initialSceneText`, `initialTexts`), jamais à la valeur enregistrée.
-- Budget du bundle initial : 600 ko (les icônes Lucide utilisées partout sont regroupées dans le bundle principal).
+- Budget du bundle initial : 650 ko (relevé de 600 ko au lot 12 ter, décision d'Allan ; les icônes Lucide utilisées partout sont regroupées dans le bundle principal).
 
 ## Bibliothèques de sons (lot 6)
 
-- Écran `SoundLibraryPage` sur `/projects/:projectId/sounds` (projet + globale) et `/sounds` (globale seule). Navigation Scènes / Sons : `app-project-nav` (`shared/project-nav`) dans l'en-tête.
-- État : `SoundLibraryStore` (`features/sound-library`), même modèle que `EditorStore`. Les arborescences montrent dossiers et sons (`store.trees()`) ; choisir un son (`store.select()`) ouvre son dossier et le met en évidence (`store.selectedSoundId()`). Le dossier ouvert est `store.opened()` (`folderId: null` = racine). `store.rows()` = sons du dossier ouvert, ou résultats de `store.query()`.
+- Écran « Bibliothèque » `LibraryPage` (`features/library`) sur `/projects/:projectId/library` (projet + globale) et `/library` (globale seule) ; les anciennes routes `/sounds` et `/projects/:projectId/sounds` redirigent (lot 12 ter). Navigation Scènes / Bibliothèque : `app-project-nav` (`shared/project-nav`) dans l'en-tête.
+- État : `LibraryStore` (`features/library`), même modèle que `EditorStore`. Les arborescences montrent dossiers et sons (`store.trees()`) ; choisir un son (`store.select()`) ouvre son dossier et le met en évidence (`store.selectedSoundId()`). Le dossier ouvert est `store.opened()` (`folderId: null` = racine). `store.rows()` = sons du dossier ouvert, ou résultats de `store.query()`.
 - Import : `store.importFiles(files)` (bouton et `appFileDrop`) lit la durée avec `MediaDuration` (`core/media`) puis `uploadMedia(file, { durationMs })` ; une erreur de quota est renvoyée dans `failure`, pas levée.
-- Nom d'un son du tableau : `SoundName` (`features/sound-library/sound-name`) ; clic = renommer, le champ se pose par-dessus le nom masqué (la ligne et la colonne ne bougent pas). L'écran garde `editingId` et enregistre.
+- Nom d'un son du tableau : `SoundName` (`features/library/sound-name`) ; clic = renommer, le champ se pose par-dessus le nom masqué (la ligne et la colonne ne bougent pas). L'écran garde `editingId` et enregistre.
 - Pré-écoute : `SoundPreview` (fourni par l'écran, un seul `<audio>`, URL via `MediaUrls`) et `app-listen-button`. Le lecteur de Présentation (Web Audio) est un autre service, lot 9.
 - Dépôt : `countLibraryUsages()` (« Utilisé dans », avertissement à la suppression ; compte aussi les `play-video`). Modèle : `LibraryNode` (ex-`SoundNode`, store `soundNodes`), `mediaKind` lu par `mediaKindOf()` (absent = son), `getMediaInfo(ids)` (infos d'un média sans le `Blob`).
 - `app-tree` : `[canCreateItems]="false"` masque « Nouvel élément » ; `folderTone="global"` colore les dossiers de la bibliothèque globale ; `[deleteMessage]` (fonction stable `node => message | null`) remplace le message de confirmation de suppression (ex. dossier contenant des sons utilisés).
@@ -275,7 +275,7 @@ src/app/
     selection-dialog/
     file-drop/
   features/
-    projects/  settings/  sound-library/  editor/  presentation/{gm-screen,player-screen,engine,audio}
+    projects/  settings/  library/  editor/  presentation/{gm-screen,player-screen,engine,audio}
     dev/            pages de démonstration temporaires
   app.config.ts  app.routes.ts (routes paresseuses)  app.html
 src/styles/         jetons, fonctions, moteur de thèmes, thèmes, styles globaux des directives

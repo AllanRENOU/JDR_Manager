@@ -46,7 +46,7 @@ import { Notifications } from '../../../shared/ui/notification-host/notification
 import { formatDuration } from '../../../shared/util/duration';
 import { AudioPlayer } from '../../presentation/audio/audio-player';
 import { ListenButton } from '../listen-button/listen-button';
-import { SoundLibraryStore, SoundRow } from '../sound-library-store';
+import { LibraryStore, SoundRow } from '../library-store';
 import { SoundPreview } from '../sound-preview';
 
 /** Libellés des arborescences de sons (TEC-61) : dossiers et sons. */
@@ -58,13 +58,14 @@ import { Input } from '../../../shared/ui/input/input';
 import { SoundName } from '../sound-name/sound-name';
 
 /**
- * Bibliothèques de sons (SON-01, Brief §7.2).
- * - `/projects/:projectId/sounds` : sons du projet et bibliothèque globale (onglet « Sons » de l'Édition) ;
- * - `/sounds` : bibliothèque globale seule, ouverte depuis l'accueil.
+ * Écran « Bibliothèque » : sons et vidéos (SON-01, VID-02, Brief §7.2).
+ * - `/projects/:projectId/library` : bibliothèque du projet et bibliothèque globale (onglet « Bibliothèque » de l'Édition) ;
+ * - `/library` : bibliothèque globale seule, ouverte depuis l'accueil.
+ * Les anciennes routes `/sounds` et `/projects/:projectId/sounds` y redirigent (`app.routes.ts`).
  */
 import { SettingsButton } from '../../settings/settings-button/settings-button';
 @Component({
-  selector: 'app-sound-library-page',
+  selector: 'app-library-page',
   imports: [
     SoundName,
     Input,
@@ -89,18 +90,18 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
     LucideTrash2,
     LucideUpload,
   ],
-  providers: [SoundLibraryStore, SoundPreview],
-  templateUrl: './sound-library-page.html',
-  styleUrl: './sound-library-page.scss',
+  providers: [LibraryStore, SoundPreview],
+  templateUrl: './library-page.html',
+  styleUrl: './library-page.scss',
 })
-export class SoundLibraryPage {
+export class LibraryPage {
   private readonly repository = inject(DATA_REPOSITORY);
   private readonly notifications = inject(Notifications);
   private readonly transloco = inject(TranslocoService);
   private readonly modals = inject(Modals);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly audio = inject(AudioPlayer);
-  protected readonly store = inject(SoundLibraryStore);
+  protected readonly store = inject(LibraryStore);
   protected readonly preview = inject(SoundPreview);
   protected readonly progressPercent = computed(() => Math.round(this.preview.progress() * 100));
   protected readonly treeLabels = SOUND_TREE_LABELS;
@@ -128,10 +129,10 @@ export class SoundLibraryPage {
     return [library, ...ancestors.map((n) => n.name)].map((part) => `${part} ›`).join(' ');
   });
 
-  /** Paramètre de route `:projectId` ; absent sur `/sounds`. */
+  /** Paramètre de route `:projectId` ; absent sur `/library`. */
   readonly projectId = input<Id>();
 
-  /** Projet ouvert (`undefined` : projet introuvable ; inactif sur `/sounds`). */
+  /** Projet ouvert (`undefined` : projet introuvable ; inactif sur `/library`). */
   protected readonly project = resource({
     params: () => this.projectId(),
     loader: ({ params }) => this.repository.getProject(params),

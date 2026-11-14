@@ -12,10 +12,10 @@ import { GLOBAL_LIBRARY, Id, LibraryNode } from '../../../core/models';
 import { Tree } from '../../../shared/tree/tree';
 import { Modals } from '../../../shared/ui/modal/modals';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
-import { SoundLibraryStore } from '../sound-library-store';
-import { SoundLibraryPage } from './sound-library-page';
+import { LibraryStore } from '../library-store';
+import { LibraryPage } from './library-page';
 
-describe('SoundLibraryPage', () => {
+describe('LibraryPage', () => {
   useNodeBlob();
 
   beforeEach(() => {
@@ -32,7 +32,7 @@ describe('SoundLibraryPage', () => {
   afterEach(() => TestBed.inject(Modals).closeAll());
 
   async function render(projectId?: Id) {
-    const fixture = TestBed.createComponent(SoundLibraryPage);
+    const fixture = TestBed.createComponent(LibraryPage);
     if (projectId) {
       fixture.componentRef.setInput('projectId', projectId);
     }
@@ -40,14 +40,14 @@ describe('SoundLibraryPage', () => {
     return { fixture, el: fixture.nativeElement as HTMLElement };
   }
 
-  it('sur /sounds : bibliothèque globale seule, sans navigation de projet (6.1)', async () => {
+  it('sur /library : bibliothèque globale seule, sans navigation de projet (6.1)', async () => {
     const { el } = await render();
     expect(el.querySelector('h1')?.textContent).toContain('Bibliothèque globale');
     expect(el.querySelector('app-project-nav')).toBeNull();
     expect(el.querySelector('app-header a')?.getAttribute('href')).toBe('/projects');
   });
 
-  it('dans un projet : nom du projet, navigation Scènes / Sons et bouton Présenter (6.1)', async () => {
+  it('dans un projet : nom du projet, navigation Scènes / Bibliothèque et bouton Présenter (6.1)', async () => {
     const project = aProject({ name: 'La crypte' });
     await TestBed.inject(DATA_REPOSITORY).saveProject(project);
     const { fixture, el } = await render(project.id);
@@ -56,7 +56,7 @@ describe('SoundLibraryPage', () => {
       expect(el.querySelector('h1')?.textContent).toContain('La crypte');
     });
     const links = [...el.querySelectorAll('app-project-nav a')].map((a) => a.getAttribute('href'));
-    expect(links).toEqual([`/projects/${project.id}/edit`, `/projects/${project.id}/sounds`]);
+    expect(links).toEqual([`/projects/${project.id}/edit`, `/projects/${project.id}/library`]);
     expect(el.querySelector(`a[href="/projects/${project.id}/play?demo=1"]`)).not.toBeNull();
   });
 
@@ -154,7 +154,7 @@ describe('SoundLibraryPage', () => {
       expect(el.querySelector('app-tree .tree__row')).not.toBeNull();
     });
 
-    fixture.debugElement.injector.get(SoundLibraryStore).open(GLOBAL_LIBRARY, sub.id);
+    fixture.debugElement.injector.get(LibraryStore).open(GLOBAL_LIBRARY, sub.id);
     await fixture.whenStable();
     expect(el.querySelector('.content__path')?.textContent?.trim()).toBe(
       'Bibliothèque globale › Ambiances ›',

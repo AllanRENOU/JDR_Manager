@@ -14,24 +14,23 @@ export const routes: Routes = [
       import('./features/settings/settings-page/settings-page').then((m) => m.SettingsPage),
   },
   {
-    path: 'sounds',
+    path: 'library',
     loadComponent: () =>
-      import('./features/sound-library/sound-library-page/sound-library-page').then(
-        (m) => m.SoundLibraryPage,
-      ),
+      import('./features/library/library-page/library-page').then((m) => m.LibraryPage),
   },
+  // Anciennes adresses de la bibliothèque de sons (avant le lot 12 ter : favoris, historique).
+  { path: 'sounds', redirectTo: 'library' },
   {
     path: 'projects/:projectId/edit',
     loadComponent: () =>
       import('./features/editor/editor-page/editor-page').then((m) => m.EditorPage),
   },
   {
-    path: 'projects/:projectId/sounds',
+    path: 'projects/:projectId/library',
     loadComponent: () =>
-      import('./features/sound-library/sound-library-page/sound-library-page').then(
-        (m) => m.SoundLibraryPage,
-      ),
+      import('./features/library/library-page/library-page').then((m) => m.LibraryPage),
   },
+  { path: 'projects/:projectId/sounds', redirectTo: 'projects/:projectId/library' },
   {
     path: 'projects/:projectId/play',
     loadComponent: () =>

@@ -1,7 +1,7 @@
 import { Component, inject, resource } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { LucideMusic, LucidePlus, LucideSettings } from '@lucide/angular';
+import { LucideLibraryBig, LucidePlus, LucideSettings } from '@lucide/angular';
 import { firstValueFrom } from 'rxjs';
 
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
@@ -28,7 +28,7 @@ import { loadProjectSummary } from '../project-summary';
     ProjectCard,
     RouterLink,
     TranslocoPipe,
-    LucideMusic,
+    LucideLibraryBig,
     LucidePlus,
     LucideSettings,
   ],

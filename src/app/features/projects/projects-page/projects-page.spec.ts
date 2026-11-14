@@ -38,8 +38,11 @@ describe('ProjectsPage (4.1)', () => {
     expect(el.querySelector('.grid li:last-child')?.textContent).toContain('Créer un projet');
     const settings = el.querySelector('a[href="/settings"]') as HTMLAnchorElement;
     expect(settings.getAttribute('aria-label')).toBe('Ouvrir les paramètres');
-    const sounds = el.querySelector('a[href="/sounds"]') as HTMLAnchorElement;
-    expect(sounds.getAttribute('aria-label')).toBe('Ouvrir la bibliothèque globale de sons');
+    const library = el.querySelector('a[href="/library"]') as HTMLAnchorElement;
+    expect(library.textContent?.trim()).toBe('Bibliothèque globale');
+    expect(library.getAttribute('aria-label')).toBe(
+      'Ouvrir la bibliothèque globale (sons et vidéos)',
+    );
   });
 
   it('liste les projets du plus récent au plus ancien, avec leur date de modification', async () => {

@@ -42,7 +42,7 @@ export interface ImportResult {
 
 /**
  * État de l'écran Sons : bibliothèques affichées (celle du projet puis la globale), leurs nœuds
- * et le dossier ouvert. Fourni par `SoundLibraryPage` (une instance par écran) ; toutes les
+ * et le dossier ouvert. Fourni par `LibraryPage` (une instance par écran) ; toutes les
  * écritures passent par le dépôt (SON-01, SON-04).
  *
  * Les arborescences montrent les dossiers et les sons ; le tableau détaille les sons du dossier
@@ -50,7 +50,7 @@ export interface ImportResult {
  * (`selectedSoundId`).
  */
 @Injectable()
-export class SoundLibraryStore {
+export class LibraryStore {
   private readonly repository = inject(DATA_REPOSITORY);
   private readonly durations = inject(MediaDuration);
 

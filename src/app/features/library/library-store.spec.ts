@@ -6,18 +6,18 @@ import { useTestRepository } from '../../../testing/test-repository';
 import { DATA_REPOSITORY } from '../../core/data/data-repository';
 import { LibraryNode } from '../../core/models';
 import { MediaDuration } from '../../core/media/media-duration';
-import { SoundLibraryStore, soundName } from './sound-library-store';
+import { LibraryStore, soundName } from './library-store';
 
 const fakeDuration = (file: File) => (file.name.startsWith('vent') ? null : 90_000);
 
-describe('SoundLibraryStore', () => {
+describe('LibraryStore', () => {
   useNodeBlob();
-  let store: SoundLibraryStore;
+  let store: LibraryStore;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        SoundLibraryStore,
+        LibraryStore,
         ...useTestRepository(),
         // jsdom ne lit pas l'audio : durée simulée d'après le nom du fichier.
         {
@@ -26,7 +26,7 @@ describe('SoundLibraryStore', () => {
         },
       ],
     });
-    store = TestBed.inject(SoundLibraryStore);
+    store = TestBed.inject(LibraryStore);
   });
 
   const repository = () => TestBed.inject(DATA_REPOSITORY);
