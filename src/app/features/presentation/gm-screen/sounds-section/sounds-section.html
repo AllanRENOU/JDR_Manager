@@ -1,10 +1,15 @@
 @let sounds = engine.sounds();
+@let video = engine.video();
 <app-collapsible-section
   [title]="'presentation.panel.sounds' | transloco"
-  [summary]="'· ' + (summaryKey() | transloco: { count: sounds.length })"
+  [summary]="
+    '· ' +
+    (summaryKey() | transloco: { count: sounds.length }) +
+    (video ? ' · ' + ('presentation.sounds.withVideo' | transloco) : '')
+  "
   preferenceKey="play.sounds"
 >
-  @if (sounds.length) {
+  @if (sounds.length || video) {
     <button
       sectionAction
       appButton="icon"
@@ -23,8 +28,12 @@
     </button>
   }
   <div class="content">
+    @if (video) {
+      <app-video-card [video]="video" />
+    }
     @for (sound of sounds; track sound.soundId) {
-      <app-sound-card [sound]="sound" />
+      <!-- Sons coupés pendant la vidéo : cartes estompées (Brief §6.12). -->
+      <app-sound-card [class.ducked]="!!video" [sound]="sound" />
     }
     <button class="launch" appButton="add" type="button" (click)="launch()">
       <svg lucidePlus aria-hidden="true"></svg>{{ 'sound.launch' | transloco }}

@@ -23,6 +23,7 @@ import { visibleRows } from '../../../shared/tree/tree-model';
 import { delay } from '../../../shared/util/delay';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { AudioPlayer, DEFAULT_FADE_OUT_MS, SoundRequest } from '../audio/audio-player';
+import { PlayerVideo } from '../gm-screen/player-video';
 import { ActionContext, ActionRunner, RunOutcome } from './action-runner';
 import { PlaySessionStore, newSceneState } from './play-session-store';
 
@@ -101,6 +102,7 @@ export class PresentationEngine {
   private readonly runner = inject(ActionRunner);
   private readonly store = inject(PlaySessionStore);
   private readonly audio = inject(AudioPlayer);
+  private readonly playerVideo = inject(PlayerVideo);
   private readonly notifications = inject(Notifications);
   private readonly transloco = inject(TranslocoService);
   private readonly displayGapMs = inject(DISPLAY_GAP_MS);
@@ -132,7 +134,13 @@ export class PresentationEngine {
   readonly focus = signal<FeedFocus | null>(null);
   /** Sons en cours (contrôles du MJ, CTL-08 à CTL-10). */
   readonly sounds = this.audio.sounds;
-  readonly anyPlaying = this.audio.anyPlaying;
+  /** Vidéo en cours dans la fenêtre joueurs (carte « Vidéo en cours », CTL-13) ; jamais enregistrée. */
+  readonly video = this.playerVideo.video;
+  /** Un son ou la vidéo joue : le bouton global affiche « Pause » (CTL-10, VID-10). */
+  readonly anyPlaying = computed(() => {
+    const video = this.video();
+    return this.audio.anyPlaying() || (!!video && !video.paused);
+  });
 
   private readonly sceneState = computed<SceneState | null>(() => {
     const id = this.scene()?.id;
@@ -410,6 +418,11 @@ export class PresentationEngine {
     );
   }
 
+  /** Lance une vidéo d'une bibliothèque, à la main, à 100 % (CTL-13, décision d'Allan). */
+  playLibraryVideo(videoId: Id): void {
+    this.playVideo(videoId, 1);
+  }
+
   pauseSound(soundId: Id): void {
     this.audio.pause(soundId);
   }
@@ -422,12 +435,14 @@ export class PresentationEngine {
     this.audio.setVolume(soundId, volume);
   }
 
-  /** Bouton global lecture / pause (CTL-10). */
+  /** Bouton global lecture / pause (CTL-10), sons et vidéo ensemble (VID-10). */
   togglePlayback(): Promise<void> {
-    if (this.audio.anyPlaying()) {
+    if (this.anyPlaying()) {
       this.audio.pauseAll();
+      this.playerVideo.pause();
       return Promise.resolve();
     }
+    this.playerVideo.resume();
     return this.audio.resumeAll();
   }
 
@@ -516,6 +531,8 @@ export class PresentationEngine {
       },
       stopSound: (element) => this.audio.stop(element.soundId),
       stopAllSounds: () => this.audio.stopAll(),
+      playVideo: (element) => this.playVideo(element.videoId, element.volume),
+      stopVideo: () => this.playerVideo.stop(),
       waitForUserClick: (action, element, signal) =>
         this.waitForUserClick(sceneId, action, element, signal),
       wait: (element, signal) => this.wait(element, signal),
@@ -668,6 +685,8 @@ export class PresentationEngine {
   }
 
   private applyBattlemap(sceneId: Id, battlemapId: Id): void {
+    // Toute battlemap affichée, même celle déjà affichée, arrête la vidéo (VID-09).
+    this.playerVideo.stop();
     if (this.store.sceneState(sceneId)?.currentBattlemapId === battlemapId) {
       return;
     }
@@ -719,6 +738,21 @@ export class PresentationEngine {
     return played;
   }
 
+  /**
+   * Lance une vidéo dans la fenêtre joueurs (TRD §6.2) : vidéo supprimée → message d'erreur ;
+   * fenêtre joueurs fermée → notification discrète (VID-07). La partie continue dans tous les cas.
+   */
+  private playVideo(videoId: Id, volume: number): void {
+    const node = this.soundNodes().find((n) => n.id === videoId && n.kind === 'item');
+    if (!node?.mediaId) {
+      this.notifications.error(this.transloco.translate('presentation.errors.missingVideo'));
+      return;
+    }
+    if (!this.playerVideo.play({ videoId, mediaId: node.mediaId, name: node.name, volume })) {
+      this.notifications.info(this.transloco.translate('presentation.videoNotShown'));
+    }
+  }
+
   /** Relance les sons d'une scène restaurée : depuis le début, avec volume et pause (PRS-05). */
   private async restoreSounds(sounds: readonly PlayingSound[]): Promise<void> {
     for (const sound of sounds) {
@@ -760,10 +794,11 @@ export class PresentationEngine {
 
   // ── Utilitaires ─────────────────────────────────────────────────────────
 
-  /** Quitte la scène ouverte : actions annulées puis sons coupés en fondu (CTL-06). */
+  /** Quitte la scène ouverte : actions annulées, vidéo arrêtée, sons coupés en fondu (CTL-06, VID-09). */
   private leaveScene(): void {
     this.sceneController?.abort();
     this.sceneController = null;
+    this.playerVideo.stop();
     this.audio.stopAll();
   }
 

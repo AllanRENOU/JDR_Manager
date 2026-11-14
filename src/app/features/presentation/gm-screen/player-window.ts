@@ -9,6 +9,7 @@ import {
   PlayerMessage,
   playerWindowUrl,
 } from '../player-screen/player-channel';
+import { PlayerVideo } from './player-video';
 
 /** Intervalle (ms) de vérification de la fenêtre joueurs (fermée par l'utilisateur). */
 export const PLAYER_WINDOW_CHECK_MS = 1000;
@@ -16,6 +17,7 @@ export const PLAYER_WINDOW_CHECK_MS = 1000;
 /**
  * Côté MJ, la fenêtre joueurs (AFF-02, TEC-53, TRD §9) : ouverture par `window.open`, envoi de
  * la battlemap affichée et du thème par `BroadcastChannel`, suivi de son état (fermée, rechargée).
+ * Les vidéos passent par `PlayerVideo`, à qui elle sert de canal (TRD §9.1).
  * Fourni par l'écran de Présentation, avec le moteur.
  */
 @Injectable()
@@ -24,6 +26,7 @@ export class PlayerWindow {
   private readonly theme = inject(Theme);
   private readonly window = inject(DOCUMENT).defaultView;
   private readonly createChannel = inject(PLAYER_CHANNEL_FACTORY);
+  private readonly video = inject(PlayerVideo);
 
   private channel: PlayerChannel | null = null;
   private projectId: Id | null = null;
@@ -34,6 +37,7 @@ export class PlayerWindow {
   readonly open = signal(false);
 
   constructor() {
+    this.video.attach({ post: (message) => this.post(message), open: this.open });
     // Battlemap affichée et thème : envoyés à chaque changement.
     effect(() => {
       const message = this.battlemapMessage();
@@ -93,13 +97,18 @@ export class PlayerWindow {
   private receive(message: PlayerMessage): void {
     switch (message.type) {
       case 'ping':
-        // Fenêtre ouverte, rechargée, ou déjà là au démarrage du MJ : état courant.
+        // Fenêtre ouverte, rechargée, ou déjà là au démarrage du MJ : état courant. La vidéo
+        // n'est jamais renvoyée : celle en cours est considérée comme terminée (TRD §9.1).
+        this.video.end();
         this.open.set(true);
         this.post({ type: 'theme', theme: this.theme.theme() });
         this.post(this.battlemapMessage());
         break;
       case 'bye':
-        this.open.set(false);
+        this.closed();
+        break;
+      default:
+        this.video.receive(message);
         break;
     }
   }
@@ -118,10 +127,16 @@ export class PlayerWindow {
     this.timer = setInterval(() => {
       if (this.ref?.closed) {
         this.ref = null;
-        this.open.set(false);
+        this.closed();
         clearInterval(this.timer);
       }
     }, PLAYER_WINDOW_CHECK_MS);
+  }
+
+  /** Fenêtre joueurs fermée : plus de vidéo, les sons reviennent (VID-09). */
+  private closed(): void {
+    this.open.set(false);
+    this.video.end();
   }
 
   private post(message: PlayerMessage): void {
@@ -130,8 +145,9 @@ export class PlayerWindow {
 
   private disconnect(): void {
     clearInterval(this.timer);
-    // Écran du MJ quitté : la fenêtre joueurs n'affiche plus rien.
+    // Écran du MJ quitté : la fenêtre joueurs n'affiche plus rien (ni battlemap ni vidéo).
     this.post({ type: 'clear' });
+    this.video.end();
     this.channel?.close();
     this.channel = null;
     this.projectId = null;

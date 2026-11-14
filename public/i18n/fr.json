@@ -314,8 +314,12 @@
     "emptyFeed": "Aucun texte pour cette scène.",
     "missingText": "Ce texte a été supprimé du projet.",
     "noScene": "Ce projet n’a pas encore de scène à présenter.",
+    "videoNotShown": "Vidéo non diffusée : la fenêtre joueurs n’est pas ouverte.",
+    "videoMuted": "La vidéo passe sans le son : cliquez une fois dans la fenêtre joueurs pour l’autoriser.",
     "errors": {
       "missingSound": "Un son a été supprimé du projet : il n’est pas lancé.",
+      "missingVideo": "Une vidéo a été supprimée du projet : elle n’est pas lancée.",
+      "videoUnreadable": "La vidéo n’a pas pu être lue dans la fenêtre joueurs.",
       "missingScene": "La scène cible de « Changer de scène » a été supprimée : la scène ne change pas.",
       "missingAction": "Une action à afficher a été supprimée : elle est ignorée.",
       "missingActionToHide": "Une action à masquer a été supprimée : elle est ignorée."
@@ -383,7 +387,18 @@
       "pause": "Mettre en pause « {{ name }} »",
       "resume": "Reprendre « {{ name }} »",
       "volume": "Volume de « {{ name }} »",
-      "launchConfirm": "Lancer"
+      "launchConfirm": "Lancer",
+      "withVideo": "vidéo en cours"
+    },
+    "video": {
+      "label": "Vidéo en cours",
+      "soundsMuted": "Sons coupés",
+      "muted": "Muette",
+      "remaining": "Temps restant :",
+      "pause": "Mettre en pause la vidéo « {{ name }} »",
+      "resume": "Reprendre la vidéo « {{ name }} »",
+      "stop": "Arrêter la vidéo « {{ name }} »",
+      "volume": "Volume de la vidéo « {{ name }} »"
     },
     "player": {
       "open": "Ouvrir la fenêtre joueurs",
@@ -407,7 +422,7 @@
   },
   "sound": {
     "library": "Bibliothèque",
-    "launch": "Lancer un son",
+    "launch": "Lancer un son ou une vidéo",
     "volume": "Volume",
     "playAll": "Tout reprendre",
     "pauseAll": "Tout mettre en pause",

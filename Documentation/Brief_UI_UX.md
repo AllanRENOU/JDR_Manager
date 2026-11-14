@@ -281,6 +281,7 @@ Hauteurs : **44 px** (standard), 40 px (en-tête), 34–36 px (dans un volet), 4
 - Carte dépliée (clic sur la carte) : fond `--bg-raised`, bordure `--border-default`, curseur de volume et valeur en %.
 - Bouton global lecture / pause dans l'en-tête de la section : une seule icône selon l'état.
 - **Vidéo en cours** (lot 12 ter, PRD CTL-13) : carte en tête de la section Sons, fond `--el-video-bg`, icône vidéo `--el-video-fg` (Lucide `Clapperboard`), nom, temps restant (`-1:24`) et barre de progression fine, mention « Sons coupés » en `--text-tertiary`, boutons icône **Pause / Reprendre** et **Arrêter** (`aria-label`). « Muette » s'affiche si le son a été refusé (PRD VID-12). Les cartes de sons en dessous sont estompées pendant la coupure. Carte dépliée (clic) : curseur de volume et valeur en %, comme une carte de son (décision d'Allan, 14/11/2026). Pas de carte quand aucune vidéo ne passe.
+  - Réalisé (12t.11) : composant `VideoCard` (`gm-screen/video-card`) ; libellé « Vidéo en cours » en `--el-video-fg` sous le nom, suivi de « en pause », « Muette » et « Sons coupés » ; bouton Arrêter = Lucide `Square` ; barre de progression de 2 px en `--el-video-fg` ; cartes de sons estompées à 50 % (toujours réglables). Résumé de l'en-tête : « · 1 en cours · vidéo en cours ». Le bouton global lecture / pause s'affiche aussi quand seule une vidéo passe.
 - Le bouton « Lancer un son » devient **« Lancer un son ou une vidéo »**.
 
 ### 6.13 Glisser-déposer de fichiers

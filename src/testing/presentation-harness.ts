@@ -6,6 +6,7 @@ import { provideFrenchLocale } from '../app/core/i18n/locale';
 import { Action } from '../app/core/models';
 import { ActionRunner } from '../app/features/presentation/engine/action-runner';
 import { PlaySessionStore } from '../app/features/presentation/engine/play-session-store';
+import { PlayerVideo } from '../app/features/presentation/gm-screen/player-video';
 import {
   DISPLAY_GAP_MS,
   PresentationEngine,
@@ -39,6 +40,7 @@ export function usePresentation(): { audio: FakeAudio; bus: FakePlayerBus } {
         { provide: DISPLAY_GAP_MS, useValue: 0 },
         ActionRunner,
         PlaySessionStore,
+        PlayerVideo,
         ...useTestRepository(),
         ...audio.providers,
         ...bus.providers,

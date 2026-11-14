@@ -239,6 +239,22 @@ describe('LibraryStore', () => {
     ]);
   });
 
+  it('pendant un import, un fichier déjà importé a ses infos (pas « Fichier introuvable »)', async () => {
+    await store.load('p1');
+    const rowsDuringSecond: unknown[] = [];
+    vi.spyOn(TestBed.inject(MediaDuration), 'read').mockImplementation(async (file) => {
+      if ((file as File).name === 'b.mp3') {
+        rowsDuringSecond.push(...store.rows().map((row) => [row.node.name, row.media?.size]));
+      }
+      return 90_000;
+    });
+    await store.importFiles([
+      new File(['aa'], 'a.mp3', { type: 'audio/mpeg' }),
+      new File(['b'], 'b.mp3', { type: 'audio/mpeg' }),
+    ]);
+    expect(rowsDuringSecond).toEqual([['a', 2]]);
+  });
+
   it('filtre le tableau par type, y compris la recherche ; choisir un élément masqué retire le filtre (VID-02)', async () => {
     const intro = aSoundNode('global', { name: 'Intro pluie', mediaKind: 'video' });
     const rain = aSoundNode('global', { name: 'Pluie', order: 1 });

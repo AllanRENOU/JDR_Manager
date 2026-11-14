@@ -7,6 +7,11 @@
   padding-bottom: space(14);
 }
 
+// Sons coupés pendant une vidéo (VID-08) : toujours réglables, mais estompés.
+.ducked {
+  opacity: 0.5;
+}
+
 .launch {
   width: 100%;
 }

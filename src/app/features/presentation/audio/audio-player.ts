@@ -13,6 +13,8 @@ export const AUDIO_CONTEXT_FACTORY = new InjectionToken<() => AudioContext>(
 export const DEFAULT_FADE_OUT_MS = 1000;
 /** Courte rampe de la pause / reprise d'un son (évite le « clic »). */
 export const PAUSE_FADE_MS = 200;
+/** Fondu de la coupure des sons pendant une vidéo, à l'entrée comme à la sortie (TEC-46). */
+export const DUCK_FADE_MS = 1000;
 
 /** Paramètres de lecture d'un son : ceux de l'élément « Lancer un son », ou par défaut. */
 export interface SoundRequest {
@@ -59,6 +61,11 @@ export class AudioPlayer {
   private readonly createContext = inject(AUDIO_CONTEXT_FACTORY);
 
   private context: AudioContext | null = null;
+  /** Gain maître, entre les sons et la sortie : coupure pendant une vidéo (TEC-46). */
+  private master: GainNode | null = null;
+  private readonly duckedState = signal(false);
+  /** Fin (temps du contexte, s) du dernier fondu de coupure. */
+  private duckEndsAt = 0;
   private readonly tracks = new Map<Id, Track>();
   private readonly listeners = new Set<() => void>();
   private readonly state = signal<readonly ActiveSound[]>([]);
@@ -67,6 +74,8 @@ export class AudioPlayer {
   readonly sounds = this.state.asReadonly();
   /** Au moins un son joue : le bouton global affiche « Pause » (CTL-10). */
   readonly anyPlaying = computed(() => this.sounds().some((s) => !s.paused));
+  /** Les sons sont coupés (vidéo en cours) : ils continuent de s'écouler sans être entendus. */
+  readonly ducked = this.duckedState.asReadonly();
 
   /** Crée ou reprend l'`AudioContext` ; à appeler sur un clic de l'utilisateur (TEC-43). */
   async unlock(): Promise<void> {
@@ -74,6 +83,37 @@ export class AudioPlayer {
     if (context.state === 'suspended') {
       await context.resume();
     }
+  }
+
+  /**
+   * Coupe (`true`) ou rétablit (`false`) tous les sons en fondu de `DUCK_FADE_MS`, y compris ceux
+   * lancés pendant la coupure (VID-08, TEC-46). Les volumes de chaque son ne changent pas et
+   * rien n'est enregistré.
+   */
+  duck(on: boolean): void {
+    if (this.duckedState() === on) {
+      return;
+    }
+    this.duckedState.set(on);
+    if (this.master && this.context) {
+      this.ramp(this.master, on ? 0 : 1, DUCK_FADE_MS);
+      this.duckEndsAt = this.context.currentTime + DUCK_FADE_MS / 1000;
+    }
+  }
+
+  /**
+   * Remet le gain maître à sa valeur (0 coupé, 1 sinon) si aucun fondu de coupure n'est en cours.
+   * Chromium cesse de calculer un nœud sans son en entrée : un fondu commencé juste avant que
+   * tous les sons s'arrêtent (changement de scène pendant une vidéo) restait figé à mi-course, et
+   * les sons suivants jouaient à moitié du volume (vérification 12t.12).
+   */
+  private settleMaster(context: AudioContext): void {
+    if (!this.master || context.currentTime < this.duckEndsAt) {
+      return;
+    }
+    const param = this.master.gain;
+    param.cancelScheduledValues(context.currentTime);
+    param.setValueAtTime(this.duckedState() ? 0 : 1, context.currentTime);
   }
 
   /** Appelé à chaque changement de `sounds` (sauvegarde de la partie). Renvoie le désabonnement. */
@@ -103,7 +143,8 @@ export class AudioPlayer {
     audio.loop = request.loop;
     const source = context.createMediaElementSource(audio);
     const gain = context.createGain();
-    source.connect(gain).connect(context.destination);
+    source.connect(gain).connect(this.master!);
+    this.settleMaster(context);
     gain.gain.setValueAtTime(0, context.currentTime);
 
     const volume = options.volume ?? request.volume;
@@ -196,7 +237,14 @@ export class AudioPlayer {
   }
 
   private ensureContext(): AudioContext {
-    this.context ??= this.createContext();
+    if (!this.context) {
+      const context = this.createContext();
+      const master = context.createGain();
+      master.gain.setValueAtTime(this.duckedState() ? 0 : 1, context.currentTime);
+      master.connect(context.destination);
+      this.context = context;
+      this.master = master;
+    }
     return this.context;
   }
 

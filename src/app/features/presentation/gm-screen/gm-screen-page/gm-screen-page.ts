@@ -42,6 +42,7 @@ import { BattlemapSection } from '../battlemap-section/battlemap-section';
 import { Feed } from '../feed/feed';
 import { NextSceneButton } from '../next-scene-button/next-scene-button';
 import { PlayerWindow } from '../player-window';
+import { PlayerVideo } from '../player-video';
 import { ShortcutsDialog } from '../shortcuts-dialog/shortcuts-dialog';
 import { SoundsSection } from '../sounds-section/sounds-section';
 import {
@@ -79,7 +80,7 @@ import { SettingsButton } from '../../../settings/settings-button/settings-butto
     LucideMonitorUp,
     LucidePresentation,
   ],
-  providers: [PresentationEngine, ActionRunner, PlaySessionStore, PlayerWindow],
+  providers: [PresentationEngine, ActionRunner, PlaySessionStore, PlayerWindow, PlayerVideo],
   templateUrl: './gm-screen-page.html',
   styleUrl: './gm-screen-page.scss',
   host: { '(document:keydown)': 'onShortcut($event)' },

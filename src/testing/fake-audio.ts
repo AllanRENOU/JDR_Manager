@@ -29,8 +29,10 @@ export interface FakeGainNode {
 export interface FakeAudio {
   /** Contextes créés (un seul attendu : TEC-43). */
   contexts: { state: AudioContextState; resume: ReturnType<typeof vi.fn> }[];
-  /** Nœuds de gain créés, dans l'ordre (un par son lancé). */
+  /** Nœuds de gain créés, dans l'ordre (un par son lancé), sans le gain maître. */
   gains: FakeGainNode[];
+  /** Gain maître (relié à la sortie) : coupure des sons pendant une vidéo (TEC-46). */
+  master: FakeGainNode | null;
   /** Éléments `<audio>` reliés à Web Audio, dans l'ordre. */
   elements: HTMLAudioElement[];
   /** Médias acquis / libérés via `MediaUrls`. */
@@ -47,6 +49,7 @@ export function useFakeAudio(): FakeAudio {
   const fake: FakeAudio = {
     contexts: [],
     gains: [],
+    master: null,
     elements: [],
     acquired: [],
     released: [],
@@ -55,6 +58,7 @@ export function useFakeAudio(): FakeAudio {
   beforeEach(() => {
     fake.contexts.length = 0;
     fake.gains.length = 0;
+    fake.master = null;
     fake.elements.length = 0;
     fake.acquired.length = 0;
     fake.released.length = 0;
@@ -83,7 +87,14 @@ export function useFakeAudio(): FakeAudio {
       createGain: () => {
         const node: FakeGainNode = {
           gain: new FakeAudioParam(),
-          connect: (target) => target,
+          connect: (target) => {
+            // Le nœud relié à la sortie est le gain maître : il est rangé à part.
+            if ((target as unknown) === context.destination) {
+              fake.gains.splice(fake.gains.indexOf(node), 1);
+              fake.master = node;
+            }
+            return target;
+          },
           disconnect: vi.fn(),
         };
         fake.gains.push(node);

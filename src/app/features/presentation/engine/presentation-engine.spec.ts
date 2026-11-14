@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import {
@@ -14,9 +15,12 @@ import { getTranslocoTestingModule } from '../../../../testing/transloco-testing
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
 import { Action, ActionElement, Id, PlaySession } from '../../../core/models';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
+import { AudioPlayer } from '../audio/audio-player';
+import { PlayerMessage } from '../player-screen/player-channel';
 import { ActionRunner } from './action-runner';
 import { PlaySessionStore, newSceneState } from './play-session-store';
 import { DISPLAY_GAP_MS, PresentationEngine } from './presentation-engine';
+import { PlayerVideo } from '../gm-screen/player-video';
 
 describe('PresentationEngine', () => {
   const audio = useFakeAudio();
@@ -32,6 +36,7 @@ describe('PresentationEngine', () => {
         { provide: DISPLAY_GAP_MS, useFactory: () => displayGapMs },
         ActionRunner,
         PlaySessionStore,
+        PlayerVideo,
         ...useTestRepository(),
         ...audio.providers,
       ],
@@ -327,27 +332,34 @@ describe('PresentationEngine', () => {
           elements: [text('t-1', 'Un.'), playSound('e-pluie', 'pluie'), text('t-2', 'Deux.')],
         }),
       ]);
-      // Instant d'apparition de chaque texte, et du son « pluie ».
+      // Instant d'apparition de chaque texte, et du son « pluie » : noté au moment exact où la
+      // partie change (et non par une vérification périodique, retardée quand la machine est
+      // chargée : le test échouait alors une fois sur deux dans la suite complète).
       const seen = new Map<string | null, number>();
-      const poll = setInterval(() => {
+      const sessionStore = store();
+      const updateScene = sessionStore.updateScene.bind(sessionStore);
+      vi.spyOn(sessionStore, 'updateScene').mockImplementation((sceneId, update) => {
+        updateScene(sceneId, update);
+        const now = Date.now();
         for (const value of [...feedTexts(), ...engine.sounds().map((s) => s.soundId)]) {
           if (!seen.has(value)) {
-            seen.set(value, Date.now());
+            seen.set(value, now);
           }
         }
-      }, 2);
-      try {
-        await startAt('A');
-        await vi.waitFor(() => expect(seen.has('Deux.')).toBe(true));
-      } finally {
-        clearInterval(poll);
-      }
+      });
+      await startAt('A');
+      await vi.waitFor(() => expect(seen.has('Deux.')).toBe(true));
       const at = (value: string) => seen.get(value)!;
-      // Texte de scène → « Un. » (autre action d'ouverture) → « Deux. » : 150 ms d'écart.
-      expect(at('Un.') - at('Odeur de bière.')).toBeGreaterThanOrEqual(140);
-      expect(at('Deux.') - at('Un.')).toBeGreaterThanOrEqual(140);
+      // Instants relevés, affichés si une vérification échoue.
+      const timeline = JSON.stringify([...seen]);
+      // Texte de scène → « Un. » (autre action d'ouverture) → « Deux. » : un créneau de 150 ms
+      // chacun, réservé à l'avance. Comparés au texte de scène : un élément affiché en retard
+      // (machine chargée) ne repousse pas le créneau du suivant, l'écart entre « Un. » et
+      // « Deux. » peut donc être un peu plus court (139 ms relevés une fois).
+      expect(at('Un.') - at('Odeur de bière.'), timeline).toBeGreaterThanOrEqual(140);
+      expect(at('Deux.') - at('Odeur de bière.'), timeline).toBeGreaterThanOrEqual(290);
       // Le son entre les deux n'attend pas : il part avec « Un. ».
-      expect(at('pluie')).toBeLessThan(at('Deux.'));
+      expect(at('pluie'), timeline).toBeLessThan(at('Deux.'));
     });
 
     it('pas de pause pour un élément affiché longtemps après le précédent', async () => {
@@ -866,6 +878,135 @@ describe('PresentationEngine', () => {
       expect(errors()[0]).toBe('Un son a été supprimé du projet : il n’est pas lancé.');
       expect(feedTexts()).toContain('Brr.');
       expect(engine.sounds().map((s) => s.soundId)).toEqual(['taverne']);
+    });
+  });
+
+  describe('vidéos (VID-06 à VID-11, 12t.10)', () => {
+    /** Messages envoyés à la fenêtre joueurs (simulée, ouverte par défaut). */
+    let posted: PlayerMessage[];
+    const playerOpen = signal(true);
+    const ducked = () => TestBed.inject(AudioPlayer).ducked();
+    const playVideo = (id: string, videoId: string, volume = 1): ActionElement => ({
+      id,
+      type: 'play-video',
+      videoId,
+      volume,
+    });
+    const film = anAction('A', {
+      id: 'film',
+      name: 'Film',
+      elements: [playVideo('e-v', 'intro', 0.7), text('t-apres', 'Après le film.')],
+    });
+
+    beforeEach(() => {
+      posted = [];
+      playerOpen.set(true);
+      TestBed.inject(PlayerVideo).attach({ post: (m) => posted.push(m), open: playerOpen });
+    });
+
+    async function seedVideos(actions: Action[] = []) {
+      await seed([film, ...actions]);
+      await repository().saveLibraryNodes([
+        aSoundNode('global', {
+          id: 'intro',
+          name: 'Intro',
+          mediaId: 'm-intro',
+          mediaKind: 'video',
+        }),
+      ]);
+      await startAt('A');
+      await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+    }
+
+    it('lancée par une action sans l’attendre, sons coupés, rien d’enregistré (ACT-14, VID-08, VID-11)', async () => {
+      await seedVideos();
+      await engine.runAction('film');
+      expect(posted).toEqual([
+        { type: 'play-video', videoId: 'intro', mediaId: 'm-intro', volume: 0.7 },
+      ]);
+      expect(engine.video()).toMatchObject({ videoId: 'intro', name: 'Intro', volume: 0.7 });
+      expect(feedTexts()).toEqual(['Odeur de bière.', 'Après le film.']);
+      expect(ducked()).toBe(true);
+      // Le son continue, à son volume : seule la sortie est coupée.
+      expect(engine.sounds()[0]).toMatchObject({ soundId: 'taverne', paused: false, volume: 0.5 });
+      expect(JSON.stringify(await savedSession())).not.toContain('intro');
+    });
+
+    it('lancée à la main : à 100 % (CTL-13)', async () => {
+      await seedVideos();
+      engine.playLibraryVideo('intro');
+      expect(posted.at(-1)).toMatchObject({ type: 'play-video', videoId: 'intro', volume: 1 });
+    });
+
+    it('fenêtre joueurs fermée ou vidéo supprimée : message, rien n’est lancé, l’action continue (VID-07, PRS-07)', async () => {
+      await seedVideos([
+        anAction('A', {
+          id: 'disparue',
+          name: 'Disparue',
+          elements: [playVideo('e-d', 'supprimee'), text('t-d', 'Suite.')],
+        }),
+      ]);
+      await engine.runAction('disparue');
+      expect(errors()).toEqual(['Une vidéo a été supprimée du projet : elle n’est pas lancée.']);
+      expect(feedTexts()).toContain('Suite.');
+
+      playerOpen.set(false);
+      await engine.runAction('film');
+      expect(errors().at(-1)).toBe('Vidéo non diffusée : la fenêtre joueurs n’est pas ouverte.');
+      expect(feedTexts()).toContain('Après le film.');
+      expect(posted).toEqual([]);
+      expect(engine.video()).toBeNull();
+      expect(ducked()).toBe(false);
+    });
+
+    it('arrêtée par « Arrêter la vidéo », par une battlemap affichée (même la même) et au changement de scène (VID-09)', async () => {
+      await seedVideos([
+        anAction('A', {
+          id: 'coupe',
+          name: 'Coupe',
+          elements: [{ id: 'e-s', type: 'stop-video' }],
+        }),
+      ]);
+      const stopped = async (run: () => unknown) => {
+        await engine.runAction('film');
+        expect(engine.video()).not.toBeNull();
+        posted = [];
+        await run();
+        expect(posted).toContainEqual({ type: 'stop-video' });
+        expect(engine.video()).toBeNull();
+        expect(ducked()).toBe(false);
+      };
+      await stopped(() => engine.runAction('coupe'));
+      // b1 est déjà affichée : la vidéo s'arrête quand même, sans miniature en plus dans le fil.
+      await stopped(() => engine.showBattlemap('b1'));
+      expect(feedTexts().filter((t) => t === '[b1]')).toEqual([]);
+      await stopped(() => engine.openScene('B'));
+    });
+
+    it('bouton global : met la vidéo en pause avec les sons, puis la fait reprendre (VID-10)', async () => {
+      await seedVideos();
+      await engine.runAction('film');
+      await engine.togglePlayback();
+      expect(engine.video()?.paused).toBe(true);
+      expect(engine.sounds()[0].paused).toBe(true);
+      expect(engine.anyPlaying()).toBe(false);
+      expect(posted.at(-1)).toEqual({ type: 'pause-video' });
+      // En pause, les sons restent coupés jusqu'à la fin de la vidéo (décision d'Allan).
+      expect(ducked()).toBe(true);
+
+      await engine.togglePlayback();
+      expect(engine.video()?.paused).toBe(false);
+      expect(engine.anyPlaying()).toBe(true);
+      expect(posted).toContainEqual({ type: 'resume-video' });
+    });
+
+    it('seule la vidéo joue (sons en pause) : le bouton global la met en pause', async () => {
+      await seedVideos();
+      engine.pauseSound('taverne');
+      await engine.runAction('film');
+      expect(engine.anyPlaying()).toBe(true);
+      await engine.togglePlayback();
+      expect(engine.video()?.paused).toBe(true);
     });
   });
 

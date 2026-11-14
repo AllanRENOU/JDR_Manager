@@ -8,6 +8,7 @@ import {
   HideActionElement,
   Id,
   PlaySoundElement,
+  PlayVideoElement,
   ShowActionElement,
   ShowBattlemapElement,
   StopSoundElement,
@@ -37,6 +38,13 @@ export interface ActionContext {
   stopSound(element: StopSoundElement): void;
   /** Arrête tous les sons, chacun avec son fondu de sortie (ACT-07). */
   stopAllSounds(): void;
+  /**
+   * Lance la vidéo dans la fenêtre joueurs, sans attendre sa fin (ACT-14, VID-06) ; vidéo supprimée
+   * ou fenêtre joueurs fermée : signalé, rien n'est lancé (VID-07). Rien n'est enregistré (TEC-48).
+   */
+  playVideo(element: PlayVideoElement): void;
+  /** Arrête la vidéo en cours, s'il y en a une (VID-09). */
+  stopVideo(): void;
   /**
    * Affiche le bloc « Clic de l'utilisateur » ; la promesse est résolue au clic sur « Continuer »
    * et rejetée si le signal est annulé (ACT-11, FIL-05). Pour un « Changer de scène », le bloc
@@ -81,7 +89,7 @@ export type RunOutcome = { kind: 'done' } | { kind: 'change-scene'; sceneId: Id 
  * et l'action n'est pas marquée comme effectuée.
  *
  * Les éléments affichés (texte, battlemap, clic de l'utilisateur, changer de scène) attendent
- * `context.beforeDisplay()` ; les éléments de son et « Attendre », non.
+ * `context.beforeDisplay()` ; les éléments de son, de vidéo et « Attendre », non.
  *
  * « Changer de scène » ne change pas de scène tout de suite : comme un clic de l'utilisateur, il
  * attend que le MJ clique sur « Aller » (scène cible supprimée : ni bloc ni changement).
@@ -124,6 +132,12 @@ export class ActionRunner {
           break;
         case 'stop-all-sounds':
           context.stopAllSounds();
+          break;
+        case 'play-video':
+          context.playVideo(element);
+          break;
+        case 'stop-video':
+          context.stopVideo();
           break;
         case 'show-action':
           context.showAction(element);

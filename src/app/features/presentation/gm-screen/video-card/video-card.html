@@ -1,0 +1,74 @@
+@let v = video();
+<div class="head">
+  <button
+    class="head__main"
+    type="button"
+    [attr.aria-expanded]="expanded()"
+    [attr.aria-controls]="volumeId"
+    (click)="expanded.set(!expanded())"
+  >
+    <svg lucideClapperboard class="head__icon" aria-hidden="true"></svg>
+    <span class="head__text">
+      <span class="head__name">{{ v.name }}</span>
+      <span class="head__notes">
+        <span class="head__label">{{ 'presentation.video.label' | transloco }}</span>
+        @if (v.paused) {
+          <span>{{ 'presentation.sounds.paused' | transloco }}</span>
+        }
+        @if (v.muted) {
+          <span class="head__muted">{{ 'presentation.video.muted' | transloco }}</span>
+        }
+        <span>{{ 'presentation.video.soundsMuted' | transloco }}</span>
+      </span>
+    </span>
+    @if (remaining(); as time) {
+      <span class="head__time">
+        <span class="visually-hidden">{{ 'presentation.video.remaining' | transloco }}</span>
+        {{ time }}
+      </span>
+    }
+  </button>
+  <button
+    appButton="icon"
+    size="sm"
+    type="button"
+    [attr.aria-label]="
+      (v.paused ? 'presentation.video.resume' : 'presentation.video.pause')
+        | transloco: { name: v.name }
+    "
+    (click)="toggle()"
+  >
+    @if (v.paused) {
+      <svg lucidePlay aria-hidden="true"></svg>
+    } @else {
+      <svg lucidePause aria-hidden="true"></svg>
+    }
+  </button>
+  <button
+    appButton="icon"
+    size="sm"
+    type="button"
+    [attr.aria-label]="'presentation.video.stop' | transloco: { name: v.name }"
+    (click)="stop()"
+  >
+    <svg lucideSquare aria-hidden="true"></svg>
+  </button>
+</div>
+<span class="progress" aria-hidden="true">
+  <span class="progress__bar" [style.width.%]="progress()"></span>
+</span>
+@if (expanded()) {
+  <div class="volume" [id]="volumeId">
+    <svg lucideVolume1 aria-hidden="true"></svg>
+    <input
+      type="range"
+      min="0"
+      max="100"
+      step="5"
+      [value]="percent()"
+      [attr.aria-label]="'presentation.video.volume' | transloco: { name: v.name }"
+      (input)="setVolume($any($event.target).value)"
+    />
+    <span class="volume__value">{{ percent() }} %</span>
+  </div>
+}

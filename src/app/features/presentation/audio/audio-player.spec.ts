@@ -1,7 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
 import { useFakeAudio } from '../../../../testing/fake-audio';
-import { AudioPlayer, DEFAULT_FADE_OUT_MS, PAUSE_FADE_MS, SoundRequest } from './audio-player';
+import {
+  AudioPlayer,
+  DEFAULT_FADE_OUT_MS,
+  DUCK_FADE_MS,
+  PAUSE_FADE_MS,
+  SoundRequest,
+} from './audio-player';
 
 describe('AudioPlayer', () => {
   const audio = useFakeAudio();
@@ -147,5 +153,54 @@ describe('AudioPlayer', () => {
     changes.mockClear();
     await player.play(request());
     expect(changes).not.toHaveBeenCalled();
+  });
+
+  describe('coupure pendant une vidéo (TEC-46, VID-08)', () => {
+    it('les sons passent par un gain maître, descendu à 0 puis remonté à 1 en DUCK_FADE_MS', async () => {
+      await player.play(request());
+      expect(audio.master?.gain.value).toBe(1);
+      const changes = vi.fn();
+      player.onChange(changes);
+
+      player.duck(true);
+      expect(player.ducked()).toBe(true);
+      expect(audio.master?.gain.ramps.at(-1)).toEqual({ target: 0, endTime: DUCK_FADE_MS / 1000 });
+      // Le son continue, à son volume : rien ne change dans la partie.
+      expect(player.sounds()[0]).toMatchObject({ paused: false, volume: 0.6 });
+      expect(audio.gains[0].gain.value).toBe(0.6);
+      expect(changes).not.toHaveBeenCalled();
+
+      player.duck(true);
+      expect(audio.master?.gain.ramps).toHaveLength(1);
+      player.duck(false);
+      expect(player.ducked()).toBe(false);
+      expect(audio.master?.gain.ramps.at(-1)).toEqual({ target: 1, endTime: DUCK_FADE_MS / 1000 });
+    });
+
+    it('fondu resté figé (plus aucun son pendant le fondu) : un nouveau son remet le gain maître à sa valeur', async () => {
+      await player.play(request());
+      player.duck(true);
+      player.duck(false);
+      // Chromium ne calcule plus le nœud sans son en entrée : la valeur reste à mi-course.
+      const master = audio.master!;
+      master.gain.value = 0.5;
+      const context = audio.contexts[0] as unknown as { currentTime: number };
+      context.currentTime = 0.5;
+      await player.play(request({ soundId: 'vent', mediaId: 'son-vent' }));
+      expect(master.gain.value).toBe(0.5);
+      // Fondu terminé : la valeur est rétablie.
+      context.currentTime = 5;
+      await player.play(request({ soundId: 'orage', mediaId: 'son-orage' }));
+      expect(master.gain.value).toBe(1);
+    });
+
+    it('un son lancé pendant la coupure reste muet ; coupure demandée avant le premier son', async () => {
+      player.duck(true);
+      await player.play(request());
+      expect(audio.master?.gain.value).toBe(0);
+      expect(player.sounds()).toHaveLength(1);
+      player.duck(false);
+      expect(audio.master?.gain.value).toBe(1);
+    });
   });
 });

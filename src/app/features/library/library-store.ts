@@ -284,6 +284,12 @@ export class LibraryStore {
           mediaKind: kind,
         };
         await this.repository.saveLibraryNodes([node]);
+        // Infos du fichier lues avant d'afficher la ligne : sinon elle passerait pour un fichier
+        // introuvable jusqu'à la fin de l'import (utilisations relues à la fin).
+        const [info] = await this.repository.getMediaInfo([mediaId]);
+        if (info) {
+          this.mediaInfo.update((infos) => ({ ...infos, [mediaId]: info }));
+        }
         this.replace(libraryId, [...this.nodesOf(libraryId), node]);
         imported.push(node);
       }

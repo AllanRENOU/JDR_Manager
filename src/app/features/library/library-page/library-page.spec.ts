@@ -229,13 +229,17 @@ describe('LibraryPage', () => {
       expect(el.querySelector('.sound__name')?.textContent).toContain('pluie');
     });
     expect(el.querySelector('tbody td:nth-child(4)')?.textContent?.trim()).toBe('1:05');
-    const messages = TestBed.inject(Notifications)
-      .notifications()
-      .map((n) => [n.tone, n.message]);
-    expect(messages).toEqual([
-      ['danger', expect.stringContaining('a.txt')],
-      ['info', '1 fichier importé dans « Bibliothèque globale ».'],
-    ]);
+    // La ligne s'affiche dès que le fichier est enregistré ; les messages, à la fin de l'import.
+    const messages = () =>
+      TestBed.inject(Notifications)
+        .notifications()
+        .map((n) => [n.tone, n.message]);
+    await vi.waitFor(() =>
+      expect(messages()).toEqual([
+        ['danger', expect.stringContaining('a.txt')],
+        ['info', '1 fichier importé dans « Bibliothèque globale ».'],
+      ]),
+    );
   });
 
   /** Fichier dont la taille annoncée est `size` (sans allouer son contenu). */
