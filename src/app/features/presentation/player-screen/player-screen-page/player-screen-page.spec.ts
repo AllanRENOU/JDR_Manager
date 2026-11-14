@@ -58,4 +58,26 @@ describe('PlayerScreenPage', () => {
     await flush();
     expect(bus.received(gm).at(-1)).toEqual({ type: 'bye' });
   });
+
+  it('joue la vidéo demandée par-dessus la battlemap et renvoie son état ; « clear » la termine (VID-06, TRD §9.1)', async () => {
+    const { fixture, el, gm } = await render();
+    gm.postMessage({ type: 'show-battlemap', sceneId: 'A', battlemapId: 'b2' });
+    gm.postMessage({ type: 'play-video', videoId: 'v1', mediaId: 'm-v1', volume: 1 });
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.querySelector('video.video--shown')?.getAttribute('src')).toBe('blob:m-v1');
+    });
+    // La battlemap reste en dessous : elle réapparaîtra à la fin de la vidéo.
+    expect(el.querySelector('img')?.getAttribute('src')).toBe('blob:m2');
+    await flush();
+    expect(bus.received(gm)).toContainEqual(
+      expect.objectContaining({ type: 'video-state', videoId: 'v1', paused: false }),
+    );
+
+    gm.postMessage({ type: 'clear' });
+    await flush();
+    await fixture.whenStable();
+    expect(el.querySelector('video.video--shown')).toBeNull();
+    expect(bus.received(gm).at(-1)).toEqual({ type: 'video-ended', videoId: 'v1' });
+  });
 });

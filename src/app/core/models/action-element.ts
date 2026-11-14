@@ -128,6 +128,8 @@ export const ACTION_ELEMENT_TYPES: readonly ActionElementType[] = [
   'play-sound',
   'stop-sound',
   'stop-all-sounds',
+  'play-video',
+  'stop-video',
   'wait',
   'user-click',
   'change-scene',

@@ -1,4 +1,11 @@
-import { GLOBAL_LIBRARY, Id, LibraryNode, TreeNode } from '../../core/models';
+import {
+  GLOBAL_LIBRARY,
+  Id,
+  LibraryMediaKind,
+  LibraryNode,
+  TreeNode,
+  mediaKindOf,
+} from '../../core/models';
 import { pathTo } from '../tree/tree-model';
 
 /** Noms affichés des deux bibliothèques (déjà traduits). */
@@ -10,14 +17,18 @@ export interface LibraryNames {
 const rootId = (libraryId: string) => `library:${libraryId}`;
 
 /**
- * Arborescence proposée pour choisir un son (ACT-05, ACT-06) : la bibliothèque du projet puis la
- * globale, chacune sous un dossier racine qui porte son nom.
+ * Arborescence proposée pour choisir un son ou une vidéo (ACT-05, ACT-06, ACT-14, CTL-08) : la
+ * bibliothèque du projet puis la globale, chacune sous un dossier racine qui porte son nom. Seuls
+ * les éléments du ou des types demandés sont proposés (`kinds`, sons par défaut) ; tous les
+ * dossiers restent visibles.
  */
 export function soundChoiceNodes(
   sounds: readonly LibraryNode[],
   projectId: Id,
   names: LibraryNames,
+  kinds: LibraryMediaKind | readonly LibraryMediaKind[] = 'sound',
 ): TreeNode[] {
+  const wanted: readonly LibraryMediaKind[] = typeof kinds === 'string' ? [kinds] : kinds;
   const libraries = [projectId, GLOBAL_LIBRARY];
   const roots: TreeNode[] = libraries.map((libraryId, order) => ({
     id: rootId(libraryId),
@@ -27,7 +38,10 @@ export function soundChoiceNodes(
     name: libraryId === GLOBAL_LIBRARY ? names.global : names.project,
   }));
   const nodes = sounds
-    .filter((n) => libraries.includes(n.libraryId))
+    .filter(
+      (n) =>
+        libraries.includes(n.libraryId) && (n.kind === 'folder' || wanted.includes(mediaKindOf(n))),
+    )
     .map<TreeNode>((n) => ({
       id: n.id,
       parentId: n.parentId ?? rootId(n.libraryId),

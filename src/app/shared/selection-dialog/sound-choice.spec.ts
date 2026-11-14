@@ -21,6 +21,21 @@ describe('sound-choice', () => {
     expect(nodes.some((n) => n.id === other.id)).toBe(false);
   });
 
+  it('ne propose que les éléments du type demandé : sons par défaut, vidéos, ou les deux', () => {
+    const intro = aSoundNode('global', { name: 'Intro', mediaKind: 'video' });
+    const all = [...sounds, intro];
+    const items = (kinds?: Parameters<typeof soundChoiceNodes>[3]) =>
+      soundChoiceNodes(all, 'p1', names, kinds)
+        .filter((n) => n.kind === 'item')
+        .map((n) => n.name);
+    expect(items()).toEqual(['Taverne', 'Pluie']);
+    expect(items('video')).toEqual(['Intro']);
+    expect(items(['sound', 'video'])).toEqual(['Taverne', 'Pluie', 'Intro']);
+    // Les dossiers restent visibles quel que soit le type.
+    expect(soundChoiceNodes(all, 'p1', names, 'video').some((n) => n.id === folder.id)).toBe(true);
+    expect(soundPath(intro.id, all, names)).toBe('Bibliothèque globale › Intro');
+  });
+
   it('donne l’emplacement d’un son, ou null s’il a été supprimé', () => {
     expect(soundPath(tavern.id, sounds, names)).toBe('Ce projet › Ambiances › Taverne');
     expect(soundPath(rain.id, sounds, names)).toBe('Bibliothèque globale › Pluie');

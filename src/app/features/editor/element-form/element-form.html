@@ -99,6 +99,34 @@
     <p class="help">{{ 'action.form.stopAllHelp' | transloco }}</p>
   }
 
+  @case ('play-video') {
+    <div class="grid">
+      <div class="group">
+        <span class="label">{{ 'action.form.video' | transloco }}</span>
+        <ng-container *ngTemplateOutlet="soundChoice" />
+      </div>
+      <app-field
+        [label]="'action.form.volume' | transloco: { value: fields().volume ?? 0 }"
+        [hint]="'action.form.videoVolumeHelp' | transloco"
+        [error]="error('volume') ? (error('volume') | transloco) : ''"
+        #videoVolumeField
+      >
+        <input
+          class="range"
+          type="range"
+          step="5"
+          [id]="videoVolumeField.controlId"
+          [formField]="form.volume"
+        />
+      </app-field>
+    </div>
+    <p class="help">{{ 'action.form.playVideoHelp' | transloco }}</p>
+  }
+
+  @case ('stop-video') {
+    <p class="help">{{ 'action.form.stopVideoHelp' | transloco }}</p>
+  }
+
   @case ('add-text') {
     <app-field [label]="'action.form.text' | transloco" #textField>
       <textarea
@@ -205,9 +233,12 @@
   }
 }
 
-<!-- Choix d'un son : emplacement du son, ou « Aucun son choisi » / « Son supprimé ». -->
+<!-- Choix d'un son ou d'une vidéo : emplacement, ou « Aucun choix » / « Son (vidéo) supprimé(e) ». -->
 <ng-template #soundChoice>
   @let sound = soundLabel();
+  @let isVideo = element().type === 'play-video';
+  @let missingKey = isVideo ? 'action.form.videoMissing' : 'action.form.soundMissing';
+  @let notChosenKey = isVideo ? 'action.form.videoNotChosen' : 'action.form.notChosen';
   <button
     class="choice"
     [class.choice--missing]="sound === false || !!choiceError()"
@@ -217,10 +248,9 @@
   >
     <span class="choice__value">
       @if (sound === false) {
-        <svg lucideTriangleAlert aria-hidden="true"></svg
-        >{{ 'action.form.soundMissing' | transloco }}
+        <svg lucideTriangleAlert aria-hidden="true"></svg>{{ missingKey | transloco }}
       } @else {
-        {{ sound ?? ('action.form.notChosen' | transloco) }}
+        {{ sound ?? (notChosenKey | transloco) }}
       }
     </span>
     <span class="choice__action">

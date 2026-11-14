@@ -47,6 +47,8 @@ const MENU_ORDER: readonly ActionElementType[] = [
   'play-sound',
   'stop-sound',
   'stop-all-sounds',
+  'play-video',
+  'stop-video',
   'add-text',
   'change-scene',
   'show-action',

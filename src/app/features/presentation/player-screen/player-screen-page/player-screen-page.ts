@@ -9,6 +9,7 @@ import {
   resource,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -17,6 +18,7 @@ import { MediaUrls } from '../../../../core/media/media-urls';
 import { Id } from '../../../../core/models';
 import { Theme } from '../../../../core/theme/theme';
 import { PLAYER_CHANNEL_FACTORY, PlayerChannel, PlayerMessage } from '../player-channel';
+import { VideoLayer, VideoReport } from '../video-layer/video-layer';
 
 /** Ce que l'écran du MJ demande d'afficher. */
 type PlayerView =
@@ -24,12 +26,13 @@ type PlayerView =
 
 /**
  * Fenêtre joueurs (`/projects/:projectId/player`, AFF-02, TRD §9) : la battlemap courante en plein
- * écran sur fond noir, sans aucun contrôle. Synchronisée avec l'écran du MJ par `BroadcastChannel` ;
+ * écran sur fond noir, sans aucun contrôle, et par-dessus la vidéo lancée par le MJ (`VideoLayer`,
+ * VID-06). Synchronisée avec l'écran du MJ par `BroadcastChannel` ;
  * elle résout elle-même l'image à partir des identifiants reçus. Double-clic : plein écran.
  */
 @Component({
   selector: 'app-player-screen-page',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, VideoLayer],
   templateUrl: './player-screen-page.html',
   styleUrl: './player-screen-page.scss',
   host: { '(dblclick)': 'toggleFullscreen()' },
@@ -44,6 +47,9 @@ export class PlayerScreenPage {
   readonly projectId = input.required<Id>();
 
   protected readonly view = signal<PlayerView>({ kind: 'waiting' });
+  private readonly videoLayer = viewChild.required(VideoLayer);
+  /** Canal ouvert vers l'écran du MJ ; `null` avant l'ouverture et après la fermeture. */
+  private channel: PlayerChannel | null = null;
 
   private readonly sceneBattlemaps = resource({
     params: () => {
@@ -62,21 +68,21 @@ export class PlayerScreenPage {
   protected readonly image = inject(MediaUrls).track(() => this.mediaId());
 
   constructor() {
-    let channel: PlayerChannel | null = null;
     const window = this.document.defaultView;
-    const bye = () => channel?.postMessage({ type: 'bye' });
+    const bye = () => this.channel?.postMessage({ type: 'bye' });
     effect((onCleanup) => {
       const projectId = this.projectId();
       untracked(() => {
-        channel = this.createChannel(projectId);
-        channel.onmessage = (event) => this.receive(event.data, channel!);
+        const channel = this.createChannel(projectId);
+        this.channel = channel;
+        channel.onmessage = (event) => this.receive(event.data, channel);
         // Ouverture ou rechargement : demande l'état courant (TRD §9).
         channel.postMessage({ type: 'ping' });
       });
       onCleanup(() => {
         bye();
-        channel?.close();
-        channel = null;
+        this.channel?.close();
+        this.channel = null;
       });
     });
     window?.addEventListener('pagehide', bye);
@@ -101,6 +107,8 @@ export class PlayerScreenPage {
         });
         break;
       case 'clear':
+        // L'écran du MJ est quitté : écran noir, vidéo terminée (TRD §9.1).
+        this.videoLayer().stop(true);
         this.view.set({ kind: 'clear' });
         break;
       case 'theme':
@@ -110,6 +118,18 @@ export class PlayerScreenPage {
         // L'écran du MJ redémarre : on se signale et on redemande l'état.
         channel.postMessage({ type: 'ping' });
         break;
+      case 'play-video':
+      case 'pause-video':
+      case 'resume-video':
+      case 'stop-video':
+      case 'video-volume':
+        this.videoLayer().handle(message);
+        break;
     }
+  }
+
+  /** Compte rendu du lecteur vidéo, renvoyé à l'écran du MJ. */
+  protected sendReport(report: VideoReport): void {
+    this.channel?.postMessage(report);
   }
 }

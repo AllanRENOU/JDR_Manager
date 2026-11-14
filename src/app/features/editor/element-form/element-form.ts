@@ -49,7 +49,10 @@ function toFields(element: ActionElement): ElementFields {
           ? (element.text ?? '')
           : '',
     seconds: element.type === 'wait' ? element.seconds : 1,
-    volume: element.type === 'play-sound' ? Math.round(element.volume * 100) : 100,
+    volume:
+      element.type === 'play-sound' || element.type === 'play-video'
+        ? Math.round(element.volume * 100)
+        : 100,
     loop: element.type === 'play-sound' ? element.loop : false,
     fadeIn: element.type === 'play-sound' ? element.fadeInMs / 1000 : 0,
     fadeOut: element.type === 'play-sound' ? element.fadeOutMs / 1000 : 0,
@@ -91,12 +94,29 @@ function applyFields(element: ActionElement, fields: ElementFields): ActionEleme
         fadeOutMs: Math.round(fadeOut * 1000),
       };
     }
+    case 'play-video': {
+      const volume = num(fields.volume, element.volume * 100, (v) => v >= 0 && v <= 100);
+      return { ...element, volume: volume / 100 };
+    }
     default:
       return element;
   }
 }
 
 const sameElement = (a: ActionElement, b: ActionElement) => JSON.stringify(a) === JSON.stringify(b);
+
+/** Son ou vidéo visé par l'élément (id de `LibraryNode`, vide si pas choisi) ; `null` sinon. */
+function libraryTarget(element: ActionElement): Id | null {
+  switch (element.type) {
+    case 'play-sound':
+    case 'stop-sound':
+      return element.soundId;
+    case 'play-video':
+      return element.videoId;
+    default:
+      return null;
+  }
+}
 
 /**
  * Formulaire d'un élément d'action (ACT-04 à ACT-11), affiché dans sa carte dépliée.
@@ -264,18 +284,13 @@ export class ElementForm {
     global: this.transloco.translate('sound.global'),
   }));
 
-  /** Emplacement du son choisi ; `null` : pas choisi ; `false` : supprimé. */
+  /** Emplacement du son ou de la vidéo choisi ; `null` : pas choisi ; `false` : supprimé. */
   protected readonly soundLabel = computed<string | null | false>(() => {
-    const element = this.element();
-    if (element.type !== 'play-sound' && element.type !== 'stop-sound') {
+    const id = libraryTarget(this.element());
+    if (!id) {
       return null;
     }
-    if (!element.soundId) {
-      return null;
-    }
-    return (
-      soundPath(element.soundId, this.context().soundNodes ?? [], this.libraryNames()) ?? false
-    );
+    return soundPath(id, this.context().soundNodes ?? [], this.libraryNames()) ?? false;
   });
 
   /** Chemin de la scène cible ; `null` : pas choisie ; `false` : supprimée. */
@@ -309,24 +324,39 @@ export class ElementForm {
     }
   }
 
-  /** Fenêtre de sélection unique dans les deux bibliothèques de sons (ACT-05, ACT-06). */
+  /**
+   * Fenêtre de sélection unique dans les deux bibliothèques (ACT-05, ACT-06, ACT-14) : seulement
+   * les sons pour un son, seulement les vidéos pour « Lancer la vidéo ».
+   */
   protected async chooseSound(): Promise<void> {
     const element = this.element();
-    if (element.type !== 'play-sound' && element.type !== 'stop-sound') {
+    const isVideo = element.type === 'play-video';
+    if (!isVideo && element.type !== 'play-sound' && element.type !== 'stop-sound') {
       return;
     }
+    const current = libraryTarget(element);
     const chosen = await this.selections.select({
-      title: this.transloco.translate('action.form.chooseSoundTitle'),
+      title: this.transloco.translate(
+        isVideo ? 'action.form.chooseVideoTitle' : 'action.form.chooseSoundTitle',
+      ),
       nodes: soundChoiceNodes(
         this.context().soundNodes ?? [],
         this.projectId(),
         this.libraryNames(),
+        isVideo ? 'video' : 'sound',
       ),
       mode: 'single',
-      checkedIds: element.soundId ? [element.soundId] : [],
+      checkedIds: current ? [current] : [],
     });
-    if (chosen?.[0]) {
-      this.elementChange.emit({ ...this.element(), soundId: chosen[0] } as ActionElement);
+    const id = chosen?.[0];
+    if (!id) {
+      return;
+    }
+    const latest = this.element();
+    if (latest.type === 'play-video') {
+      this.elementChange.emit({ ...latest, videoId: id });
+    } else if (latest.type === 'play-sound' || latest.type === 'stop-sound') {
+      this.elementChange.emit({ ...latest, soundId: id });
     }
   }
 

@@ -1,0 +1,13 @@
+<!-- Vidéo pour les joueurs : aucun contrôle, le MJ la commande depuis son écran (VID-06). -->
+<video
+  #video
+  class="video"
+  [class.video--shown]="current()"
+  playsinline
+  preload="auto"
+  aria-hidden="true"
+  (ended)="onEnded()"
+  (error)="onError()"
+  (pause)="sendState()"
+  (play)="sendState()"
+></video>

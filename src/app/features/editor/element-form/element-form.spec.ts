@@ -15,11 +15,13 @@ describe('ElementForm', () => {
   const forest = aSceneNode('p1', { id: 's2', name: 'La forêt', parentId: folder.id });
   const fight = aSoundNode('p1', { id: 'snd1', name: 'Combat' });
   const rain = aSoundNode('global', { id: 'snd2', name: 'Pluie' });
+  const intro = aSoundNode('global', { id: 'vid1', name: 'Intro', mediaKind: 'video' });
+  const ending = aSoundNode('p1', { id: 'vid2', name: 'Fin', mediaKind: 'video' });
   const groundFloor = aBattlemap('s1', 'm1', { id: 'b1', name: 'Rez-de-chaussée' });
   const upstairs = aBattlemap('s1', 'm2', { id: 'b2', name: 'Étage' });
   const context: SummaryContext = {
     soundNames: {},
-    soundNodes: [fight, rain],
+    soundNodes: [fight, rain, intro, ending],
     battlemaps: [groundFloor, upstairs],
     sceneNodes: [folder, tavern, forest],
   };
@@ -135,6 +137,56 @@ describe('ElementForm', () => {
     const missing = render({ id: 'e2', type: 'stop-sound', soundId: 'absent' }).el;
     expect(choiceButton(missing).classList).toContain('choice--missing');
     expect(choiceButton(missing).textContent).toContain('Son supprimé');
+  });
+
+  it('Lancer un son : la fenêtre de choix ne propose pas les vidéos', async () => {
+    const { el } = render({
+      id: 'e1',
+      type: 'play-sound',
+      soundId: '',
+      volume: 1,
+      loop: false,
+      fadeInMs: 0,
+      fadeOutMs: 0,
+    });
+    select.mockResolvedValue(null);
+    choiceButton(el).click();
+    await vi.waitFor(() => expect(select).toHaveBeenCalled());
+    const items = select.mock.calls[0][0].nodes.filter((n: { kind: string }) => n.kind === 'item');
+    expect(items.map((n: { name: string }) => n.name)).toEqual(['Combat', 'Pluie']);
+  });
+
+  it('Lancer la vidéo : choix parmi les vidéos seulement, volume (ACT-14)', async () => {
+    const { el, emitted } = render({ id: 'e1', type: 'play-video', videoId: '', volume: 1 });
+    expect(choiceButton(el).textContent).toContain('Aucune vidéo choisie');
+    expect(el.textContent).toContain('Volume · 100 %');
+    expect(el.textContent).toContain('0 % : vidéo muette.');
+    expect(el.textContent).toContain('l’action continue sans attendre sa fin');
+
+    select.mockResolvedValue(['vid1']);
+    choiceButton(el).click();
+    await vi.waitFor(() => expect(emitted.at(-1)).toMatchObject({ videoId: 'vid1' }));
+    const options = select.mock.calls[0][0];
+    expect(options.title).toBe('Choisir une vidéo');
+    const items = options.nodes.filter((n: { kind: string }) => n.kind === 'item');
+    expect(items.map((n: { name: string }) => n.name)).toEqual(['Intro', 'Fin']);
+    TestBed.tick();
+    expect(choiceButton(el).textContent).toContain('Bibliothèque globale › Intro');
+
+    type(el.querySelector<HTMLInputElement>('input[type=range]')!, '0');
+    expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'play-video', videoId: 'vid1', volume: 0 });
+  });
+
+  it('Lancer la vidéo : vidéo supprimée signalée (PRS-07)', () => {
+    const { el } = render({ id: 'e1', type: 'play-video', videoId: 'absente', volume: 1 });
+    expect(choiceButton(el).classList).toContain('choice--missing');
+    expect(choiceButton(el).textContent).toContain('Vidéo supprimée');
+  });
+
+  it('Arrêter la vidéo : texte explicatif seul (ACT-15)', () => {
+    const { el } = render({ id: 'e1', type: 'stop-video' });
+    expect(el.textContent).toContain('Arrête la vidéo en cours dans la fenêtre joueurs');
+    expect(el.querySelector('input, textarea, button')).toBeNull();
   });
 
   it('Arrêter tous les sons : texte explicatif seul (8.3.4)', () => {
