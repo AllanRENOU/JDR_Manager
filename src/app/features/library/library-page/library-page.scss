@@ -180,7 +180,6 @@
   position: relative;
   display: flex;
   align-items: center;
-  margin-left: auto;
 }
 
 .search__icon {
@@ -230,8 +229,10 @@
   color: color(text-tertiary);
 }
 
+// Filtre (Tous / Sons / Vidéos) : poussé à droite, devant la recherche et l'import.
 .kind-filter {
-  align-self: flex-start;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .sound--playing {

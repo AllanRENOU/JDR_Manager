@@ -129,6 +129,13 @@
             <h2 class="content__name">{{ folderName }}</h2>
           }
         </div>
+        <app-segmented-control
+          class="kind-filter"
+          [label]="'sound.filter.label' | transloco"
+          [options]="kindOptions()"
+          [value]="store.kindFilter()"
+          (valueChange)="store.kindFilter.set($event ?? 'all')"
+        />
         <label class="search">
           <svg lucideSearch class="search__icon" [size]="16" aria-hidden="true"></svg>
           <input
@@ -161,14 +168,6 @@
           (change)="onFilesChosen(fileInput)"
         />
       </div>
-
-      <app-segmented-control
-        class="kind-filter"
-        [label]="'sound.filter.label' | transloco"
-        [options]="kindOptions()"
-        [value]="store.kindFilter()"
-        (valueChange)="store.kindFilter.set($event ?? 'all')"
-      />
 
       @if (store.rows().length === 0) {
         <p class="content__empty">
