@@ -224,6 +224,16 @@
   width: control-height(md);
 }
 
+// Type (son ou vidéo) : icône seule, nom lu par les lecteurs d'écran.
+.sound__type {
+  width: 1%;
+  color: color(text-tertiary);
+}
+
+.kind-filter {
+  align-self: flex-start;
+}
+
 .sound--playing {
   background: color(bg-card);
 }

@@ -13,6 +13,8 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   LucideArrowLeft,
+  LucideEye,
+  LucideFilm,
   LucideFolderPlus,
   LucideMusic,
   LucidePencil,
@@ -30,8 +32,9 @@ import {
   MediaKind,
   acceptAttribute,
   formatLabel,
+  resolveMediaType,
 } from '../../../core/media/media-types';
-import { GLOBAL_LIBRARY, Id, LibraryId, LibraryNode } from '../../../core/models';
+import { GLOBAL_LIBRARY, Id, LibraryId, LibraryNode, mediaKindOf } from '../../../core/models';
 import { FileDrop } from '../../../shared/file-drop/file-drop';
 import { FileDropOverlay } from '../../../shared/file-drop/file-drop-overlay/file-drop-overlay';
 import { ProjectNav } from '../../../shared/project-nav/project-nav';
@@ -44,10 +47,16 @@ import { Button } from '../../../shared/ui/button/button';
 import { Modals } from '../../../shared/ui/modal/modals';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
 import { formatDuration } from '../../../shared/util/duration';
+import { formatFileSize } from '../../../shared/util/file-size';
 import { AudioPlayer } from '../../presentation/audio/audio-player';
 import { ListenButton } from '../listen-button/listen-button';
-import { LibraryStore, SoundRow } from '../library-store';
+import { LARGE_VIDEO_BYTES, LibraryKindFilter, LibraryRow, LibraryStore } from '../library-store';
 import { SoundPreview } from '../sound-preview';
+import { VideoPreviewData, VideoPreviewDialog } from '../video-preview-dialog/video-preview-dialog';
+import {
+  SegmentedControl,
+  SegmentedOption,
+} from '../../../shared/ui/segmented-control/segmented-control';
 
 /** Libellés des arborescences de sons (TEC-61) : dossiers et sons. */
 const SOUND_TREE_LABELS: Partial<TreeLabels> = {
@@ -75,12 +84,15 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
     Button,
     FileDrop,
     ListenButton,
+    SegmentedControl,
     FileDropOverlay,
     ProjectNav,
     Tree,
     RouterLink,
     TranslocoPipe,
     LucideArrowLeft,
+    LucideEye,
+    LucideFilm,
     LucideFolderPlus,
     LucideMusic,
     LucidePencil,
@@ -109,8 +121,18 @@ export class LibraryPage {
   protected readonly pluralKey = pluralKey;
   protected readonly formatDuration = formatDuration;
   protected readonly formatLabel = formatLabel;
-  protected readonly accept = acceptAttribute('sound');
-  protected readonly soundKinds: readonly MediaKind[] = ['sound'];
+  protected readonly formatFileSize = formatFileSize;
+  /** Types de fichiers importables : sons et vidéos (VID-01). */
+  protected readonly libraryKinds: readonly MediaKind[] = ['sound', 'video'];
+  protected readonly accept = this.libraryKinds.map(acceptAttribute).join(',');
+
+  /** Filtre Tous / Sons / Vidéos au-dessus du tableau (VID-02). */
+  protected readonly kindOptions = computed<SegmentedOption<LibraryKindFilter>[]>(() =>
+    (['all', 'sound', 'video'] as const).map((value) => ({
+      value,
+      label: this.transloco.translate(`sound.filter.${value}`),
+    })),
+  );
 
   /** Destination d'un dépôt de fichiers : le dossier ouvert, avec son chemin (SON-06). */
   protected readonly destination = computed(() => {
@@ -161,7 +183,7 @@ export class LibraryPage {
     void this.audio.unlock();
   }
 
-  /** Fichiers choisis avec « Importer des sons » (SON-02). */
+  /** Fichiers choisis avec « Importer des sons ou des vidéos » (SON-02, VID-01). */
   protected onFilesChosen(input: HTMLInputElement): void {
     const files = [...(input.files ?? [])];
     // Permet de choisir à nouveau les mêmes fichiers.
@@ -170,21 +192,25 @@ export class LibraryPage {
   }
 
   /** Importe dans le dossier ouvert et rend compte du résultat. */
-  protected async importFiles(files: readonly File[]): Promise<void> {
-    if (files.length === 0) {
+  protected async importFiles(chosen: readonly File[]): Promise<void> {
+    if (chosen.length === 0 || this.store.importing()) {
       return;
     }
     const folder =
       this.store.openedFolder()?.name ??
       this.libraryName(this.store.opened().libraryId === GLOBAL_LIBRARY);
     try {
+      const files = await this.confirmLargeFiles(chosen);
+      if (files.length === 0) {
+        return;
+      }
       const { imported, rejected, failure } = await this.store.importFiles(files);
       if (rejected.length > 0) {
         this.notifications.error(
           this.transloco.translate('fileDrop.rejected', {
             count: rejected.length,
             names: rejected.map((file) => file.name).join(', '),
-            formats: FORMAT_LABELS.sound.join(', '),
+            formats: this.libraryKinds.flatMap((kind) => FORMAT_LABELS[kind]).join(', '),
           }),
         );
       }
@@ -204,6 +230,37 @@ export class LibraryPage {
     }
   }
 
+  /**
+   * Fichiers de plus de 500 Mo (VID-03) : une confirmation rappelle leur taille et la place qu'ils
+   * occuperont. Renvoie les fichiers à importer : tous si confirmé, sinon ceux qui restent.
+   */
+  private async confirmLargeFiles(files: readonly File[]): Promise<readonly File[]> {
+    const large = files.filter((f) => f.size > LARGE_VIDEO_BYTES && resolveMediaType(f) !== null);
+    if (large.length === 0) {
+      return files;
+    }
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.transloco.translate(key, params);
+    const count = large.length;
+    const others = files.length - count;
+    const message = [
+      t(pluralKey('sound.largeFiles.message', count), {
+        count,
+        names: large.map((f) => `« ${f.name} » (${formatFileSize(f.size)})`).join(', '),
+        size: formatFileSize(large.reduce((sum, f) => sum + f.size, 0)),
+      }),
+      others > 0 ? t(pluralKey('sound.largeFiles.others', others), { count: others }) : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+    const confirmed = await this.modals.confirm({
+      title: t(pluralKey('sound.largeFiles.title', count), { count }),
+      message,
+      confirmLabel: t('sound.largeFiles.confirm'),
+    });
+    return confirmed ? files : files.filter((f) => !large.includes(f));
+  }
+
   /** Messages de suppression de l'arborescence, par bibliothèque (fonctions stables pour `app-tree`). */
   private readonly treeDeleteMessages = new Map<LibraryId, (node: LibraryNode) => string | null>();
 
@@ -217,9 +274,10 @@ export class LibraryPage {
       message = (node) => {
         if (node.kind === 'item') {
           const count = this.store.soundUsages(node.id);
-          return count === 0
+          // Son non utilisé : message générique de l'arborescence (« Le son et son fichier… »).
+          return count === 0 && mediaKindOf(node) === 'sound'
             ? null
-            : this.transloco.translate(pluralKey('sound.deleteUsedMessage', count), { count });
+            : this.itemDeleteMessage(node, count);
         }
         const { sounds, used } = this.store.folderUsage(libraryId, node.id);
         return used === 0
@@ -234,8 +292,33 @@ export class LibraryPage {
     return message;
   }
 
+  /**
+   * Message de suppression d'un son ou d'une vidéo ; avertit s'il est utilisé par des actions, qui
+   * le signaleront comme introuvable (PRS-07, VID-05).
+   */
+  private itemDeleteMessage(node: LibraryNode, usages: number): string {
+    const video = mediaKindOf(node) === 'video';
+    if (usages === 0) {
+      return this.transloco.translate(video ? 'sound.deleteVideoMessage' : 'sound.deleteMessage');
+    }
+    const used = video ? 'sound.deleteVideoUsedMessage' : 'sound.deleteUsedMessage';
+    return this.transloco.translate(pluralKey(used, usages), { count: usages });
+  }
+
+  /** Aperçu (VID-04) : la vidéo s'ouvre dans une fenêtre ; la pré-écoute d'un son s'arrête. */
+  protected openVideo(row: LibraryRow): void {
+    if (!row.node.mediaId) {
+      return;
+    }
+    this.preview.stop();
+    this.modals.open<void, VideoPreviewData>(VideoPreviewDialog, {
+      data: { name: row.node.name, mediaId: row.node.mediaId },
+      size: 'lg',
+    });
+  }
+
   /** Pré-écoute (SON-05) : lance ou arrête le son de la ligne. */
-  protected togglePreview(row: SoundRow): void {
+  protected togglePreview(row: LibraryRow): void {
     this.preview
       .toggle(row.node)
       .catch(() =>
@@ -250,7 +333,7 @@ export class LibraryPage {
   }
 
   /** Entrée ou sortie du champ : enregistre un nom non vide et différent. */
-  protected commitRename(row: SoundRow, value: string): void {
+  protected commitRename(row: LibraryRow, value: string): void {
     if (this.editingId() !== row.node.id) {
       return;
     }
@@ -268,19 +351,16 @@ export class LibraryPage {
   }
 
   /**
-   * Supprime un son après confirmation (NF-31) ; avertit s'il est utilisé par des actions, qui le
-   * signaleront comme introuvable (PRS-07).
+   * Supprime un son ou une vidéo après confirmation (NF-31) ; avertit s'il est utilisé par des
+   * actions, qui le signaleront comme introuvable (PRS-07, VID-05).
    */
-  protected async deleteSound(row: SoundRow): Promise<boolean> {
+  protected async deleteSound(row: LibraryRow): Promise<boolean> {
     const name = row.node.name;
     const t = (key: string, params: Record<string, unknown> = {}) =>
       this.transloco.translate(key, { name, ...params });
     const confirmed = await this.modals.confirm({
       title: t('sound.deleteTitle'),
-      message:
-        row.usages > 0
-          ? t(pluralKey('sound.deleteUsedMessage', row.usages), { count: row.usages })
-          : t('sound.deleteMessage'),
+      message: this.itemDeleteMessage(row.node, row.usages),
       confirmLabel: t('common.actions.delete'),
       destructive: true,
       holdToConfirm: true,
@@ -293,7 +373,7 @@ export class LibraryPage {
         this.preview.stop();
       }
       await this.store.remove(row.libraryId, row.node.id);
-      this.notifications.info(t('sound.deleted'));
+      this.notifications.info(t(row.kind === 'video' ? 'sound.videoDeleted' : 'sound.deleted'));
       return true;
     } catch (error) {
       this.notifications.fromError(error);
@@ -302,7 +382,7 @@ export class LibraryPage {
   }
 
   /** Emplacement d'un résultat de recherche : « Ce projet › Ambiances ». */
-  protected rowPath(row: SoundRow): string {
+  protected rowPath(row: LibraryRow): string {
     return [this.libraryName(row.libraryId === GLOBAL_LIBRARY), ...row.folders].join(' › ');
   }
 
@@ -345,7 +425,8 @@ export class LibraryPage {
         this.preview.stop();
       }
       if (node?.kind === 'item') {
-        this.notifications.info(this.transloco.translate('sound.deleted', { name: node.name }));
+        const key = mediaKindOf(node) === 'video' ? 'sound.videoDeleted' : 'sound.deleted';
+        this.notifications.info(this.transloco.translate(key, { name: node.name }));
       }
     } catch (error) {
       this.notifications.fromError(error);

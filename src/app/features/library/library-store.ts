@@ -4,7 +4,16 @@ import { DATA_REPOSITORY } from '../../core/data/data-repository';
 import { MediaDuration } from '../../core/media/media-duration';
 import { resolveMediaType } from '../../core/media/media-types';
 import { baseName } from '../../shared/util/file-name';
-import { GLOBAL_LIBRARY, Id, MediaInfo, LibraryId, LibraryNode, newId } from '../../core/models';
+import {
+  GLOBAL_LIBRARY,
+  Id,
+  LibraryId,
+  LibraryMediaKind,
+  LibraryNode,
+  MediaInfo,
+  mediaKindOf,
+  newId,
+} from '../../core/models';
 import {
   TreeMoveEvent,
   applyMove,
@@ -13,15 +22,26 @@ import {
   pathTo,
 } from '../../shared/tree/tree-model';
 
+/**
+ * Au-delà de cette taille (500 Mo), l'écran demande une confirmation avant d'importer un fichier :
+ * il est copié dans le navigateur et occupe autant de place en plus sur l'ordinateur (VID-03).
+ */
+export const LARGE_VIDEO_BYTES = 500 * 1024 * 1024;
+
 /** Dossier ouvert : sa bibliothèque et le dossier (`null` = racine de la bibliothèque). */
 export interface OpenedFolder {
   libraryId: LibraryId;
   folderId: Id | null;
 }
 
-/** Ligne du tableau des sons (SON-03). */
-export interface SoundRow {
+/** Filtre du tableau : tous les éléments, les sons ou les vidéos (VID-02). */
+export type LibraryKindFilter = 'all' | LibraryMediaKind;
+
+/** Ligne du tableau de la bibliothèque : un son ou une vidéo (SON-03, VID-02). */
+export interface LibraryRow {
   node: LibraryNode;
+  /** Son ou vidéo (`mediaKindOf`). */
+  kind: LibraryMediaKind;
   /** Informations du fichier ; `null` si le média est introuvable. */
   media: MediaInfo | null;
   /** Nombre d'actions qui utilisent le son. */
@@ -80,20 +100,26 @@ export class LibraryStore {
   readonly query = signal('');
   readonly searching = computed(() => normalizeSearch(this.query()).length > 0);
 
-  /** Sons du tableau : ceux du dossier ouvert, ou les résultats de la recherche. */
-  readonly rows = computed<SoundRow[]>(() => {
+  /** Filtre Tous / Sons / Vidéos du tableau (VID-02) ; s'applique aussi à la recherche. */
+  readonly kindFilter = signal<LibraryKindFilter>('all');
+
+  /** Éléments du tableau : ceux du dossier ouvert, ou les résultats de la recherche, filtrés. */
+  readonly rows = computed<LibraryRow[]>(() => {
+    const filter = this.kindFilter();
+    const shown = (n: LibraryNode) =>
+      n.kind === 'item' && (filter === 'all' || mediaKindOf(n) === filter);
     const search = normalizeSearch(this.query());
     if (search) {
       return this.libraries().flatMap((libraryId) =>
         this.nodesOf(libraryId)
-          .filter((n) => n.kind === 'item' && normalizeSearch(n.name).includes(search))
+          .filter((n) => shown(n) && normalizeSearch(n.name).includes(search))
           .map((node) => this.toRow(node))
           .sort((a, b) => a.node.name.localeCompare(b.node.name, 'fr')),
       );
     }
     const { libraryId, folderId } = this.opened();
     return this.nodesOf(libraryId)
-      .filter((n) => n.kind === 'item' && n.parentId === folderId)
+      .filter((n) => shown(n) && n.parentId === folderId)
       .map((node) => this.toRow(node));
   });
 
@@ -103,8 +129,10 @@ export class LibraryStore {
     return this.nodesOf(libraryId).find((n) => n.id === folderId) ?? null;
   });
 
+  /** Avancement de l'import : fichier en cours (à partir de 1) et nombre de fichiers ; `null` sinon. */
+  readonly importProgress = signal<{ current: number; total: number } | null>(null);
   /** Import en cours (bouton désactivé). */
-  readonly importing = signal(false);
+  readonly importing = computed(() => this.importProgress() !== null);
 
   /** Charge les bibliothèques et ouvre la racine de la première. */
   async load(projectId?: Id): Promise<void> {
@@ -129,10 +157,11 @@ export class LibraryStore {
     this.usages.set(usages);
   }
 
-  private toRow(node: LibraryNode): SoundRow {
+  private toRow(node: LibraryNode): LibraryRow {
     const nodes = this.nodesOf(node.libraryId);
     return {
       node,
+      kind: mediaKindOf(node),
       libraryId: node.libraryId,
       folders: node.parentId ? pathTo(nodes, node.parentId).map((n) => n.name) : [],
       media: (node.mediaId && this.mediaInfo()[node.mediaId]) || null,
@@ -180,6 +209,11 @@ export class LibraryStore {
       return;
     }
     this.open(libraryId, node.parentId);
+    // Un élément masqué par le filtre ne pourrait pas être mis en évidence : on retire le filtre.
+    const filter = this.kindFilter();
+    if (filter !== 'all' && mediaKindOf(node) !== filter) {
+      this.kindFilter.set('all');
+    }
     this.selectedSoundId.set(node.id);
   }
 
@@ -216,20 +250,25 @@ export class LibraryStore {
   }
 
   /**
-   * Importe des fichiers son dans le dossier ouvert (SON-02, SON-06), dans l'ordre reçu, à la
-   * suite des sons du dossier. Nom du son = nom du fichier sans extension. Les formats refusés
-   * sont renvoyés ; une erreur de stockage (quota) arrête l'import et est renvoyée dans `failure`,
-   * les sons déjà importés restent.
+   * Importe des sons et des vidéos dans le dossier ouvert (SON-02, SON-06, VID-01), dans l'ordre
+   * reçu, à la suite des éléments du dossier. Nom = nom du fichier sans extension ; `mediaKind`
+   * d'après le type du fichier. Les formats refusés sont renvoyés ; une erreur de stockage (quota)
+   * arrête l'import et est renvoyée dans `failure`, les fichiers déjà importés restent. La
+   * confirmation des gros fichiers (VID-03) est demandée avant, par l'écran.
    */
   async importFiles(files: readonly File[]): Promise<ImportResult> {
     const { libraryId, folderId } = this.opened();
-    const accepted = files.filter((file) => resolveMediaType(file)?.kind === 'sound');
-    const rejected = files.filter((file) => !accepted.includes(file));
+    const accepted = files.flatMap((file) => {
+      const kind = resolveMediaType(file)?.kind;
+      return kind === 'sound' || kind === 'video' ? [{ file, kind }] : [];
+    });
+    const rejected = files.filter((file) => !accepted.some((a) => a.file === file));
     const imported: LibraryNode[] = [];
     let failure: unknown;
-    this.importing.set(true);
+    this.importProgress.set({ current: 0, total: accepted.length });
     try {
-      for (const file of accepted) {
+      for (const [index, { file, kind }] of accepted.entries()) {
+        this.importProgress.set({ current: index + 1, total: accepted.length });
         // Durée lue avant l'enregistrement (6.7) ; inconnue, le tableau affiche « — ».
         const durationMs = (await this.durations.read(file)) ?? undefined;
         const mediaId = await this.repository.uploadMedia(file, { durationMs });
@@ -242,6 +281,7 @@ export class LibraryStore {
           kind: 'item',
           name: soundName(file.name),
           mediaId,
+          mediaKind: kind,
         };
         await this.repository.saveLibraryNodes([node]);
         this.replace(libraryId, [...this.nodesOf(libraryId), node]);
@@ -250,7 +290,7 @@ export class LibraryStore {
     } catch (error) {
       failure = error;
     } finally {
-      this.importing.set(false);
+      this.importProgress.set(null);
       if (imported.length > 0) {
         await this.refreshDetails();
       }

@@ -207,6 +207,61 @@ describe('LibraryStore', () => {
     expect(store.importing()).toBe(false);
   });
 
+  it('importe aussi les vidéos, avec leur nature, et donne l’avancement (VID-01, TEC-36)', async () => {
+    await store.load('p1');
+    const progress: unknown[] = [];
+    vi.spyOn(TestBed.inject(MediaDuration), 'read').mockImplementation(async () => {
+      progress.push(store.importProgress());
+      return 90_000;
+    });
+
+    const result = await store.importFiles([
+      new File(['a'], 'Intro.mp4', { type: 'video/mp4' }),
+      new File(['b'], 'pluie.ogg', { type: 'audio/ogg' }),
+      new File(['c'], 'boucle.webm', { type: '' }),
+    ]);
+
+    expect(result.imported.map((n) => [n.name, n.mediaKind])).toEqual([
+      ['Intro', 'video'],
+      ['pluie', 'sound'],
+      ['boucle', 'video'],
+    ]);
+    expect(progress).toEqual([
+      { current: 1, total: 3 },
+      { current: 2, total: 3 },
+      { current: 3, total: 3 },
+    ]);
+    expect(store.importProgress()).toBeNull();
+    expect((await repository().listLibraryNodes('p1')).map((n) => n.mediaKind).sort()).toEqual([
+      'sound',
+      'video',
+      'video',
+    ]);
+  });
+
+  it('filtre le tableau par type, y compris la recherche ; choisir un élément masqué retire le filtre (VID-02)', async () => {
+    const intro = aSoundNode('global', { name: 'Intro pluie', mediaKind: 'video' });
+    const rain = aSoundNode('global', { name: 'Pluie', order: 1 });
+    await repository().saveLibraryNodes([intro, rain]);
+    await store.load(undefined);
+    expect(store.rows().map((r) => [r.node.name, r.kind])).toEqual([
+      ['Intro pluie', 'video'],
+      ['Pluie', 'sound'],
+    ]);
+
+    store.kindFilter.set('sound');
+    expect(names(store.rows().map((r) => r.node))).toEqual(['Pluie']);
+    store.query.set('pluie');
+    expect(names(store.rows().map((r) => r.node))).toEqual(['Pluie']);
+    store.kindFilter.set('video');
+    expect(names(store.rows().map((r) => r.node))).toEqual(['Intro pluie']);
+
+    store.kindFilter.set('sound');
+    store.select('global', intro.id);
+    expect(store.kindFilter()).toBe('all');
+    expect(store.selectedSoundId()).toBe(intro.id);
+  });
+
   it('nomme un son d’après son fichier, sans l’extension', () => {
     expect(soundName('Forêt de nuit.mp3')).toBe('Forêt de nuit');
     expect(soundName('archive.tar.ogg')).toBe('archive.tar');

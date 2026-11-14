@@ -122,7 +122,7 @@ describe('LibraryPage', () => {
     expect(nodes).toEqual([expect.objectContaining({ kind: 'folder', name: 'Nouveau dossier' })]);
   });
 
-  it('montre les sons du dossier ouvert : nom, durée, format, « Utilisé dans » (6.3)', async () => {
+  it('montre les éléments du dossier ouvert : type, nom, durée, taille, format, « Utilisé dans » (6.3)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const folder = aSoundNode(GLOBAL_LIBRARY, { kind: 'folder', name: 'Ambiances' });
     const sub = aSoundNode(GLOBAL_LIBRARY, {
@@ -164,8 +164,8 @@ describe('LibraryPage', () => {
       [...tr.querySelectorAll('td')].map((td) => td.textContent?.trim()),
     );
     expect(cells).toEqual([
-      ['', 'Foule', '12:40', 'MP3', '2 actions', ''],
-      ['', 'Perdu', 'Fichier introuvable', 'Non utilisé', ''],
+      ['', 'Son', 'Foule', '12:40', '1 o', 'MP3', '2 actions', ''],
+      ['', 'Son', 'Perdu', 'Fichier introuvable', 'Non utilisé', ''],
     ]);
   });
 
@@ -181,7 +181,7 @@ describe('LibraryPage', () => {
       expect(el.querySelector('app-tree .tree__row')).not.toBeNull();
     });
     const search = el.querySelector('input[type="search"]') as HTMLInputElement;
-    expect(search.getAttribute('aria-label')).toBe('Rechercher un son');
+    expect(search.getAttribute('aria-label')).toBe('Rechercher un son ou une vidéo');
 
     search.value = 'pluie';
     search.dispatchEvent(new Event('input'));
@@ -193,7 +193,7 @@ describe('LibraryPage', () => {
     search.dispatchEvent(new Event('input'));
     await fixture.whenStable();
     expect(el.querySelector('.content__empty')?.textContent).toContain(
-      'Aucun son ne correspond à « neige »',
+      'Aucun son ni vidéo ne correspond à « neige »',
     );
 
     search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
@@ -201,14 +201,14 @@ describe('LibraryPage', () => {
     expect(search.value).toBe('');
   });
 
-  it('importe les fichiers choisis avec « Importer des sons » et le signale (6.5)', async () => {
+  it('importe les fichiers choisis avec « Importer des sons ou des vidéos » et le signale (6.5)', async () => {
     const { fixture, el } = await render();
     await vi.waitFor(async () => {
       await fixture.whenStable();
       expect(el.querySelector('.content__empty')).not.toBeNull();
     });
     const button = [...el.querySelectorAll('button')].find((b) =>
-      b.textContent?.includes('Importer des sons'),
+      b.textContent?.includes('Importer des sons ou des vidéos'),
     )!;
     const input = el.querySelector('input[type="file"]') as HTMLInputElement;
     const pick = vi.spyOn(input, 'click').mockImplementation(() => undefined);
@@ -216,6 +216,8 @@ describe('LibraryPage', () => {
     expect(pick).toHaveBeenCalled();
     expect(input.multiple).toBe(true);
     expect(input.accept).toContain('.mp3');
+    expect(input.accept).toContain('.mp4');
+    expect(input.accept).toContain('.webm');
 
     Object.defineProperty(input, 'files', {
       configurable: true,
@@ -226,14 +228,69 @@ describe('LibraryPage', () => {
       await fixture.whenStable();
       expect(el.querySelector('.sound__name')?.textContent).toContain('pluie');
     });
-    expect(el.querySelector('tbody td:nth-child(3)')?.textContent?.trim()).toBe('1:05');
+    expect(el.querySelector('tbody td:nth-child(4)')?.textContent?.trim()).toBe('1:05');
     const messages = TestBed.inject(Notifications)
       .notifications()
       .map((n) => [n.tone, n.message]);
     expect(messages).toEqual([
       ['danger', expect.stringContaining('a.txt')],
-      ['info', '1 son importé dans « Bibliothèque globale ».'],
+      ['info', '1 fichier importé dans « Bibliothèque globale ».'],
     ]);
+  });
+
+  /** Fichier dont la taille annoncée est `size` (sans allouer son contenu). */
+  function sizedFile(name: string, type: string, size: number): File {
+    const file = new File(['x'], name, { type });
+    Object.defineProperty(file, 'size', { value: size });
+    return file;
+  }
+
+  /** Bouton de la fenêtre de confirmation ouverte. */
+  async function confirmButton(label: string): Promise<HTMLButtonElement> {
+    TestBed.tick();
+    let button: HTMLButtonElement | undefined;
+    await vi.waitFor(() => {
+      button = [...document.querySelectorAll<HTMLButtonElement>('.modal__footer button')].find(
+        (b) => b.textContent?.trim() === label,
+      );
+      expect(button).toBeDefined();
+    });
+    return button!;
+  }
+
+  it('demande confirmation avant d’importer un fichier de plus de 500 Mo (VID-03)', async () => {
+    const { fixture, el } = await render();
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.querySelector('.content__empty')).not.toBeNull();
+    });
+    const store = fixture.debugElement.injector.get(LibraryStore);
+    const importFiles = vi.spyOn(store, 'importFiles');
+    const big = sizedFile('Intro.mp4', 'video/mp4', 1.5 * 1024 ** 3);
+    const small = new File(['x'], 'pluie.mp3', { type: 'audio/mpeg' });
+    // Même chemin que le bouton d'import et le dépôt de fichiers.
+    const page = fixture.componentInstance as unknown as {
+      importFiles(files: File[]): Promise<void>;
+    };
+
+    // Annulé : seul le petit fichier est importé.
+    const pending = page.importFiles([big, small]);
+    const dialog = await confirmButton('Annuler');
+    expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
+      '« Intro.mp4 » (1,5 Go)',
+    );
+    expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
+      'l’autre fichier sera importé quand même',
+    );
+    dialog.click();
+    await pending;
+    expect(importFiles).toHaveBeenLastCalledWith([small]);
+
+    // Confirmé : la vidéo est importée.
+    const accepted = page.importFiles([big]);
+    (await confirmButton('Importer')).click();
+    await accepted;
+    expect(importFiles).toHaveBeenLastCalledWith([big]);
   });
 
   it('importe les sons déposés depuis le disque dans le dossier ouvert (6.6)', async () => {
@@ -403,12 +460,81 @@ describe('LibraryPage', () => {
     const pending = tree.requestRemove(folder);
     TestBed.tick();
     expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
-      'les sons qu’il contient (2) seront supprimés. Attention : 1 de ces sons est utilisé dans des actions',
+      'les sons et vidéos qu’il contient (2) seront supprimés. Attention : 1 de ces éléments est utilisé dans des actions',
     );
     (
       document.querySelector('app-confirm-dialog .modal__footer button') as HTMLButtonElement
     ).click();
     await pending;
+  });
+
+  describe('vidéos (VID-02, VID-04, VID-05)', () => {
+    stubObjectUrls();
+
+    async function renderWithVideo() {
+      const repository = TestBed.inject(DATA_REPOSITORY);
+      const mediaId = await repository.uploadMedia(
+        new File(['v'], 'intro.mp4', { type: 'video/mp4' }),
+      );
+      const intro = aSoundNode(GLOBAL_LIBRARY, { name: 'Intro', mediaId, mediaKind: 'video' });
+      const rain = aSoundNode(GLOBAL_LIBRARY, { name: 'Pluie', order: 1 });
+      await repository.saveLibraryNodes([intro, rain]);
+      await repository.saveAction(
+        anAction('s1', {
+          elements: [{ id: 'e', type: 'play-video', videoId: intro.id, volume: 1 }],
+        }),
+      );
+      const rendered = await render();
+      await vi.waitFor(async () => {
+        await rendered.fixture.whenStable();
+        expect(rendered.el.querySelectorAll('tbody tr')).toHaveLength(2);
+      });
+      return { ...rendered, intro };
+    }
+
+    const rowNames = (el: HTMLElement) =>
+      [...el.querySelectorAll('tbody tr')].map((tr) =>
+        [...tr.querySelectorAll('td')].slice(1, 3).map((td) => td.textContent?.trim()),
+      );
+
+    it('distingue sons et vidéos et filtre Tous / Sons / Vidéos', async () => {
+      const { fixture, el } = await renderWithVideo();
+      expect(rowNames(el)).toEqual([
+        ['Vidéo', 'Intro'],
+        ['Son', 'Pluie'],
+      ]);
+      const radios = [...el.querySelectorAll<HTMLElement>('.kind-filter [role="radio"]')];
+      expect(radios.map((r) => r.textContent?.trim())).toEqual(['Tous', 'Sons', 'Vidéos']);
+
+      radios[2].click();
+      await fixture.whenStable();
+      expect(rowNames(el)).toEqual([['Vidéo', 'Intro']]);
+      radios[1].click();
+      await fixture.whenStable();
+      expect(rowNames(el)).toEqual([['Son', 'Pluie']]);
+    });
+
+    it('« Voir » ouvre la vidéo dans une fenêtre ; un son garde « Écouter »', async () => {
+      const { el } = await renderWithVideo();
+      const watch = el.querySelector<HTMLButtonElement>('button[aria-label="Voir « Intro »"]')!;
+      expect(el.querySelectorAll('app-listen-button')).toHaveLength(1);
+
+      watch.click();
+      TestBed.tick();
+      await vi.waitFor(() =>
+        expect(document.querySelector('app-video-preview-dialog video')).not.toBeNull(),
+      );
+      expect(document.querySelector('app-video-preview-dialog')?.textContent).toContain('Intro');
+    });
+
+    it('avertit avant de supprimer une vidéo utilisée par des actions', async () => {
+      const { el } = await renderWithVideo();
+      (el.querySelector('button[aria-label="Supprimer « Intro »"]') as HTMLButtonElement).click();
+      TestBed.tick();
+      expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
+        'Cette vidéo est utilisée dans 1 action : elle la signalera comme introuvable.',
+      );
+    });
   });
 
   describe('pré-écoute (6.10)', () => {

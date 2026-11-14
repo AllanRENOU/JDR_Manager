@@ -415,32 +415,63 @@
     "globalTree": "Bibliothèque globale",
     "newFolderIn": "Nouveau dossier dans « {{ library }} »",
     "openRoot": "Ouvrir la racine de « {{ library }} »",
-    "deleteFolderMessage": "Le dossier, ses sous-dossiers et tous les sons qu’il contient seront supprimés. Cette action est irréversible.",
-    "emptyLibrary": "Aucun dossier ni son",
+    "deleteFolderMessage": "Le dossier, ses sous-dossiers et tous les sons et vidéos qu’il contient seront supprimés. Cette action est irréversible.",
+    "emptyLibrary": "Aucun dossier, son ni vidéo",
     "columns": {
+      "type": "Type",
       "name": "Nom",
       "duration": "Durée",
+      "size": "Taille",
       "format": "Format",
       "usedIn": "Utilisé dans",
       "actions": "Actions",
-      "listen": "Écouter"
+      "listen": "Écouter ou voir"
+    },
+    "kind": {
+      "sound": "Son",
+      "video": "Vidéo"
+    },
+    "filter": {
+      "label": "Afficher",
+      "all": "Tous",
+      "sound": "Sons",
+      "video": "Vidéos"
     },
     "usedIn": {
       "one": "{{ count }} action",
       "other": "{{ count }} actions"
     },
     "unused": "Non utilisé",
-    "empty": "Aucun son dans ce dossier.",
+    "empty": {
+      "all": "Aucun son ni vidéo dans ce dossier.",
+      "sound": "Aucun son dans ce dossier.",
+      "video": "Aucune vidéo dans ce dossier."
+    },
     "missingFile": "Fichier introuvable",
-    "tableLabel": "Sons de « {{ folder }} »",
-    "search": "Rechercher un son",
+    "tableLabel": "Contenu de « {{ folder }} »",
+    "search": "Rechercher un son ou une vidéo",
     "searchResults": "Résultats pour « {{ query }} »",
-    "noResult": "Aucun son ne correspond à « {{ query }} ».",
-    "import": "Importer des sons",
-    "importing": "Import en cours…",
+    "noResult": "Aucun son ni vidéo ne correspond à « {{ query }} ».",
+    "import": "Importer des sons ou des vidéos",
+    "importing": "Import en cours ({{ current }} / {{ total }})",
     "imported": {
-      "one": "{{ count }} son importé dans « {{ folder }} ».",
-      "other": "{{ count }} sons importés dans « {{ folder }} »."
+      "one": "{{ count }} fichier importé dans « {{ folder }} ».",
+      "other": "{{ count }} fichiers importés dans « {{ folder }} »."
+    },
+    "largeFiles": {
+      "title": {
+        "one": "Importer un fichier volumineux ?",
+        "other": "Importer {{ count }} fichiers volumineux ?"
+      },
+      "message": {
+        "one": "{{ names }} sera copié dans l’application : il occupera {{ size }} de plus sur cet ordinateur, en plus du fichier d’origine. La copie peut prendre plusieurs secondes.",
+        "other": "{{ names }} seront copiés dans l’application : ils occuperont {{ size }} de plus sur cet ordinateur, en plus des fichiers d’origine. La copie peut prendre plusieurs secondes."
+      },
+      "others": {
+        "one": "Si vous annulez, l’autre fichier sera importé quand même.",
+        "other": "Si vous annulez, les {{ count }} autres fichiers seront importés quand même."
+      },
+      "confirm": "Importer"
     },
     "renameAction": "Renommer « {{ name }} »",
     "renameField": "Nouveau nom de « {{ name }} »",
@@ -452,13 +483,21 @@
       "other": "Ce son est utilisé dans {{ count }} actions : elles le signaleront comme introuvable. Le son et son fichier seront supprimés. Cette action est irréversible."
     },
     "deleted": "Son « {{ name }} » supprimé.",
+    "deleteVideoMessage": "La vidéo et son fichier seront supprimés. Cette action est irréversible.",
+    "deleteVideoUsedMessage": {
+      "one": "Cette vidéo est utilisée dans {{ count }} action : elle la signalera comme introuvable. La vidéo et son fichier seront supprimés. Cette action est irréversible.",
+      "other": "Cette vidéo est utilisée dans {{ count }} actions : elles la signaleront comme introuvable. La vidéo et son fichier seront supprimés. Cette action est irréversible."
+    },
+    "videoDeleted": "Vidéo « {{ name }} » supprimée.",
+    "watch": "Voir « {{ name }} »",
+    "videoPlayer": "Lecteur de la vidéo « {{ name }} »",
     "listen": "Écouter « {{ name }} »",
     "stopListen": "Arrêter la pré-écoute de « {{ name }} »",
     "progress": "Progression de la pré-écoute",
     "playError": "Impossible de lire « {{ name }} ».",
     "deleteFolderUsedMessage": {
-      "one": "Le dossier, ses sous-dossiers et les sons qu’il contient ({{ sounds }}) seront supprimés. Attention : {{ count }} de ces sons est utilisé dans des actions, qui le signaleront comme introuvable. Cette action est irréversible.",
-      "other": "Le dossier, ses sous-dossiers et les sons qu’il contient ({{ sounds }}) seront supprimés. Attention : {{ count }} de ces sons sont utilisés dans des actions, qui les signaleront comme introuvables. Cette action est irréversible."
+      "one": "Le dossier, ses sous-dossiers et les sons et vidéos qu’il contient ({{ sounds }}) seront supprimés. Attention : {{ count }} de ces éléments est utilisé dans des actions, qui le signaleront comme introuvable. Cette action est irréversible.",
+      "other": "Le dossier, ses sous-dossiers et les sons et vidéos qu’il contient ({{ sounds }}) seront supprimés. Attention : {{ count }} de ces éléments sont utilisés dans des actions, qui les signaleront comme introuvables. Cette action est irréversible."
     }
   },
   "markdown": {
@@ -475,8 +514,8 @@
     "storageUnavailable": "Le stockage du navigateur est indisponible.",
     "missingMedia": "Média introuvable : {{ name }}",
     "data": {
-      "unsupported-media-type": "Format de fichier non pris en charge. Images : PNG, JPG, WebP. Sons : MP3, OGG, WAV, M4A.",
-      "quota-exceeded": "Espace de stockage du navigateur insuffisant. Supprimez des projets ou des sons inutilisés, puis réessayez.",
+      "unsupported-media-type": "Format de fichier non pris en charge. Images : PNG, JPG, WebP. Sons : MP3, OGG, WAV, M4A. Vidéos : MP4, WebM.",
+      "quota-exceeded": "Espace de stockage du navigateur insuffisant. Supprimez des projets, des sons ou des vidéos inutilisés, puis réessayez.",
       "media-not-found": "Fichier introuvable : il a peut-être été supprimé."
     }
   },

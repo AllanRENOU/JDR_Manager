@@ -1,0 +1,16 @@
+<app-modal [title]="video.name">
+  @if (file.missing()) {
+    <p class="missing" role="alert">
+      <svg lucideTriangleAlert aria-hidden="true"></svg>{{ 'sound.missingFile' | transloco }}
+    </p>
+  } @else if (file.url(); as url) {
+    <video
+      class="player"
+      controls
+      autoplay
+      preload="metadata"
+      [src]="url"
+      [attr.aria-label]="'sound.videoPlayer' | transloco: { name: video.name }"
+    ></video>
+  }
+</app-modal>

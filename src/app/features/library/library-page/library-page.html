@@ -43,7 +43,7 @@
   class="library"
   appFileDrop
   #drop="appFileDrop"
-  [appFileDropKinds]="soundKinds"
+  [appFileDropKinds]="libraryKinds"
   [appFileDropDisabled]="!store.libraries().length"
   (filesDropped)="importFiles($event)"
 >
@@ -96,7 +96,11 @@
           >
             <ng-template #item let-node>
               <span class="tree-sound">
-                <svg lucideMusic class="tree-sound__icon" aria-hidden="true"></svg>
+                @if (node.mediaKind === 'video') {
+                  <svg lucideFilm class="tree-sound__icon" aria-hidden="true"></svg>
+                } @else {
+                  <svg lucideMusic class="tree-sound__icon" aria-hidden="true"></svg>
+                }
                 <span class="tree-sound__name">{{ node.name }}</span>
               </span>
             </ng-template>
@@ -140,7 +144,11 @@
         </label>
         <button appButton type="button" [disabled]="store.importing()" (click)="fileInput.click()">
           <svg lucideUpload aria-hidden="true"></svg>
-          {{ (store.importing() ? 'sound.importing' : 'sound.import') | transloco }}
+          @if (store.importProgress(); as progress) {
+            {{ 'sound.importing' | transloco: progress }}
+          } @else {
+            {{ 'sound.import' | transloco }}
+          }
         </button>
         <input
           #fileInput
@@ -154,12 +162,20 @@
         />
       </div>
 
+      <app-segmented-control
+        class="kind-filter"
+        [label]="'sound.filter.label' | transloco"
+        [options]="kindOptions()"
+        [value]="store.kindFilter()"
+        (valueChange)="store.kindFilter.set($event ?? 'all')"
+      />
+
       @if (store.rows().length === 0) {
         <p class="content__empty">
           @if (searching) {
             {{ 'sound.noResult' | transloco: { query: store.query().trim() } }}
           } @else {
-            {{ 'sound.empty' | transloco }}
+            {{ 'sound.empty.' + store.kindFilter() | transloco }}
           }
         </p>
       } @else {
@@ -172,8 +188,12 @@
               <th scope="col" class="sounds__listen">
                 <span class="visually-hidden">{{ 'sound.columns.listen' | transloco }}</span>
               </th>
+              <th scope="col" class="sounds__type">
+                <span class="visually-hidden">{{ 'sound.columns.type' | transloco }}</span>
+              </th>
               <th scope="col">{{ 'sound.columns.name' | transloco }}</th>
               <th scope="col">{{ 'sound.columns.duration' | transloco }}</th>
+              <th scope="col">{{ 'sound.columns.size' | transloco }}</th>
               <th scope="col">{{ 'sound.columns.format' | transloco }}</th>
               <th scope="col">{{ 'sound.columns.usedIn' | transloco }}</th>
               <th scope="col" class="sounds__actions">
@@ -191,13 +211,36 @@
                 [attr.data-sound-id]="row.node.id"
               >
                 <td>
-                  <app-listen-button
-                    class="listen-cell"
-                    [name]="row.node.name"
-                    [playing]="playing"
-                    [disabled]="!row.media"
-                    (toggled)="togglePreview(row)"
-                  />
+                  @if (row.kind === 'video') {
+                    <button
+                      appButton="icon"
+                      size="sm"
+                      type="button"
+                      class="listen-cell"
+                      [disabled]="!row.media"
+                      [attr.aria-label]="'sound.watch' | transloco: { name: row.node.name }"
+                      [attr.title]="'sound.watch' | transloco: { name: row.node.name }"
+                      (click)="openVideo(row)"
+                    >
+                      <svg lucideEye aria-hidden="true"></svg>
+                    </button>
+                  } @else {
+                    <app-listen-button
+                      class="listen-cell"
+                      [name]="row.node.name"
+                      [playing]="playing"
+                      [disabled]="!row.media"
+                      (toggled)="togglePreview(row)"
+                    />
+                  }
+                </td>
+                <td class="sound__type">
+                  @if (row.kind === 'video') {
+                    <svg lucideFilm aria-hidden="true"></svg>
+                  } @else {
+                    <svg lucideMusic aria-hidden="true"></svg>
+                  }
+                  <span class="visually-hidden">{{ 'sound.kind.' + row.kind | transloco }}</span>
                 </td>
                 <td>
                   <app-sound-name
@@ -225,9 +268,10 @@
                 </td>
                 @if (row.media; as media) {
                   <td class="sound__meta">{{ formatDuration(media.durationMs) }}</td>
+                  <td class="sound__meta">{{ formatFileSize(media.size) }}</td>
                   <td class="sound__meta">{{ formatLabel(media.mimeType) }}</td>
                 } @else {
-                  <td class="sound__missing" colspan="2">{{ 'sound.missingFile' | transloco }}</td>
+                  <td class="sound__missing" colspan="3">{{ 'sound.missingFile' | transloco }}</td>
                 }
                 <td class="sound__meta" [class.sound__unused]="row.usages === 0">
                   @if (row.usages === 0) {
@@ -268,7 +312,7 @@
 @if (drop.active()) {
   <app-file-drop-overlay
     [fileCount]="drop.fileCount()"
-    [kinds]="soundKinds"
+    [kinds]="libraryKinds"
     [destination]="destination()"
   />
 }
