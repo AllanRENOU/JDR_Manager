@@ -3,10 +3,12 @@ import {
   LucideClapperboard,
   LucideEye,
   LucideEyeOff,
+  LucideFilm,
   LucideHourglass,
   LucideIcon,
   LucideMap,
   LucideMousePointerClick,
+  LucideSquareStop,
   LucideSquareX,
   LucideType,
   LucideVolumeX,
@@ -29,6 +31,8 @@ const ICONS: Record<ActionElementType, LucideIcon> = {
   'play-sound': LucideAudioLines,
   'stop-sound': LucideVolumeX,
   'stop-all-sounds': LucideSquareX,
+  'play-video': LucideFilm,
+  'stop-video': LucideSquareStop,
   'add-text': LucideType,
   'change-scene': LucideClapperboard,
   wait: LucideHourglass,
@@ -77,7 +81,10 @@ export function newElement(type: ActionElementType): ActionElement {
     case 'stop-sound':
       return { id, type, soundId: '' };
     case 'stop-all-sounds':
+    case 'stop-video':
       return { id, type };
+    case 'play-video':
+      return { id, type, videoId: '', volume: 1 };
     case 'add-text':
       return { id, type, text: '' };
     case 'change-scene':

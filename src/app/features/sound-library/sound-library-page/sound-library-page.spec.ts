@@ -8,7 +8,7 @@ import { useTestRepository } from '../../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
 import { AudioDuration } from '../../../core/media/audio-duration';
-import { GLOBAL_SOUND_LIBRARY, Id, SoundNode } from '../../../core/models';
+import { GLOBAL_LIBRARY, Id, LibraryNode } from '../../../core/models';
 import { Tree } from '../../../shared/tree/tree';
 import { Modals } from '../../../shared/ui/modal/modals';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
@@ -70,12 +70,12 @@ describe('SoundLibraryPage', () => {
 
   it('affiche « Ce projet » puis « Bibliothèque globale », chacune avec ses dossiers et ses sons (6.2)', async () => {
     const project = aProject();
-    const weather = aSoundNode(GLOBAL_SOUND_LIBRARY, { kind: 'folder', name: 'Météo' });
+    const weather = aSoundNode(GLOBAL_LIBRARY, { kind: 'folder', name: 'Météo' });
     await TestBed.inject(DATA_REPOSITORY).saveProject(project);
-    await TestBed.inject(DATA_REPOSITORY).saveSoundNodes([
+    await TestBed.inject(DATA_REPOSITORY).saveLibraryNodes([
       aSoundNode(project.id, { kind: 'folder', name: 'Ambiances' }),
       weather,
-      aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Pluie', parentId: weather.id }),
+      aSoundNode(GLOBAL_LIBRARY, { name: 'Pluie', parentId: weather.id }),
     ]);
     const { fixture, el } = await render(project.id);
     await vi.waitFor(async () => {
@@ -118,14 +118,14 @@ describe('SoundLibraryPage', () => {
       await fixture.whenStable();
       expect(el.querySelector('.tree__rename')).not.toBeNull();
     });
-    const nodes = await TestBed.inject(DATA_REPOSITORY).listSoundNodes(GLOBAL_SOUND_LIBRARY);
+    const nodes = await TestBed.inject(DATA_REPOSITORY).listLibraryNodes(GLOBAL_LIBRARY);
     expect(nodes).toEqual([expect.objectContaining({ kind: 'folder', name: 'Nouveau dossier' })]);
   });
 
   it('montre les sons du dossier ouvert : nom, durée, format, « Utilisé dans » (6.3)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
-    const folder = aSoundNode(GLOBAL_SOUND_LIBRARY, { kind: 'folder', name: 'Ambiances' });
-    const sub = aSoundNode(GLOBAL_SOUND_LIBRARY, {
+    const folder = aSoundNode(GLOBAL_LIBRARY, { kind: 'folder', name: 'Ambiances' });
+    const sub = aSoundNode(GLOBAL_LIBRARY, {
       kind: 'folder',
       name: 'Taverne',
       parentId: folder.id,
@@ -133,14 +133,14 @@ describe('SoundLibraryPage', () => {
     const mediaId = await repository.uploadMedia(new File(['x'], 'foule.mp3'), {
       durationMs: 760_400,
     });
-    const crowd = aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Foule', parentId: sub.id, mediaId });
-    const lost = aSoundNode(GLOBAL_SOUND_LIBRARY, {
+    const crowd = aSoundNode(GLOBAL_LIBRARY, { name: 'Foule', parentId: sub.id, mediaId });
+    const lost = aSoundNode(GLOBAL_LIBRARY, {
       name: 'Perdu',
       parentId: sub.id,
       mediaId: 'absent',
       order: 1,
     });
-    await repository.saveSoundNodes([folder, sub, crowd, lost]);
+    await repository.saveLibraryNodes([folder, sub, crowd, lost]);
     await repository.saveAction(
       anAction('s1', { elements: [{ id: 'e', type: 'stop-sound', soundId: crowd.id }] }),
     );
@@ -154,7 +154,7 @@ describe('SoundLibraryPage', () => {
       expect(el.querySelector('app-tree .tree__row')).not.toBeNull();
     });
 
-    fixture.debugElement.injector.get(SoundLibraryStore).open(GLOBAL_SOUND_LIBRARY, sub.id);
+    fixture.debugElement.injector.get(SoundLibraryStore).open(GLOBAL_LIBRARY, sub.id);
     await fixture.whenStable();
     expect(el.querySelector('.content__path')?.textContent?.trim()).toBe(
       'Bibliothèque globale › Ambiances ›',
@@ -170,10 +170,10 @@ describe('SoundLibraryPage', () => {
   });
 
   it('recherche un son et indique où il se trouve (6.4)', async () => {
-    const folder = aSoundNode(GLOBAL_SOUND_LIBRARY, { kind: 'folder', name: 'Météo' });
-    await TestBed.inject(DATA_REPOSITORY).saveSoundNodes([
+    const folder = aSoundNode(GLOBAL_LIBRARY, { kind: 'folder', name: 'Météo' });
+    await TestBed.inject(DATA_REPOSITORY).saveLibraryNodes([
       folder,
-      aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Pluie fine', parentId: folder.id }),
+      aSoundNode(GLOBAL_LIBRARY, { name: 'Pluie fine', parentId: folder.id }),
     ]);
     const { fixture, el } = await render();
     await vi.waitFor(async () => {
@@ -237,8 +237,8 @@ describe('SoundLibraryPage', () => {
   });
 
   it('importe les sons déposés depuis le disque dans le dossier ouvert (6.6)', async () => {
-    const folder = aSoundNode(GLOBAL_SOUND_LIBRARY, { kind: 'folder', name: 'Météo' });
-    await TestBed.inject(DATA_REPOSITORY).saveSoundNodes([folder]);
+    const folder = aSoundNode(GLOBAL_LIBRARY, { kind: 'folder', name: 'Météo' });
+    await TestBed.inject(DATA_REPOSITORY).saveLibraryNodes([folder]);
     const { fixture, el } = await render();
     await vi.waitFor(async () => {
       await fixture.whenStable();
@@ -273,13 +273,13 @@ describe('SoundLibraryPage', () => {
       expect(el.querySelector('.sound__name')?.textContent).toContain('orage');
     });
     expect(fixture.nativeElement.querySelector('app-file-drop-overlay')).toBeNull();
-    const saved = await TestBed.inject(DATA_REPOSITORY).listSoundNodes(GLOBAL_SOUND_LIBRARY);
+    const saved = await TestBed.inject(DATA_REPOSITORY).listLibraryNodes(GLOBAL_LIBRARY);
     expect(saved.find((n) => n.name === 'orage')?.parentId).toBe(folder.id);
   });
 
   it('renomme un son dans le tableau : Entrée valide, Échap annule ; clic sur le nom aussi (6.8)', async () => {
-    const sound = aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Pluie' });
-    await TestBed.inject(DATA_REPOSITORY).saveSoundNodes([sound]);
+    const sound = aSoundNode(GLOBAL_LIBRARY, { name: 'Pluie' });
+    await TestBed.inject(DATA_REPOSITORY).saveLibraryNodes([sound]);
     const { fixture, el } = await render();
     document.body.appendChild(el);
     await vi.waitFor(async () => {
@@ -316,7 +316,7 @@ describe('SoundLibraryPage', () => {
       new KeyboardEvent('keydown', { key: 'Escape' }),
     );
     await fixture.whenStable();
-    const [saved] = await TestBed.inject(DATA_REPOSITORY).listSoundNodes(GLOBAL_SOUND_LIBRARY);
+    const [saved] = await TestBed.inject(DATA_REPOSITORY).listLibraryNodes(GLOBAL_LIBRARY);
     expect(saved.name).toBe('Pluie fine');
     el.remove();
   });
@@ -324,9 +324,9 @@ describe('SoundLibraryPage', () => {
   it('supprime un son après confirmation et avertit s’il est utilisé (6.9)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const mediaId = await repository.uploadMedia(new File(['x'], 'pluie.ogg'));
-    const used = aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Pluie', mediaId });
-    const unused = aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Vent', order: 1 });
-    await repository.saveSoundNodes([used, unused]);
+    const used = aSoundNode(GLOBAL_LIBRARY, { name: 'Pluie', mediaId });
+    const unused = aSoundNode(GLOBAL_LIBRARY, { name: 'Vent', order: 1 });
+    await repository.saveLibraryNodes([used, unused]);
     await repository.saveAction(
       anAction('s1', { elements: [{ id: 'e', type: 'stop-sound', soundId: used.id }] }),
     );
@@ -373,7 +373,7 @@ describe('SoundLibraryPage', () => {
       await fixture.whenStable();
       expect(el.querySelectorAll('tbody tr')).toHaveLength(1);
     });
-    expect((await repository.listSoundNodes(GLOBAL_SOUND_LIBRARY)).map((n) => n.name)).toEqual([
+    expect((await repository.listLibraryNodes(GLOBAL_LIBRARY)).map((n) => n.name)).toEqual([
       'Pluie',
     ]);
     expect(TestBed.inject(Notifications).notifications().at(-1)?.message).toBe(
@@ -383,12 +383,12 @@ describe('SoundLibraryPage', () => {
 
   it('avertit avant de supprimer un dossier qui contient des sons utilisés', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
-    const folder = aSoundNode(GLOBAL_SOUND_LIBRARY, { kind: 'folder', name: 'Météo' });
-    const rain = aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Pluie', parentId: folder.id });
-    await repository.saveSoundNodes([
+    const folder = aSoundNode(GLOBAL_LIBRARY, { kind: 'folder', name: 'Météo' });
+    const rain = aSoundNode(GLOBAL_LIBRARY, { name: 'Pluie', parentId: folder.id });
+    await repository.saveLibraryNodes([
       folder,
       rain,
-      aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Vent', parentId: folder.id, order: 1 }),
+      aSoundNode(GLOBAL_LIBRARY, { name: 'Vent', parentId: folder.id, order: 1 }),
     ]);
     await repository.saveAction(
       anAction('s1', { elements: [{ id: 'e', type: 'stop-sound', soundId: rain.id }] }),
@@ -399,7 +399,7 @@ describe('SoundLibraryPage', () => {
       expect(el.querySelector('app-tree .tree__row')).not.toBeNull();
     });
     const tree = fixture.debugElement.query((d) => d.name === 'app-tree')
-      .componentInstance as Tree<SoundNode>;
+      .componentInstance as Tree<LibraryNode>;
     const pending = tree.requestRemove(folder);
     TestBed.tick();
     expect(document.querySelector('app-confirm-dialog')?.textContent).toContain(
@@ -422,9 +422,9 @@ describe('SoundLibraryPage', () => {
     it('lance et arrête la pré-écoute ; la ligne en cours montre sa progression', async () => {
       const repository = TestBed.inject(DATA_REPOSITORY);
       const mediaId = await repository.uploadMedia(new File(['x'], 'pluie.ogg'));
-      await repository.saveSoundNodes([
-        aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Pluie', mediaId }),
-        aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Perdu', mediaId: 'absent', order: 1 }),
+      await repository.saveLibraryNodes([
+        aSoundNode(GLOBAL_LIBRARY, { name: 'Pluie', mediaId }),
+        aSoundNode(GLOBAL_LIBRARY, { name: 'Perdu', mediaId: 'absent', order: 1 }),
       ]);
       const { fixture, el } = await render();
       await vi.waitFor(async () => {

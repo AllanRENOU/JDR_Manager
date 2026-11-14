@@ -31,7 +31,7 @@ import {
   acceptAttribute,
   formatLabel,
 } from '../../../core/media/media-types';
-import { GLOBAL_SOUND_LIBRARY, Id, SoundLibraryId, SoundNode } from '../../../core/models';
+import { GLOBAL_LIBRARY, Id, LibraryId, LibraryNode } from '../../../core/models';
 import { FileDrop } from '../../../shared/file-drop/file-drop';
 import { FileDropOverlay } from '../../../shared/file-drop/file-drop-overlay/file-drop-overlay';
 import { ProjectNav } from '../../../shared/project-nav/project-nav';
@@ -104,7 +104,7 @@ export class SoundLibraryPage {
   protected readonly preview = inject(SoundPreview);
   protected readonly progressPercent = computed(() => Math.round(this.preview.progress() * 100));
   protected readonly treeLabels = SOUND_TREE_LABELS;
-  protected readonly globalLibrary = GLOBAL_SOUND_LIBRARY;
+  protected readonly globalLibrary = GLOBAL_LIBRARY;
   protected readonly pluralKey = pluralKey;
   protected readonly formatDuration = formatDuration;
   protected readonly formatLabel = formatLabel;
@@ -115,17 +115,16 @@ export class SoundLibraryPage {
   protected readonly destination = computed(() => {
     const { libraryId, folderId } = this.store.opened();
     const folders = folderId ? pathTo(this.store.nodesOf(libraryId), folderId) : [];
-    return [
-      this.libraryName(libraryId === GLOBAL_SOUND_LIBRARY),
-      ...folders.map((n) => n.name),
-    ].join(' › ');
+    return [this.libraryName(libraryId === GLOBAL_LIBRARY), ...folders.map((n) => n.name)].join(
+      ' › ',
+    );
   });
 
   /** Chemin au-dessus du dossier ouvert : « Ce projet › Effets › ». */
   protected readonly folderPath = computed(() => {
     const { libraryId, folderId } = this.store.opened();
     const ancestors = folderId ? pathTo(this.store.nodesOf(libraryId), folderId).slice(0, -1) : [];
-    const library = this.libraryName(libraryId === GLOBAL_SOUND_LIBRARY);
+    const library = this.libraryName(libraryId === GLOBAL_LIBRARY);
     return [library, ...ancestors.map((n) => n.name)].map((part) => `${part} ›`).join(' ');
   });
 
@@ -176,7 +175,7 @@ export class SoundLibraryPage {
     }
     const folder =
       this.store.openedFolder()?.name ??
-      this.libraryName(this.store.opened().libraryId === GLOBAL_SOUND_LIBRARY);
+      this.libraryName(this.store.opened().libraryId === GLOBAL_LIBRARY);
     try {
       const { imported, rejected, failure } = await this.store.importFiles(files);
       if (rejected.length > 0) {
@@ -205,16 +204,13 @@ export class SoundLibraryPage {
   }
 
   /** Messages de suppression de l'arborescence, par bibliothèque (fonctions stables pour `app-tree`). */
-  private readonly treeDeleteMessages = new Map<
-    SoundLibraryId,
-    (node: SoundNode) => string | null
-  >();
+  private readonly treeDeleteMessages = new Map<LibraryId, (node: LibraryNode) => string | null>();
 
   /**
    * Avertissement à la suppression d'un son utilisé par des actions, ou d'un dossier qui en
    * contient (NF-31, décision d'Allan) ; sinon, message générique de l'arborescence.
    */
-  protected treeDeleteMessage(libraryId: SoundLibraryId): (node: SoundNode) => string | null {
+  protected treeDeleteMessage(libraryId: LibraryId): (node: LibraryNode) => string | null {
     let message = this.treeDeleteMessages.get(libraryId);
     if (!message) {
       message = (node) => {
@@ -306,7 +302,7 @@ export class SoundLibraryPage {
 
   /** Emplacement d'un résultat de recherche : « Ce projet › Ambiances ». */
   protected rowPath(row: SoundRow): string {
-    return [this.libraryName(row.libraryId === GLOBAL_SOUND_LIBRARY), ...row.folders].join(' › ');
+    return [this.libraryName(row.libraryId === GLOBAL_LIBRARY), ...row.folders].join(' › ');
   }
 
   /** Nom affiché d'une bibliothèque. */
@@ -316,9 +312,9 @@ export class SoundLibraryPage {
 
   /** Crée un dossier (« + » de la bibliothèque ou menu d'un dossier) puis le passe en renommage. */
   protected async createFolder(
-    libraryId: SoundLibraryId,
+    libraryId: LibraryId,
     event: Pick<TreeCreateEvent, 'parentId'>,
-    tree: Tree<SoundNode>,
+    tree: Tree<LibraryNode>,
   ): Promise<void> {
     try {
       const folder = await this.store.createFolder(
@@ -332,14 +328,14 @@ export class SoundLibraryPage {
     }
   }
 
-  protected rename(libraryId: SoundLibraryId, event: TreeRenameEvent): void {
+  protected rename(libraryId: LibraryId, event: TreeRenameEvent): void {
     this.store
       .rename(libraryId, event.id, event.name)
       .catch((error) => this.notifications.fromError(error));
   }
 
   /** Suppression confirmée dans l'arborescence (dossier ou son) ; arrête la pré-écoute d'un son supprimé. */
-  protected async remove(libraryId: SoundLibraryId, id: Id): Promise<void> {
+  protected async remove(libraryId: LibraryId, id: Id): Promise<void> {
     const node = this.store.nodesOf(libraryId).find((n) => n.id === id);
     try {
       const removed = await this.store.remove(libraryId, id);
@@ -355,7 +351,7 @@ export class SoundLibraryPage {
     }
   }
 
-  protected move(libraryId: SoundLibraryId, move: TreeMoveEvent): void {
+  protected move(libraryId: LibraryId, move: TreeMoveEvent): void {
     this.store.move(libraryId, move).catch((error) => this.notifications.fromError(error));
   }
 }

@@ -14,7 +14,7 @@ import {
   Scene,
   SceneNode,
   SceneState,
-  SoundNode,
+  LibraryNode,
   UserClickElement,
   WaitElement,
   newId,
@@ -110,7 +110,7 @@ export class PresentationEngine {
   /** Arborescence des scènes (navigation libre, CTL-05). */
   readonly sceneNodes = signal<readonly SceneNode[]>([]);
   /** Sons des deux bibliothèques (projet puis globale), pour les lancer et les nommer. */
-  readonly soundNodes = signal<readonly SoundNode[]>([]);
+  readonly soundNodes = signal<readonly LibraryNode[]>([]);
   /** Partie sauvegardée proposée à la reprise (statut `choose`). */
   readonly savedSession = signal<PlaySession | null>(null);
 
@@ -221,8 +221,8 @@ export class PresentationEngine {
     }
     const [nodes, projectSounds, globalSounds, saved] = await Promise.all([
       this.repository.listSceneNodes(projectId),
-      this.repository.listSoundNodes(projectId),
-      this.repository.listSoundNodes('global'),
+      this.repository.listLibraryNodes(projectId),
+      this.repository.listLibraryNodes('global'),
       this.store.findSaved(projectId),
     ]);
     this.project.set(project);

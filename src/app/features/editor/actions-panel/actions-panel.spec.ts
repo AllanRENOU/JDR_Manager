@@ -40,7 +40,7 @@ describe('ActionsPanel', () => {
     });
     await repository.saveProject({ ...project, firstSceneId: node.id });
     await repository.saveSceneNodes([node]);
-    await repository.saveSoundNodes([tavern]);
+    await repository.saveLibraryNodes([tavern]);
     await repository.saveScene(aScene(project.id, node.id));
     await repository.saveAction(
       anAction(node.id, {

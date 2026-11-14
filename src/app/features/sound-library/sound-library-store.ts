@@ -4,14 +4,7 @@ import { DATA_REPOSITORY } from '../../core/data/data-repository';
 import { AudioDuration } from '../../core/media/audio-duration';
 import { resolveMediaType } from '../../core/media/media-types';
 import { baseName } from '../../shared/util/file-name';
-import {
-  GLOBAL_SOUND_LIBRARY,
-  Id,
-  MediaInfo,
-  SoundLibraryId,
-  SoundNode,
-  newId,
-} from '../../core/models';
+import { GLOBAL_LIBRARY, Id, MediaInfo, LibraryId, LibraryNode, newId } from '../../core/models';
 import {
   TreeMoveEvent,
   applyMove,
@@ -22,25 +15,25 @@ import {
 
 /** Dossier ouvert : sa bibliothèque et le dossier (`null` = racine de la bibliothèque). */
 export interface OpenedFolder {
-  libraryId: SoundLibraryId;
+  libraryId: LibraryId;
   folderId: Id | null;
 }
 
 /** Ligne du tableau des sons (SON-03). */
 export interface SoundRow {
-  node: SoundNode;
+  node: LibraryNode;
   /** Informations du fichier ; `null` si le média est introuvable. */
   media: MediaInfo | null;
   /** Nombre d'actions qui utilisent le son. */
   usages: number;
   /** Bibliothèque du son et dossiers qui le contiennent (résultats de recherche). */
-  libraryId: SoundLibraryId;
+  libraryId: LibraryId;
   folders: readonly string[];
 }
 
 /** Résultat d'un import de fichiers. */
 export interface ImportResult {
-  imported: SoundNode[];
+  imported: LibraryNode[];
   /** Fichiers refusés : format non pris en charge. */
   rejected: File[];
   /** Erreur qui a interrompu l'import (ex. quota dépassé) ; les sons déjà importés restent. */
@@ -62,11 +55,9 @@ export class SoundLibraryStore {
   private readonly durations = inject(AudioDuration);
 
   /** Bibliothèques affichées, dans l'ordre : `[projectId, 'global']` ou `['global']`. */
-  readonly libraries = signal<readonly SoundLibraryId[]>([]);
-  private readonly nodesByLibrary = signal<Readonly<Record<SoundLibraryId, readonly SoundNode[]>>>(
-    {},
-  );
-  readonly opened = signal<OpenedFolder>({ libraryId: GLOBAL_SOUND_LIBRARY, folderId: null });
+  readonly libraries = signal<readonly LibraryId[]>([]);
+  private readonly nodesByLibrary = signal<Readonly<Record<LibraryId, readonly LibraryNode[]>>>({});
+  readonly opened = signal<OpenedFolder>({ libraryId: GLOBAL_LIBRARY, folderId: null });
 
   /** Son choisi dans l'arborescence, mis en évidence dans le tableau ; `null` si aucun. */
   readonly selectedSoundId = signal<Id | null>(null);
@@ -75,7 +66,7 @@ export class SoundLibraryStore {
   readonly trees = computed(() =>
     this.libraries().map((libraryId) => ({
       libraryId,
-      isGlobal: libraryId === GLOBAL_SOUND_LIBRARY,
+      isGlobal: libraryId === GLOBAL_LIBRARY,
       nodes: this.nodesOf(libraryId),
     })),
   );
@@ -117,8 +108,8 @@ export class SoundLibraryStore {
 
   /** Charge les bibliothèques et ouvre la racine de la première. */
   async load(projectId?: Id): Promise<void> {
-    const libraries = projectId ? [projectId, GLOBAL_SOUND_LIBRARY] : [GLOBAL_SOUND_LIBRARY];
-    const lists = await Promise.all(libraries.map((id) => this.repository.listSoundNodes(id)));
+    const libraries = projectId ? [projectId, GLOBAL_LIBRARY] : [GLOBAL_LIBRARY];
+    const lists = await Promise.all(libraries.map((id) => this.repository.listLibraryNodes(id)));
     this.nodesByLibrary.set(Object.fromEntries(libraries.map((id, i) => [id, lists[i]])));
     this.libraries.set(libraries);
     this.opened.set({ libraryId: libraries[0], folderId: null });
@@ -132,13 +123,13 @@ export class SoundLibraryStore {
       .flatMap((n) => (n.kind === 'item' && n.mediaId ? [n.mediaId] : []));
     const [infos, usages] = await Promise.all([
       this.repository.getMediaInfo(mediaIds),
-      this.repository.countSoundUsages(),
+      this.repository.countLibraryUsages(),
     ]);
     this.mediaInfo.set(Object.fromEntries(infos.map((info) => [info.id, info])));
     this.usages.set(usages);
   }
 
-  private toRow(node: SoundNode): SoundRow {
+  private toRow(node: LibraryNode): SoundRow {
     const nodes = this.nodesOf(node.libraryId);
     return {
       node,
@@ -150,7 +141,7 @@ export class SoundLibraryStore {
   }
 
   /** Tous les nœuds d'une bibliothèque. */
-  nodesOf(libraryId: SoundLibraryId): readonly SoundNode[] {
+  nodesOf(libraryId: LibraryId): readonly LibraryNode[] {
     return this.nodesByLibrary()[libraryId] ?? [];
   }
 
@@ -158,7 +149,7 @@ export class SoundLibraryStore {
    * Sons contenus dans un dossier (sous-dossiers compris) et ceux qui sont utilisés par des
    * actions : avertissement avant de supprimer le dossier.
    */
-  folderUsage(libraryId: SoundLibraryId, folderId: Id): { sounds: number; used: number } {
+  folderUsage(libraryId: LibraryId, folderId: Id): { sounds: number; used: number } {
     const nodes = this.nodesOf(libraryId);
     const inside = descendantIds(nodes, folderId);
     const sounds = nodes.filter((n) => n.kind === 'item' && inside.has(n.id));
@@ -172,7 +163,7 @@ export class SoundLibraryStore {
   }
 
   /** Ouvre un dossier (et quitte la recherche). */
-  open(libraryId: SoundLibraryId, folderId: Id | null): void {
+  open(libraryId: LibraryId, folderId: Id | null): void {
     this.opened.set({ libraryId, folderId });
     this.selectedSoundId.set(null);
     this.query.set('');
@@ -182,7 +173,7 @@ export class SoundLibraryStore {
    * Choix d'un nœud dans l'arborescence : un dossier s'ouvre ; un son ouvre son dossier et est
    * mis en évidence dans le tableau.
    */
-  select(libraryId: SoundLibraryId, id: Id | null): void {
+  select(libraryId: LibraryId, id: Id | null): void {
     const node = id ? this.nodesOf(libraryId).find((n) => n.id === id) : undefined;
     if (node?.kind !== 'item') {
       this.open(libraryId, node?.id ?? null);
@@ -193,24 +184,24 @@ export class SoundLibraryStore {
   }
 
   /** Nœud sélectionné dans l'arborescence d'une bibliothèque : le son choisi, sinon le dossier ouvert. */
-  selectedIn(libraryId: SoundLibraryId): Id | null {
+  selectedIn(libraryId: LibraryId): Id | null {
     const opened = this.opened();
     return opened.libraryId === libraryId ? (this.selectedSoundId() ?? opened.folderId) : null;
   }
 
-  isOpened(libraryId: SoundLibraryId, folderId: Id | null): boolean {
+  isOpened(libraryId: LibraryId, folderId: Id | null): boolean {
     const opened = this.opened();
     return opened.libraryId === libraryId && opened.folderId === folderId;
   }
 
   /** Crée un dossier à la fin de son parent et l'ouvre. */
   async createFolder(
-    libraryId: SoundLibraryId,
+    libraryId: LibraryId,
     parentId: Id | null,
     name: string,
-  ): Promise<SoundNode> {
+  ): Promise<LibraryNode> {
     const siblings = this.nodesOf(libraryId).filter((n) => n.parentId === parentId);
-    const folder: SoundNode = {
+    const folder: LibraryNode = {
       id: newId(),
       libraryId,
       parentId,
@@ -218,7 +209,7 @@ export class SoundLibraryStore {
       kind: 'folder',
       name,
     };
-    await this.repository.saveSoundNodes([folder]);
+    await this.repository.saveLibraryNodes([folder]);
     this.replace(libraryId, [...this.nodesOf(libraryId), folder]);
     this.open(libraryId, folder.id);
     return folder;
@@ -234,7 +225,7 @@ export class SoundLibraryStore {
     const { libraryId, folderId } = this.opened();
     const accepted = files.filter((file) => resolveMediaType(file)?.kind === 'sound');
     const rejected = files.filter((file) => !accepted.includes(file));
-    const imported: SoundNode[] = [];
+    const imported: LibraryNode[] = [];
     let failure: unknown;
     this.importing.set(true);
     try {
@@ -243,7 +234,7 @@ export class SoundLibraryStore {
         const durationMs = (await this.durations.read(file)) ?? undefined;
         const mediaId = await this.repository.uploadMedia(file, { durationMs });
         const siblings = this.nodesOf(libraryId).filter((n) => n.parentId === folderId);
-        const node: SoundNode = {
+        const node: LibraryNode = {
           id: newId(),
           libraryId,
           parentId: folderId,
@@ -252,7 +243,7 @@ export class SoundLibraryStore {
           name: soundName(file.name),
           mediaId,
         };
-        await this.repository.saveSoundNodes([node]);
+        await this.repository.saveLibraryNodes([node]);
         this.replace(libraryId, [...this.nodesOf(libraryId), node]);
         imported.push(node);
       }
@@ -267,13 +258,13 @@ export class SoundLibraryStore {
     return failure === undefined ? { imported, rejected } : { imported, rejected, failure };
   }
 
-  async rename(libraryId: SoundLibraryId, id: Id, name: string): Promise<void> {
+  async rename(libraryId: LibraryId, id: Id, name: string): Promise<void> {
     const node = this.nodesOf(libraryId).find((n) => n.id === id);
     if (!node || node.name === name) {
       return;
     }
     const renamed = { ...node, name };
-    await this.repository.saveSoundNodes([renamed]);
+    await this.repository.saveLibraryNodes([renamed]);
     this.replace(
       libraryId,
       this.nodesOf(libraryId).map((n) => (n.id === id ? renamed : n)),
@@ -284,10 +275,10 @@ export class SoundLibraryStore {
    * Supprime un nœud et son contenu ; si le dossier ouvert disparaît, ouvre la racine. Renvoie les
    * identifiants supprimés (ex. pour arrêter la pré-écoute d'un son supprimé).
    */
-  async remove(libraryId: SoundLibraryId, id: Id): Promise<ReadonlySet<Id>> {
+  async remove(libraryId: LibraryId, id: Id): Promise<ReadonlySet<Id>> {
     const nodes = this.nodesOf(libraryId);
     const removed = descendantIds(nodes, id).add(id);
-    await this.repository.deleteSoundNode(id);
+    await this.repository.deleteLibraryNode(id);
     this.replace(
       libraryId,
       nodes.filter((n) => !removed.has(n.id)),
@@ -307,12 +298,12 @@ export class SoundLibraryStore {
    * Déplace un dossier ou un son (glisser-déposer dans l'arborescence). Le rang (`move.order`)
    * est calculé parmi tous les nœuds du dossier cible, dossiers et sons.
    */
-  async move(libraryId: SoundLibraryId, move: TreeMoveEvent): Promise<void> {
+  async move(libraryId: LibraryId, move: TreeMoveEvent): Promise<void> {
     const changed = applyMove(this.nodesOf(libraryId), move);
     if (changed.length === 0) {
       return;
     }
-    await this.repository.saveSoundNodes(changed);
+    await this.repository.saveLibraryNodes(changed);
     const byId = new Map(changed.map((n) => [n.id, n]));
     this.replace(
       libraryId,
@@ -320,7 +311,7 @@ export class SoundLibraryStore {
     );
   }
 
-  private replace(libraryId: SoundLibraryId, nodes: readonly SoundNode[]): void {
+  private replace(libraryId: LibraryId, nodes: readonly LibraryNode[]): void {
     const sorted = [...nodes].sort((a, b) => a.order - b.order);
     this.nodesByLibrary.update((all) => ({ ...all, [libraryId]: sorted }));
   }

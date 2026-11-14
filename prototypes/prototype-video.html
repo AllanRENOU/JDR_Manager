@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototype vidéo — JDR Manager (lot 12 ter)</title>
+<!--
+  Prototype autonome du lot 12 ter (TEC-47, TEC-49). À servir en HTTP (pas en file://), par exemple :
+    npx http-server prototypes -p 4300 -c-1      puis http://localhost:4300/prototype-video.html
+  Écran du MJ : cette page. Fenêtre joueurs : la même page avec ?role=player, ouverte par le bouton.
+  Questions testées :
+    1. Une vidéo AVEC SON démarre-t-elle dans la fenêtre joueurs sans clic dans cette fenêtre ?
+    2. Vidéo de 1 à 2 Go en Blob dans IndexedDB : durée d'import, lecture, mémoire, déplacement.
+    3. URL blob: lue depuis une autre fenêtre (créée par l'écran du MJ) vs URL créée par la fenêtre joueurs.
+-->
+<style>
+  :root { color-scheme: dark; --bg:#14161c; --panel:#1d2029; --line:#2e3240; --text:#e6e2d8; --muted:#9a968c; --accent:#e8c377; --ok:#8fd3a0; --ko:#eba9a0; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 system-ui, sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:16px; display:grid; gap:12px; }
+  h1 { font-size:20px; margin:0; color:var(--accent); }
+  h2 { font-size:15px; margin:0 0 8px; color:var(--accent); }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px; }
+  button { background:#2a2e3b; color:var(--text); border:1px solid var(--line); border-radius:6px; padding:6px 10px; cursor:pointer; font:inherit; }
+  button:hover { border-color:var(--accent); }
+  button:disabled { opacity:.45; cursor:default; }
+  table { width:100%; border-collapse:collapse; }
+  td, th { text-align:left; padding:4px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .muted { color:var(--muted); }
+  .ok { color:var(--ok); } .ko { color:var(--ko); }
+  .kv { display:grid; grid-template-columns:max-content 1fr; gap:2px 12px; }
+  #log { height:260px; overflow:auto; font:12px/1.4 ui-monospace, Consolas, monospace; background:#0e1015; padding:8px; border-radius:6px; white-space:pre-wrap; }
+  input[type=range] { width:220px; }
+  /* Fenêtre joueurs */
+  body.player { background:#000; overflow:hidden; }
+  body.player main { display:none; }
+  #stage { position:fixed; inset:0; display:none; background:#000; }
+  body.player #stage { display:block; }
+  #battlemap { position:absolute; inset:0; display:grid; place-items:center; color:#555; font-size:28px;
+    background: repeating-linear-gradient(45deg,#1a1a1a 0 40px,#222 40px 80px); }
+  #video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#000; display:none; }
+  #hud { position:absolute; left:8px; bottom:8px; font:12px/1.4 ui-monospace, Consolas, monospace; color:#aaa; background:rgba(0,0,0,.6); padding:6px 8px; border-radius:6px; white-space:pre; pointer-events:none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Prototype vidéo — écran du MJ</h1>
+
+  <section>
+    <h2>1. Stockage</h2>
+    <div class="kv">
+      <span>Navigateur</span><span id="ua" class="muted"></span>
+      <span>Stockage persistant</span><span id="persisted">…</span>
+      <span>Estimation</span><span id="estimate">…</span>
+      <span>Mémoire JS (MJ)</span><span id="gm-mem">…</span>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="btn-persist">Demander le stockage persistant</button>
+      <button id="btn-refresh">Rafraîchir</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Import (copie du fichier dans IndexedDB)</h2>
+    <div class="row">
+      <input id="file" type="file" accept="video/mp4,video/webm,.mp4,.webm" multiple>
+      <span id="import-status" class="muted"></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Vidéos enregistrées</h2>
+    <table>
+      <thead><tr><th>Nom</th><th>Taille</th><th>Durée</th><th>Type</th><th></th></tr></thead>
+      <tbody id="videos"><tr><td colspan="5" class="muted">Aucune</td></tr></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>4. Fenêtre joueurs</h2>
+    <div class="row">
+      <button id="btn-open">Ouvrir la fenêtre joueurs</button>
+      <span id="player-status" class="ko">Fermée</span>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="btn-pause" disabled>Pause</button>
+      <button id="btn-resume" disabled>Reprendre</button>
+      <button id="btn-stop" disabled>Arrêter</button>
+      <label>Volume <input id="volume" type="range" min="0" max="100" value="100"> <span id="volume-value">100 %</span></label>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label>Position <input id="seek" type="range" min="0" max="1000" value="0" disabled></label>
+      <span id="position" class="muted">—</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>5. État renvoyé par la fenêtre joueurs</h2>
+    <div class="kv" id="state">
+      <span>Politique de lecture auto</span><span id="st-policy">—</span>
+      <span>Activation utilisateur</span><span id="st-activation">—</span>
+      <span>Résultat de play()</span><span id="st-autoplay">—</span>
+      <span>Source de l'URL</span><span id="st-source">—</span>
+      <span>Lecture IndexedDB</span><span id="st-get">—</span>
+      <span>Métadonnées</span><span id="st-meta">—</span>
+      <span>Première image</span><span id="st-first">—</span>
+      <span>Dernier déplacement</span><span id="st-seek">—</span>
+      <span>Mémoire JS (joueurs)</span><span id="st-mem">—</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Journal</h2>
+    <div class="row" style="margin-bottom:6px"><button id="btn-copy">Copier le journal</button><button id="btn-clear">Effacer</button></div>
+    <div id="log"></div>
+  </section>
+</main>
+
+<div id="stage">
+  <div id="battlemap">Battlemap (fond de remplacement)</div>
+  <video id="video" playsinline preload="auto"></video>
+  <div id="hud"></div>
+</div>
+
+<script>
+'use strict';
+const ROLE = new URLSearchParams(location.search).get('role') === 'player' ? 'player' : 'gm';
+const CHANNEL = 'proto-video';
+const DB_NAME = 'proto-video';
+const STORE = 'media';
+const $ = (id) => document.getElementById(id);
+const now = () => performance.now();
+const ms = (t) => `${Math.round(t)} ms`;
+
+function fmtBytes(b) {
+  if (b == null) return 'n/d';
+  const u = ['o', 'Ko', 'Mo', 'Go', 'To']; let i = 0;
+  while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+  return `${b.toFixed(i ? 2 : 0)} ${u[i]}`;
+}
+function fmtTime(ms) {
+  if (!Number.isFinite(ms)) return '—';
+  const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, r = s % 60;
+  return (h ? `${h}:${String(m).padStart(2, '0')}` : `${m}`) + `:${String(r).padStart(2, '0')}`;
+}
+function jsMemory() {
+  const m = performance.memory;
+  return m ? m.usedJSHeapSize : null;
+}
+
+// ---------- IndexedDB (API native, sans dépendance) ----------
+function openDb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(STORE, { keyPath: 'id' });
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function tx(mode, fn) {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(STORE, mode);
+    const store = t.objectStore(STORE);
+    let result;
+    Promise.resolve(fn(store)).then((r) => { result = r; });
+    t.oncomplete = () => { db.close(); resolve(result); };
+    t.onerror = () => { db.close(); reject(t.error); };
+    t.onabort = () => { db.close(); reject(t.error); };
+  });
+}
+const reqP = (r) => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const putMedia = (rec) => tx('readwrite', (s) => reqP(s.put(rec)));
+const getMedia = (id) => tx('readonly', (s) => reqP(s.get(id)));
+const deleteMedia = (id) => tx('readwrite', (s) => reqP(s.delete(id)));
+// Liste sans garder les Blob en mémoire au-delà du nécessaire
+const listMedia = () => tx('readonly', (s) => reqP(s.getAll())).then((all) =>
+  all.map(({ id, name, size, type, durationMs, importMs }) => ({ id, name, size, type, durationMs, importMs })));
+
+function readDuration(blob) {
+  return new Promise((resolve) => {
+    const v = document.createElement('video');
+    const url = URL.createObjectURL(blob);
+    const done = (d) => { URL.revokeObjectURL(url); v.removeAttribute('src'); v.load(); resolve(d); };
+    v.preload = 'metadata';
+    v.onloadedmetadata = () => done(Number.isFinite(v.duration) ? Math.round(v.duration * 1000) : undefined);
+    v.onerror = () => done(undefined);
+    v.src = url;
+  });
+}
+
+const channel = new BroadcastChannel(CHANNEL);
+const send = (msg) => channel.postMessage(msg);
+
+// =====================================================================
+//  ÉCRAN DU MJ
+// =====================================================================
+function startGm() {
+  const logEl = $('log');
+  const log = (text, cls) => {
+    const line = document.createElement('div');
+    line.textContent = `[${new Date().toLocaleTimeString('fr-FR')}] ${text}`;
+    if (cls) line.className = cls;
+    logEl.append(line); logEl.scrollTop = logEl.scrollHeight;
+    console.log(text);
+  };
+  window.protoLog = log;
+  $('ua').textContent = navigator.userAgent;
+
+  let playerWin = null;
+  let playerOpen = false;
+  let current = null; // { id, name }
+  let gmUrl = null;   // URL blob: créée par le MJ (test 3)
+  let seeking = false;
+
+  async function refreshStorage() {
+    $('persisted').textContent = navigator.storage?.persisted ? ((await navigator.storage.persisted()) ? 'oui' : 'non') : 'n/d';
+    if (navigator.storage?.estimate) {
+      const e = await navigator.storage.estimate();
+      $('estimate').textContent = `${fmtBytes(e.usage)} utilisés / quota ${fmtBytes(e.quota)}`;
+    }
+    $('gm-mem').textContent = fmtBytes(jsMemory()) + (performance.memory ? '' : ' (performance.memory absent : voir le gestionnaire des tâches)');
+  }
+
+  async function refreshList() {
+    const items = await listMedia();
+    const tbody = $('videos');
+    tbody.replaceChildren();
+    if (!items.length) { tbody.innerHTML = '<tr><td colspan="5" class="muted">Aucune</td></tr>'; return; }
+    for (const it of items) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td></td><td>${fmtBytes(it.size)}</td><td>${fmtTime(it.durationMs)}</td><td>${it.type}</td><td class="row"></td>`;
+      tr.cells[0].textContent = it.name;
+      const actions = tr.cells[4];
+      const mk = (label, fn, title) => { const b = document.createElement('button'); b.textContent = label; if (title) b.title = title; b.onclick = fn; actions.append(b); };
+      mk('Lancer', () => play(it, 'player'), 'La fenêtre joueurs lit le Blob dans IndexedDB et crée sa propre URL (conception prévue)');
+      mk('Lancer (URL du MJ)', () => play(it, 'gm'), 'L\'écran du MJ crée l\'URL blob: et l\'envoie (test : URL lue depuis une autre fenêtre)');
+      mk('Relire', () => rereadTest(it), 'Mesure la lecture du Blob depuis IndexedDB et sa lecture complète (débit disque)');
+      mk('Supprimer', async () => { await deleteMedia(it.id); log(`Supprimée : ${it.name}`); refreshList(); refreshStorage(); });
+      tbody.append(tr);
+    }
+  }
+
+  $('file').addEventListener('change', async (ev) => {
+    const files = [...ev.target.files];
+    ev.target.value = '';
+    for (const [i, file] of files.entries()) {
+      $('import-status').textContent = `Import en cours (${i + 1} / ${files.length})…`;
+      log(`Import de « ${file.name} » (${fmtBytes(file.size)}, ${file.type || 'type inconnu'})`);
+      const memBefore = jsMemory();
+      const t0 = now();
+      const durationMs = await readDuration(file);
+      const t1 = now();
+      log(`  durée lue : ${fmtTime(durationMs)} en ${ms(t1 - t0)}`);
+      const id = crypto.randomUUID();
+      try {
+        await putMedia({ id, name: file.name, size: file.size, type: file.type, durationMs, blob: file, importMs: 0 });
+        const t2 = now();
+        log(`  copie dans IndexedDB terminée en ${ms(t2 - t1)} (${(file.size / 1048576 / ((t2 - t1) / 1000)).toFixed(0)} Mo/s)`, 'ok');
+        log(`  mémoire JS : ${fmtBytes(memBefore)} → ${fmtBytes(jsMemory())}`);
+      } catch (e) {
+        log(`  ÉCHEC de la copie : ${e?.name} ${e?.message}`, 'ko');
+      }
+    }
+    $('import-status').textContent = '';
+    refreshList(); refreshStorage();
+  });
+
+  async function rereadTest(it) {
+    log(`Relecture de « ${it.name} » depuis IndexedDB…`);
+    const t0 = now();
+    const rec = await getMedia(it.id);
+    const t1 = now();
+    log(`  get() : ${ms(t1 - t0)} (Blob de ${fmtBytes(rec.blob.size)}, mémoire JS ${fmtBytes(jsMemory())})`);
+    // Lecture complète en flux, sans tout garder en mémoire
+    const reader = rec.blob.stream().getReader();
+    let total = 0;
+    for (;;) { const { done, value } = await reader.read(); if (done) break; total += value.byteLength; }
+    const t2 = now();
+    log(`  lecture complète en flux : ${ms(t2 - t1)} (${(total / 1048576 / ((t2 - t1) / 1000)).toFixed(0)} Mo/s), mémoire JS ${fmtBytes(jsMemory())}`);
+  }
+
+  $('btn-open').addEventListener('click', () => {
+    // Ouverte DANS le gestionnaire du clic, comme l'application (sinon bloquée)
+    playerWin = window.open(`${location.pathname}?role=player`, 'proto-video-player', 'popup,width=960,height=540');
+    if (!playerWin) log('Fenêtre joueurs BLOQUÉE par le navigateur', 'ko');
+    else log('Fenêtre joueurs ouverte (aucun clic à y faire pour le test de lecture automatique)');
+  });
+  setInterval(() => { if (playerOpen && playerWin && playerWin.closed) setPlayerOpen(false, 'fermeture détectée'); }, 1000);
+
+  function setPlayerOpen(open, why) {
+    if (open === playerOpen) return;
+    playerOpen = open;
+    $('player-status').textContent = open ? 'Ouverte' : 'Fermée';
+    $('player-status').className = open ? 'ok' : 'ko';
+    log(`Fenêtre joueurs ${open ? 'ouverte' : 'fermée'} (${why})`);
+    if (!open) endVideo('fenêtre fermée');
+  }
+
+  async function play(it, source) {
+    if (!playerOpen) { log('Vidéo non diffusée : la fenêtre joueurs n\'est pas ouverte (VID-07)', 'ko'); return; }
+    if (gmUrl) { URL.revokeObjectURL(gmUrl); gmUrl = null; }
+    let url;
+    if (source === 'gm') {
+      const t0 = now();
+      const rec = await getMedia(it.id);
+      gmUrl = url = URL.createObjectURL(rec.blob);
+      log(`URL créée par le MJ en ${ms(now() - t0)} : ${url}`);
+    }
+    current = { id: it.id, name: it.name };
+    const volume = Number($('volume').value) / 100;
+    send({ type: 'play-video', videoId: it.id, url, volume, sentAt: Date.now() });
+    log(`→ play-video « ${it.name} » (volume ${Math.round(volume * 100)} %, URL ${source === 'gm' ? 'du MJ' : 'de la fenêtre joueurs'})`);
+    setControls(true);
+  }
+
+  function setControls(on) {
+    for (const id of ['btn-pause', 'btn-resume', 'btn-stop', 'seek']) $(id).disabled = !on;
+  }
+  function endVideo(why) {
+    if (!current) return;
+    log(`Vidéo terminée côté MJ : ${why}`);
+    current = null; setControls(false);
+    $('position').textContent = '—'; $('seek').value = 0;
+    if (gmUrl) { URL.revokeObjectURL(gmUrl); gmUrl = null; }
+  }
+
+  $('btn-pause').onclick = () => { send({ type: 'pause-video' }); log('→ pause-video'); };
+  $('btn-resume').onclick = () => { send({ type: 'resume-video' }); log('→ resume-video'); };
+  $('btn-stop').onclick = () => { send({ type: 'stop-video' }); log('→ stop-video'); };
+  $('volume').oninput = (e) => { const v = Number(e.target.value) / 100; $('volume-value').textContent = `${e.target.value} %`; send({ type: 'video-volume', volume: v }); };
+  $('seek').addEventListener('pointerdown', () => { seeking = true; });
+  $('seek').addEventListener('change', (e) => {
+    seeking = false;
+    send({ type: 'seek-video', ratio: Number(e.target.value) / 1000, sentAt: Date.now() });
+    log(`→ seek-video ${(Number(e.target.value) / 10).toFixed(1)} %`);
+  });
+
+  channel.onmessage = ({ data: m }) => {
+    switch (m.type) {
+      case 'ping': setPlayerOpen(true, 'ping'); if (current) endVideo('fenêtre rechargée (ping)'); break;
+      case 'bye': setPlayerOpen(false, 'bye'); break;
+      case 'video-diag':
+        $('st-policy').textContent = m.policy; $('st-activation').textContent = m.activation;
+        break;
+      case 'video-started':
+        $('st-autoplay').textContent = m.result; $('st-autoplay').className = m.result.startsWith('avec son') ? 'ok' : 'ko';
+        $('st-source').textContent = m.source;
+        $('st-get').textContent = m.getMs != null ? ms(m.getMs) : '—';
+        $('st-meta').textContent = ms(m.metaMs);
+        $('st-first').textContent = `${ms(m.firstFrameMs)} après réception (${m.latencyMs} ms de transit du message)`;
+        log(`← vidéo démarrée : ${m.result} ; métadonnées ${ms(m.metaMs)}, première image ${ms(m.firstFrameMs)}`, m.result.startsWith('avec son') ? 'ok' : 'ko');
+        break;
+      case 'video-muted': log('← video-muted : lecture avec son refusée, vidéo muette (VID-12). Cliquer une fois dans la fenêtre joueurs.', 'ko'); break;
+      case 'video-unmuted': log('← son autorisé après un clic dans la fenêtre joueurs', 'ok'); break;
+      case 'video-state':
+        if (!current || m.videoId !== current.id) break;
+        $('position').textContent = `${fmtTime(m.positionMs)} / ${fmtTime(m.durationMs)} (reste -${fmtTime(m.durationMs - m.positionMs)})${m.paused ? ' · en pause' : ''}${m.muted ? ' · muette' : ''}`;
+        if (!seeking && m.durationMs) $('seek').value = Math.round((m.positionMs / m.durationMs) * 1000);
+        $('st-mem').textContent = fmtBytes(m.memory);
+        break;
+      case 'video-seeked': $('st-seek').textContent = `${ms(m.seekMs)} jusqu'à la reprise de l'image`; log(`← déplacement terminé en ${ms(m.seekMs)}`); break;
+      // La fin d'une vidéo remplacée ne termine pas la nouvelle
+      case 'video-ended': if (current?.id === m.videoId && m.reason !== 'remplacée') endVideo(`video-ended (${m.reason})`); else log(`← video-ended (${m.reason}) ignoré`); break;
+      case 'video-error': log(`← video-error : ${m.message}`, 'ko'); if (current?.id === m.videoId) endVideo('erreur'); break;
+    }
+  };
+  send({ type: 'hello' });
+  addEventListener('pagehide', () => send({ type: 'clear' }));
+
+  $('btn-persist').onclick = async () => { const r = await navigator.storage?.persist?.(); log(`persist() → ${r}`); refreshStorage(); };
+  $('btn-refresh').onclick = () => { refreshStorage(); refreshList(); };
+  $('btn-copy').onclick = () => navigator.clipboard.writeText(logEl.innerText).then(() => log('Journal copié'));
+  $('btn-clear').onclick = () => logEl.replaceChildren();
+  setInterval(refreshStorage, 5000);
+  refreshStorage(); refreshList();
+  log('Écran du MJ prêt. Importer une vidéo, ouvrir la fenêtre joueurs, puis « Lancer » SANS cliquer dans la fenêtre joueurs.');
+}
+
+// =====================================================================
+//  FENÊTRE JOUEURS
+// =====================================================================
+function startPlayer() {
+  document.body.classList.add('player');
+  document.title = 'Fenêtre joueurs — prototype vidéo';
+  const video = $('video');
+  const hud = $('hud');
+  let url = null, ownUrl = false, videoId = null, timer = null;
+  let soundAllowedByClick = false;
+  let hudLines = {};
+  const setHud = (k, v) => { hudLines[k] = v; hud.textContent = Object.entries(hudLines).map(([a, b]) => `${a} : ${b}`).join('\n') + '\n(double-clic : plein écran · H : masquer)'; };
+
+  function policy() {
+    try { return navigator.getAutoplayPolicy ? navigator.getAutoplayPolicy('mediaelement') : 'API absente'; } catch { return 'API absente'; }
+  }
+  function activation() {
+    const a = navigator.userActivation;
+    return a ? `hasBeenActive=${a.hasBeenActive}, isActive=${a.isActive}` : 'API absente';
+  }
+  setHud('Politique', policy()); setHud('Activation', activation());
+
+  function release() {
+    clearInterval(timer); timer = null;
+    video.pause(); video.removeAttribute('src'); video.load();
+    video.style.display = 'none';
+    if (url && ownUrl) URL.revokeObjectURL(url);
+    url = null;
+  }
+  function stop(reason) {
+    if (!videoId) return;
+    const id = videoId; videoId = null;
+    release();
+    send({ type: 'video-ended', videoId: id, reason });
+    setHud('Vidéo', `terminée (${reason})`);
+  }
+  function state() {
+    if (!videoId) return;
+    send({ type: 'video-state', videoId, positionMs: video.currentTime * 1000, durationMs: video.duration * 1000, paused: video.paused, muted: video.muted, memory: jsMemory() });
+  }
+
+  async function play(m) {
+    if (videoId) stop('remplacée');
+    videoId = m.videoId;
+    const received = now();
+    const latencyMs = m.sentAt ? Date.now() - m.sentAt : null;
+    send({ type: 'video-diag', policy: policy(), activation: activation() });
+    let getMs = null;
+    try {
+      if (m.url) { url = m.url; ownUrl = false; }
+      else {
+        const t0 = now();
+        const rec = await getMedia(m.videoId);
+        getMs = now() - t0;
+        if (!rec) throw new Error('vidéo introuvable dans IndexedDB');
+        url = URL.createObjectURL(rec.blob); ownUrl = true;
+      }
+    } catch (e) {
+      send({ type: 'video-error', videoId: m.videoId, message: String(e?.message ?? e) }); videoId = null; return;
+    }
+    video.volume = m.volume ?? 1;
+    video.muted = false;
+    video.src = url;
+    video.style.display = 'block';
+    let metaMs = null;
+    video.addEventListener('loadedmetadata', () => { metaMs = now() - received; }, { once: true });
+    let result;
+    try {
+      await video.play();
+      result = 'avec son, sans clic';
+    } catch (e) {
+      if (e?.name === 'NotAllowedError') {
+        video.muted = true;
+        try { await video.play(); result = 'MUETTE (son refusé : NotAllowedError)'; send({ type: 'video-muted', videoId }); }
+        catch (e2) { result = `REFUSÉE même muette : ${e2?.name}`; }
+      } else {
+        send({ type: 'video-error', videoId, message: `${e?.name} ${e?.message}` }); release(); videoId = null; return;
+      }
+    }
+    if (soundAllowedByClick && video.muted) { video.muted = false; }
+    await new Promise((r) => (video.readyState >= 3 ? r() : video.addEventListener('playing', r, { once: true })));
+    const firstFrameMs = now() - received;
+    send({ type: 'video-started', videoId, result, source: ownUrl ? 'créée par la fenêtre joueurs' : 'créée par l\'écran du MJ', getMs, metaMs: metaMs ?? firstFrameMs, firstFrameMs, latencyMs });
+    setHud('Vidéo', result);
+    timer = setInterval(state, 1000); state();
+  }
+
+  video.addEventListener('ended', () => stop('fin'));
+  video.addEventListener('error', () => { if (videoId) { send({ type: 'video-error', videoId, message: `MediaError ${video.error?.code} ${video.error?.message ?? ''}` }); release(); videoId = null; } });
+  video.addEventListener('pause', state);
+  video.addEventListener('play', state);
+
+  // Un clic dans la fenêtre joueurs autorise le son (TEC-47)
+  addEventListener('pointerdown', () => {
+    soundAllowedByClick = true;
+    if (videoId && video.muted) { video.muted = false; send({ type: 'video-unmuted', videoId }); state(); }
+    setHud('Activation', activation());
+  });
+  addEventListener('dblclick', () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()));
+  addEventListener('keydown', (e) => { if (e.key === 'h' || e.key === 'H') hud.hidden = !hud.hidden; });
+
+  channel.onmessage = ({ data: m }) => {
+    switch (m.type) {
+      case 'hello': send({ type: 'ping' }); break;
+      case 'play-video': play(m); break;
+      case 'pause-video': video.pause(); break;
+      case 'resume-video': video.play().catch(() => {}); break;
+      case 'stop-video': stop('arrêt'); break;
+      case 'clear': stop('clear'); break;
+      case 'video-volume': video.volume = m.volume; state(); break;
+      case 'seek-video': {
+        if (!videoId || !video.duration) break;
+        const t0 = now();
+        video.addEventListener('seeked', () => send({ type: 'video-seeked', videoId, seekMs: now() - t0 }), { once: true });
+        video.currentTime = m.ratio * video.duration;
+        break;
+      }
+    }
+  };
+  addEventListener('pagehide', () => { stop('fermeture'); send({ type: 'bye' }); });
+  send({ type: 'ping' });
+}
+
+ROLE === 'player' ? startPlayer() : startGm();
+</script>
+</body>
+</html>

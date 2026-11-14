@@ -11,12 +11,12 @@ import {
   AddTextElement,
   Battlemap,
   ChangeSceneElement,
-  GLOBAL_SOUND_LIBRARY,
+  GLOBAL_LIBRARY,
   Id,
   Project,
   Scene,
   SceneNode,
-  SoundNode,
+  LibraryNode,
   TreeNodeKind,
   Trigger,
   UserClickElement,
@@ -130,7 +130,7 @@ export class EditorStore {
   /** Battlemaps de la scène ouverte, par `order`. */
   readonly battlemaps = signal<Battlemap[]>([]);
   /** Nœuds des bibliothèques de sons (projet puis globale), pour choisir et nommer les sons. */
-  readonly soundNodes = signal<readonly SoundNode[]>([]);
+  readonly soundNodes = signal<readonly LibraryNode[]>([]);
   /** Noms des sons (bibliothèque du projet et globale), pour résumer les actions. */
   readonly soundNames = computed<Readonly<Record<Id, string>>>(() =>
     Object.fromEntries(
@@ -225,8 +225,8 @@ export class EditorStore {
     }
     const [nodes, projectSounds, globalSounds] = await Promise.all([
       this.repository.listSceneNodes(projectId),
-      this.repository.listSoundNodes(projectId),
-      this.repository.listSoundNodes(GLOBAL_SOUND_LIBRARY),
+      this.repository.listLibraryNodes(projectId),
+      this.repository.listLibraryNodes(GLOBAL_LIBRARY),
     ]);
     this.project.set(project);
     this.sceneNodes.set(nodes);

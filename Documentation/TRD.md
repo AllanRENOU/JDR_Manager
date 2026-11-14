@@ -58,7 +58,7 @@ Ce document décrit **comment** l'application est construite : choix techniques,
 | TEC-26 | Au démarrage, l'application demande un stockage persistant (`navigator.storage.persist()`). | M |
 | TEC-27 | Implémentation **API** de la couche d'accès. | W |
 
-### 1.3 Médias (images, sons)
+### 1.3 Médias (images, sons, vidéos)
 
 | ID | Exigence | Priorité |
 |---|---|---|
@@ -66,7 +66,8 @@ Ce document décrit **comment** l'application est construite : choix techniques,
 | TEC-31 | Les `Blob` sont rangés dans un store dédié `media`, indexé par identifiant ; les autres entités ne contiennent que l'**identifiant** du média. | M |
 | TEC-32 | La couche d'accès expose des **URL de médias** (`blob:` en V1, `https:` avec l'API), jamais des `Blob`, aux composants. | M |
 | TEC-33 | Les URL `blob:` sont libérées (`URL.revokeObjectURL`) quand le média n'est plus utilisé. | M |
-| TEC-34 | Formats acceptés à l'import : images `png`, `jpg`/`jpeg`, `webp` ; sons `mp3`, `ogg`, `wav`, `m4a`. Un format refusé ou un quota dépassé affiche un message clair. | M |
+| TEC-34 | Formats acceptés à l'import : images `png`, `jpg`/`jpeg`, `webp` ; sons `mp3`, `ogg`, `wav`, `m4a` ; vidéos `mp4` (H.264, `video/mp4`) et `webm` (`video/webm`) (PRD VID-01). Un format refusé ou un quota dépassé affiche un message clair. | M |
+| TEC-36 | Vidéos : copiées en `Blob` dans le store `media`, comme les sons (décision D10). Durée lue à l'import par un élément `<video>` (`loadedmetadata`), via un service `MediaDuration` qui remplace `AudioDuration` (sons et vidéos). Au-delà de `LARGE_VIDEO_BYTES` (500 Mo), l'écran demande une confirmation avant `uploadMedia` (PRD VID-03). Pendant l'import, l'écran affiche « Import en cours (n / N) » : un gros fichier peut prendre plusieurs secondes. | M |
 | TEC-35 | Import par **glisser-déposer depuis le disque** via une directive réutilisable (`appFileDrop`) posée sur l'écran de la bibliothèque de sons et sur l'éditeur de scène : écoute de `dragenter` / `dragover` / `dragleave` / `drop` au niveau de la fenêtre, calque plein écran affiché seulement si `dataTransfer.types` contient `Files` (pour ne pas réagir aux glisser-déposer internes du CDK), compteur d'entrées / sorties pour éviter le clignotement, filtrage des types MIME (TEC-34), puis appel de `uploadMedia` pour chaque fichier. La destination (dossier ouvert ou scène ouverte) est fournie par l'écran hôte. | M |
 
 ### 1.4 Audio
@@ -77,6 +78,17 @@ Ce document décrit **comment** l'application est construite : choix techniques,
 | TEC-41 | Les sons ne sont **jamais entièrement décodés** en mémoire (`decodeAudioData` interdit pour la lecture). | M |
 | TEC-42 | Volume, boucle, fondus (entrée / sortie), **pause / reprise** par son et **réglage du volume en direct** gérés par un **service audio unique**, avec `GainNode.gain.linearRampToValueAtTime`. | M |
 | TEC-43 | L'`AudioContext` est créé ou repris (`resume()`) sur le premier clic de l'utilisateur, pour respecter les règles de lecture automatique des navigateurs. | M |
+
+### 1.4 bis Vidéo (lot 12 ter)
+
+| ID | Exigence | Priorité |
+|---|---|---|
+| TEC-44 | La vidéo est lue **dans la fenêtre joueurs seulement**, par un élément `<video>` posé par-dessus la battlemap (`object-fit: contain`, fond noir). La fenêtre joueurs résout elle-même l'URL (`MediaUrls`, à partir de l'identifiant reçu) ; le volume passe par `HTMLMediaElement.volume` (pas de Web Audio pour la vidéo). | M |
+| TEC-45 | L'écran du MJ commande la vidéo par le `BroadcastChannel` de la fenêtre joueurs (§9) et ne lit jamais le fichier. Son état (vidéo en cours, position, durée, pause, muette) vient des messages de la fenêtre joueurs : service `PlayerVideo` (`gm-screen/player-video.ts`, fourni par l'écran, à côté de `PlayerWindow`), signal `video`. | M |
+| TEC-46 | Coupure des sons pendant une vidéo (PRD VID-08) : `AudioPlayer` place un `GainNode` **maître** entre les sons et la sortie ; `duck(true)` le descend à 0 en `DUCK_FADE_MS` (1 s), `duck(false)` le remonte à 1. Les volumes de chaque son et `playingSounds` ne changent pas ; la coupure n'est pas enregistrée. | M |
+| TEC-47 | Lecture automatique : la fenêtre joueurs appelle `play()` ; si la promesse est rejetée (`NotAllowedError`), elle passe `muted = true`, relance `play()` et envoie `video-muted` à l'écran du MJ (notification, PRD VID-12). Un clic dans la fenêtre joueurs (`pointerdown`) retire la sourdine pour les vidéos suivantes. | S |
+| TEC-48 | La vidéo n'est **pas** enregistrée dans `PlaySession` (PRD VID-11) : `SceneState` ne change pas. | M |
+| TEC-49 | Prototype autonome avant le développement (`prototypes/prototype-video.html`, à la racine du dépôt) : lecture avec son dans une fenêtre ouverte par `window.open` sans clic dans cette fenêtre (Chrome, Edge, Firefox) ; vidéo de 1 à 2 Go en `Blob` dans IndexedDB (durée d'import, mémoire, déplacement dans la vidéo, URL `blob:` lue depuis une autre fenêtre). | M |
 
 ### 1.5 Présentation
 
@@ -175,8 +187,8 @@ public/i18n/fr.json
 | Route | Écran |
 |---|---|
 | `/projects` | Liste des projets |
-| `/sounds` | Bibliothèque globale de sons (ouverte depuis l'accueil) |
-| `/projects/:projectId/sounds` | Mode Édition — sons du projet et bibliothèque globale (onglet « Sons ») |
+| `/library` | Bibliothèque globale, sons et vidéos (ouverte depuis l'accueil). `/sounds` redirige ici (lot 12 ter) |
+| `/projects/:projectId/library` | Mode Édition — bibliothèque du projet et bibliothèque globale (onglet « Bibliothèque »). `/projects/:projectId/sounds` redirige ici |
 | `/settings` | Paramètres (Apparence) |
 | `/projects/:projectId/edit` | Mode Édition |
 | `/projects/:projectId/play` | Mode Présentation — écran du MJ. `?demo=1&scene=<id>` : mode démo (PRS-09), partie en mémoire seulement, à partir de `scene` (sinon la dernière scène ouverte dans l’éditeur) |
@@ -249,9 +261,11 @@ interface Battlemap {
   order: number;
 }
 
-interface SoundNode extends TreeNode {
+/** Nœud d'une bibliothèque : dossier, son ou vidéo (lot 12 ter : `SoundNode` renommé `LibraryNode`, store `soundNodes` inchangé) */
+interface LibraryNode extends TreeNode {
   libraryId: 'global' | Id;     // 'global' ou id du projet
   mediaId?: Id;                 // présent si kind = 'item'
+  mediaKind?: 'sound' | 'video'; // si kind = 'item' ; absent = 'sound' (données d'avant le lot 12 ter, pas de migration)
 }
 
 interface Media {
@@ -260,7 +274,7 @@ interface Media {
   mimeType: string;
   size: number;
   fileName: string;             // nom du fichier d'origine (nom par défaut d'un son, export)
-  durationMs?: number;          // durée d'un son, lue à l'import (absente si illisible)
+  durationMs?: number;          // durée d'un son ou d'une vidéo, lue à l'import (absente si illisible)
 }
 
 type Trigger = 'scene-open' | 'manual';
@@ -286,7 +300,9 @@ type ActionElement =
   | { id: Id; type: 'wait'; seconds: number; text?: string } // texte facultatif, montré pendant l'attente
   | { id: Id; type: 'user-click'; text: string }
   | { id: Id; type: 'show-action'; actionIds: Id[] }  // actions de la même scène (ACT-12) ; schéma v2 (avant : `actionId`)
-  | { id: Id; type: 'hide-action'; actionIds: Id[]; all?: boolean }; // actions de la même scène, ou toutes (`all`, `actionIds` vide) (ACT-13)
+  | { id: Id; type: 'hide-action'; actionIds: Id[]; all?: boolean } // actions de la même scène, ou toutes (`all`, `actionIds` vide) (ACT-13)
+  | { id: Id; type: 'play-video'; videoId: Id; volume: number }   // id du LibraryNode vidéo ; volume 0–1 (ACT-14)
+  | { id: Id; type: 'stop-video' };                                // vidéo en cours, quelle qu'elle soit (ACT-15)
 
 /** Partie sauvegardée (une par projet en V1) */
 interface PlaySession {
@@ -315,7 +331,9 @@ type FeedItem =
 Notes :
 
 - Le fil d'actualité ne stocke que des **références** (`elementId`, `battlemapId`) : le texte affiché est toujours lu dans l'action. Une action ou une battlemap supprimée est donc détectée à l'affichage (PRD PRS-07).
-- Le paramétrage audio (volume, boucle, fondus) est porté par l'élément `play-sound`, pas par le son (cf. spécifications §3).
+- Le paramétrage audio (volume, boucle, fondus) est porté par l'élément `play-sound`, pas par le son (cf. spécifications §3). De même, le volume d'une vidéo est porté par l'élément `play-video`.
+- Le type d'un élément de bibliothèque est dans `LibraryNode.mediaKind`, posé à l'import d'après le type MIME (`resolveMediaType()`) : on le connaît sans lire le `Media`. Un `play-sound` ne peut viser qu'un son, un `play-video` qu'une vidéo (fenêtres de choix filtrées).
+- Aucune vidéo dans `SceneState` (TEC-48).
 
 ---
 
@@ -345,18 +363,18 @@ export interface DataRepository {
   deleteAction(id: Id): Promise<void>;
   listSceneLinks(projectId: Id): Promise<SceneLink[]>; // actions « Changer de scène » : { actionId, sceneId, targetIds }
 
-  // Bibliothèques de sons
-  listSoundNodes(libraryId: 'global' | Id): Promise<SoundNode[]>;
-  saveSoundNodes(nodes: SoundNode[]): Promise<void>;
-  deleteSoundNode(id: Id): Promise<void>;
-  countSoundUsages(): Promise<Record<Id, number>>;   // nb d'actions qui lancent / arrêtent chaque son
+  // Bibliothèques (sons et vidéos) — renommées au lot 12 ter (avant : listSoundNodes…, countSoundUsages)
+  listLibraryNodes(libraryId: 'global' | Id): Promise<LibraryNode[]>;
+  saveLibraryNodes(nodes: LibraryNode[]): Promise<void>;
+  deleteLibraryNode(id: Id): Promise<void>;
+  countLibraryUsages(): Promise<Record<Id, number>>; // nb d'actions qui lancent / arrêtent chaque son, ou lancent chaque vidéo
 
   // Médias
   uploadMedia(file: File, details?: { durationMs?: number }): Promise<Id>;
   getMediaInfo(ids: Id[]): Promise<Omit<Media, 'blob'>[]>;   // infos sans le contenu (tableau des sons)
   getMediaUrl(mediaId: Id): Promise<string>;   // blob: en V1, https: avec l'API
   deleteMedia(id: Id): Promise<void>;
-  getStorageUsage(): Promise<StorageUsage>;   // { images, sounds } : { count, bytes } (Paramètres › Stockage, NF-14)
+  getStorageUsage(): Promise<StorageUsage>;   // { images, sounds, videos } : { count, bytes } (Paramètres › Stockage, NF-14)
 
   // Partie sauvegardée
   getPlaySession(projectId: Id): Promise<PlaySession | undefined>;
@@ -403,6 +421,7 @@ Les erreurs métier sont des `DataError` (`core/data/data-error.ts`) avec un `co
 - `MediaUrls` tient un cache `mediaId → URL blob:` avec un **compteur de références** : l'URL est créée au premier usage et libérée (`revokeObjectURL`) quand plus aucun composant ne l'utilise. API : `acquire(id)` / `release(id)` ; dans un composant, `track(() => id)` renvoie les signals `url` et `missing` et libère automatiquement à la destruction.
 - En cas de `QuotaExceededError`, l'import échoue proprement (`DataError('quota-exceeded')`) et un message est affiché.
 - Avec l'API, `getMediaUrl` renverra une URL distante et `MediaUrls` n'aura plus rien à libérer : aucun composant ne change.
+- Vidéos (lot 12 ter) : `resolveMediaType()` renvoie la famille `video` pour `video/mp4` et `video/webm` (`FORMAT_LABELS.video`) ; l'import pose `LibraryNode.mediaKind`. Une vidéo n'est jamais chargée en entier en mémoire : le `<video>` lit l'URL `blob:` au fil de l'eau (confirmé par le prototype TEC-49 dans Chrome et Edge : 1,94 Go importé en 13 s, mémoire JS inchangée, première image en 0,1 à 0,3 s). La fenêtre joueurs libère l'URL à la fin de la vidéo.
 
 ---
 
@@ -415,7 +434,8 @@ Les erreurs métier sont des `DataError` (`core/data/data-error.ts`) avec un `co
 | `PresentationEngine` | Charge la partie, ouvre / quitte les scènes, expose l'état courant sous forme de signals (scène, fil, battlemap, sons, actions disponibles). |
 | `ActionRunner` | Exécute les éléments d'une action en séquence ; gère l'attente, le clic utilisateur et l'annulation. |
 | `PlaySessionStore` | Applique chaque événement à l'état `PlaySession` et le sauvegarde immédiatement (TEC-52). |
-| `AudioPlayer` | Lecture, volume, boucle, fondus, arrêt d'un son ou de tous (cf. §7). |
+| `AudioPlayer` | Lecture, volume, boucle, fondus, arrêt d'un son ou de tous, coupure pendant une vidéo (cf. §7). |
+| `PlayerVideo` | Commande de la vidéo dans la fenêtre joueurs et état reçu en retour (cf. §9, TEC-45). |
 
 ### 6.2 Exécution d'une action
 
@@ -431,6 +451,8 @@ async run(action: Action, context: ActionContext, signal: AbortSignal): Promise<
       case 'play-sound':      context.playSound(element); break;
       case 'stop-sound':      context.stopSound(element); break;
       case 'stop-all-sounds': context.stopAllSounds(); break;
+      case 'play-video':      context.playVideo(element); break;   // n'attend pas la fin (ACT-14)
+      case 'stop-video':      context.stopVideo(); break;
       case 'change-scene':
         context.markDone(action);
         return context.canChangeScene(element) ? { kind: 'change-scene', sceneId: element.sceneId } : { kind: 'done' };
@@ -448,11 +470,14 @@ async run(action: Action, context: ActionContext, signal: AbortSignal): Promise<
 - Relance d'une action (PRD CTL-03) : un texte ou un bloc de clic déjà présent dans le fil n'est pas ajouté une deuxième fois ; le fil revient sur lui (signal `focus`).
 - Les actions d'ouverture s'exécutent **dans l'ordre**, en commençant par l'action « Texte de scène » (`isSceneText`).
 - Afficher la battlemap déjà affichée n'ajoute pas de miniature ; la battlemap par défaut d'une scène n'est pas ajoutée au fil.
+- `playVideo` : vidéo supprimée → notification `presentation.errors.missingVideo` ; fenêtre joueurs fermée (`PlayerWindow.open()` faux) → notification `presentation.videoNotShown` ; sinon `PlayerVideo.play(videoId, volume)`. Dans tous les cas l'action continue aussitôt. Rien n'est enregistré (TEC-48).
+- Toute **battlemap affichée** (élément `show-battlemap` ou sélecteur, même la battlemap déjà affichée) arrête d'abord la vidéo en cours (PRD VID-09). Le `show-battlemap` renvoyé à la fenêtre joueurs en réponse à un `ping` n'arrête rien.
+- Vidéo en cours → `AudioPlayer.duck(true)` ; fin, arrêt ou fermeture de la fenêtre joueurs → `duck(false)`.
 
 ### 6.3 Changement de scène
 
 1. `abort()` sur le contrôleur de la scène quittée.
-2. `AudioPlayer.stopAll()` (chaque son avec son fondu de sortie).
+2. `AudioPlayer.stopAll()` (chaque son avec son fondu de sortie) et `PlayerVideo.stop()` (vidéo en cours, PRD VID-09).
 3. Sauvegarde de l'état de la scène quittée et de `currentSceneId`.
 4. Scène jamais visitée → battlemap par défaut, puis actions d'ouverture. Scène déjà visitée → restauration de son `SceneState` ; les sons de `playingSounds` sont relancés depuis le début, avec leur volume, et restent en pause s'ils l'étaient.
 
@@ -476,7 +501,8 @@ async run(action: Action, context: ActionContext, signal: AbortSignal): Promise<
 - Volume en direct : `setVolume(soundId, value)` ajuste le `GainNode` et met à jour `playingSounds`.
 - Un même son ne joue qu'une fois à la fois : le relancer remplace la lecture en cours.
 - L'état exposé (signal `sounds`, et `onChange()` pour la sauvegarde) alimente les contrôles de l'écran du MJ et `PlaySessionStore`.
-- API (`AudioPlayer`, service global) : `unlock()`, `play(request, { paused, volume })` (renvoie `false` si le fichier est introuvable), `stop(soundId)`, `stopAll()`, `pause` / `resume`, `setVolume`, `pauseAll` / `resumeAll`, signals `sounds` et `anyPlaying`. L'`AudioContext` vient de la fabrique `AUDIO_CONTEXT_FACTORY` (remplaçable dans les tests).
+- Coupure pendant une vidéo (lot 12 ter, TEC-46) : tous les `GainNode` des sons passent par un `GainNode` maître ; `duck(on)` le fait descendre à 0 ou remonter à 1 en `DUCK_FADE_MS`. Un son lancé pendant la coupure est donc muet jusqu'à la fin de la vidéo. Le bouton global (`PresentationEngine.togglePlayback()`) met aussi la vidéo en pause ou la fait reprendre (`PlayerVideo.pause()` / `resume()`) ; l'état « quelque chose joue » du moteur tient compte de la vidéo (PRD VID-10). `AudioPlayer` reste sans lien avec la vidéo.
+- API (`AudioPlayer`, service global) : `unlock()`, `duck(on)`, `play(request, { paused, volume })` (renvoie `false` si le fichier est introuvable), `stop(soundId)`, `stopAll()`, `pause` / `resume`, `setVolume`, `pauseAll` / `resumeAll`, signals `sounds` et `anyPlaying`. L'`AudioContext` vient de la fabrique `AUDIO_CONTEXT_FACTORY` (remplaçable dans les tests).
 
 ---
 
@@ -529,6 +555,17 @@ interface TreeMenuItem<T> {
 - À son ouverture, la fenêtre joueurs demande l'état courant (`ping`) pour afficher tout de suite la bonne battlemap.
 - Fermeture : `bye` à `pagehide`, et l'écran du MJ vérifie chaque seconde `window.closed`. L'écran du MJ quitté (navigation ou onglet fermé) envoie `clear` : la fenêtre joueurs devient noire.
 - Côté MJ : service `PlayerWindow` (`gm-screen/player-window.ts`), fourni par l'écran ; signal `open` (pastille « Fenêtre joueurs ouverte »).
+
+### 9.1 Vidéos (lot 12 ter)
+
+- Messages ajoutés à `PlayerMessage` :
+  - MJ → joueurs : `{ type: 'play-video', videoId, mediaId, volume }` (remplace la vidéo en cours), `{ type: 'pause-video' }`, `{ type: 'resume-video' }`, `{ type: 'stop-video' }`, `{ type: 'video-volume', volume }` (réglage à la main depuis la carte « Vidéo en cours », non enregistré) ;
+  - joueurs → MJ : `{ type: 'video-state', videoId, positionMs, durationMs, paused, muted }` (au démarrage, à chaque pause / reprise, puis chaque seconde), `{ type: 'video-ended', videoId }` (fin ou arrêt), `{ type: 'video-error', videoId }` (fichier illisible ou introuvable), `{ type: 'video-muted', videoId }` (lecture avec son refusée, TEC-47).
+- La fenêtre joueurs ne déduit rien d'un `show-battlemap` : c'est l'écran du MJ qui envoie `stop-video` quand une battlemap est affichée (TEC-44, §6.2).
+- `ping` (fenêtre rouverte ou rechargée) : l'écran du MJ renvoie la battlemap, jamais la vidéo ; une vidéo en cours côté MJ est considérée comme terminée (`duck(false)`, carte retirée). `clear` et `bye` terminent aussi la vidéo.
+- `video-error` : notification au MJ (`presentation.errors.videoUnreadable`), `duck(false)`, carte retirée. Vidéo en pause (bouton global ou carte) : la coupure des sons est maintenue jusqu'à la fin ou à l'arrêt de la vidéo (décision d'Allan, 14/11/2026). Aucune vidéo dans le fil d'actualité.
+- `PlayerVideo` (côté MJ) : `play(videoId, volume)` (lancement manuel : volume 1), `pause()`, `resume()`, `stop()`, `setVolume(volume)`, signal `video` (`{ videoId, name, positionMs, durationMs, paused, muted, volume } | null`) qui alimente la carte « Vidéo en cours » (PRD CTL-13) ; appelle `AudioPlayer.duck()` à l'entrée et à la sortie.
+- Tests : `useFakePlayerChannel()` sert aussi pour les vidéos ; jsdom ne lit pas la vidéo (espionner `HTMLMediaElement.prototype.play` / `pause`, simuler `ended`).
 
 ## 10. Thèmes et styles
 
@@ -632,7 +669,7 @@ $required-tokens: (bg-app, bg-panel, bg-card, text-primary, accent /* … */);
 | Évolution | Impact technique |
 |---|---|
 | Stockage via API (TEC-27) | Nouvelle classe `ApiRepository` implémentant `DataRepository` ; changement du fournisseur dans `app.config.ts`. Médias envoyés en `multipart/form-data`. |
-| Export `.zip` autonome (PRD PRJ-04) | Build séparé du lecteur de Présentation (sans Édition), données sérialisées en JSON et médias en fichiers ; génération du zip côté navigateur (ex. JSZip). Aucune dépendance réseau dans le zip. |
+| Export `.zip` autonome (PRD PRJ-04) | Build séparé du lecteur de Présentation (sans Édition), données sérialisées en JSON et médias en fichiers ; génération du zip côté navigateur (ex. JSZip). Aucune dépendance réseau dans le zip. Option « Inclure les vidéos » (PRD VID-13) : sans elle, les `LibraryNode` vidéo sont exportés sans média (signalés comme absents). Un zip de plusieurs Go doit être écrit en flux, sans tout charger en mémoire (à valider en 12b.1). |
 | Sauvegarde / restauration (PRD PRJ-05) | Conception à faire ; réutilisera la sérialisation de l'export. |
 | Plusieurs parties par projet (PRD PRS-08) | Clé de `playSessions` à passer de `projectId` à un identifiant de partie ; migration de schéma. |
 | Tests de bout en bout (TEC-83) | Playwright sur les parcours clés du PRD. |
@@ -652,3 +689,5 @@ $required-tokens: (bg-app, bg-panel, bg-card, text-primary, accent /* … */);
 | D7 | Tests unitaires Vitest uniquement en V1 | Unitaires + E2E | Effort concentré sur la logique critique (moteur, persistance, audio). |
 | D8 | `BroadcastChannel` pour la fenêtre joueurs | `postMessage` via `window.opener`, `localStorage` events | API simple, même origine, supportée par Chrome, Edge et Firefox. |
 | D9 | Thèmes en SCSS : maps → variables CSS + attribut `data-theme` | Variables SCSS seules, feuilles CSS par thème, Material seul, Style Dictionary, Tailwind (cf. §10.6) | Changement à la volée, un fichier par thème, contrôle des jetons à la compilation. |
+| D10 | Vidéos copiées en `Blob` dans IndexedDB, comme les sons (décision d'Allan, 13/11/2026) | Lien vers le fichier du disque (File System Access API), OPFS, taille maximale imposée | Chrome, Edge et Firefox ; projet autonome (NF-11) ; quota large avec stockage persistant. Inconvénient accepté : la vidéo occupe deux fois sa taille sur le PC ; confirmation au-delà de 500 Mo. |
+| D11 | Vidéo lue uniquement dans la fenêtre joueurs, par un `<video>`, commandée par `BroadcastChannel` | Lecture sur l'écran du MJ, vidéo passée dans Web Audio | Choix d'Allan (les joueurs seuls la voient) ; pas de synchronisation d'image entre deux fenêtres ; pas besoin de fondus précis. |

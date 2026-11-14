@@ -17,7 +17,7 @@ export const PAUSE_FADE_MS = 200;
 /** Paramètres de lecture d'un son : ceux de l'élément « Lancer un son », ou par défaut. */
 export interface SoundRequest {
   soundId: Id;
-  /** Média du `SoundNode`. */
+  /** Média du `LibraryNode`. */
   mediaId: Id;
   /** Élément `play-sound` d'origine ; `null` = lancé à la main par le MJ. */
   elementId: Id | null;

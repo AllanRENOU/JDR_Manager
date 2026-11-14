@@ -41,7 +41,7 @@ describe('loadProjectSummary (5.1.2)', () => {
     await repository().saveScene(aScene(project.id, first.id, { defaultBattlemapId: map2.id }));
     await repository().saveBattlemap(map1);
     await repository().saveBattlemap(map2);
-    await repository().saveSoundNodes([
+    await repository().saveLibraryNodes([
       aSoundNode(project.id),
       aSoundNode(project.id, { kind: 'folder' }),
       aSoundNode('global'),

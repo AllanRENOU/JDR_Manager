@@ -10,7 +10,7 @@ describe('summarizeElement', () => {
   const scene = aSceneNode('p1', { name: 'La lisière' });
   const map = aBattlemap('s1', 'm1', { name: 'Salle' });
   const context: SummaryContext = {
-    soundNames: { rain: 'Pluie' },
+    soundNames: { rain: 'Pluie', intro: 'Intro' },
     battlemaps: [map],
     sceneNodes: [scene],
   };
@@ -55,6 +55,35 @@ describe('summarizeElement', () => {
     ).toBe(true);
     expect(hasMissingTarget(anAction('s1', { elements: [play('absent')] }), context)).toBe(true);
     expect(hasMissingTarget(anAction('s1'), context)).toBe(false);
+  });
+
+  it('« Lancer la vidéo » : nom de la vidéo, ou vidéo supprimée ; « Arrêter la vidéo » (ACT-14, ACT-15)', () => {
+    const playVideo = (videoId: string) =>
+      ({ id: 'v', type: 'play-video', videoId, volume: 1 }) as const;
+    expect(summarizeElement(playVideo('intro'), context)).toEqual({
+      key: 'action.summary.playVideo',
+      params: { name: 'Intro' },
+      missing: false,
+    });
+    expect(summarizeElement(playVideo('absente'), context)).toMatchObject({
+      key: 'action.summary.playVideoMissing',
+      missing: true,
+    });
+    expect(summarizeElement({ id: 's', type: 'stop-video' }, context)).toEqual({
+      key: 'action.summary.stopVideo',
+      params: {},
+      missing: false,
+    });
+    expect(describeElement(playVideo('intro'), context)).toEqual({ raw: 'Intro', missing: false });
+    expect(describeElement(playVideo(''), context)).toMatchObject({
+      key: 'action.detail.notChosen',
+      missing: true,
+    });
+    expect(describeElement(playVideo('absente'), context)).toMatchObject({
+      key: 'action.detail.deleted',
+      missing: true,
+    });
+    expect(describeElement({ id: 's', type: 'stop-video' }, context)).toEqual({ missing: false });
   });
 
   it('« Afficher l’action » : nom de l’action visée, ou action supprimée (ACT-12, PRS-07)', () => {

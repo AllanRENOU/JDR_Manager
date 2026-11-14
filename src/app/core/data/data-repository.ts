@@ -9,8 +9,8 @@ import {
   Project,
   Scene,
   SceneNode,
-  SoundLibraryId,
-  SoundNode,
+  LibraryId,
+  LibraryNode,
 } from '../models';
 
 /**
@@ -64,17 +64,18 @@ export interface DataRepository {
    */
   listSceneLinks(projectId: Id): Promise<SceneLink[]>;
 
-  // ── Bibliothèques de sons ──────────────────────────────────────────────
+  // ── Bibliothèques (sons et vidéos) ─────────────────────────────────────
   /** Nœuds d'une bibliothèque (`'global'` ou id du projet), triés par `order`. */
-  listSoundNodes(libraryId: SoundLibraryId): Promise<SoundNode[]>;
-  saveSoundNodes(nodes: SoundNode[]): Promise<void>;
-  /** Supprime un nœud et ses descendants, ainsi que les fichiers son devenus inutilisés. */
-  deleteSoundNode(id: Id): Promise<void>;
+  listLibraryNodes(libraryId: LibraryId): Promise<LibraryNode[]>;
+  saveLibraryNodes(nodes: LibraryNode[]): Promise<void>;
+  /** Supprime un nœud et ses descendants, ainsi que les fichiers son ou vidéo devenus inutilisés. */
+  deleteLibraryNode(id: Id): Promise<void>;
   /**
-   * Nombre d'actions (tous projets confondus) qui lancent ou arrêtent chaque son, par id de
-   * `SoundNode` ; un son absent du résultat n'est pas utilisé (« Utilisé dans », SON-03).
+   * Nombre d'actions (tous projets confondus) qui lancent ou arrêtent chaque son, ou lancent
+   * chaque vidéo, par id de `LibraryNode` ; un nœud absent du résultat n'est pas utilisé
+   * (« Utilisé dans », SON-03, VID-05).
    */
-  countSoundUsages(): Promise<Record<Id, number>>;
+  countLibraryUsages(): Promise<Record<Id, number>>;
 
   // ── Médias ─────────────────────────────────────────────────────────────
   /**

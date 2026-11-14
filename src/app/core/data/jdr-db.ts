@@ -9,7 +9,7 @@ import {
   Project,
   Scene,
   SceneNode,
-  SoundNode,
+  LibraryNode,
 } from '../models';
 
 /** Nom de la base IndexedDB de l'application. */
@@ -25,7 +25,7 @@ export interface JdrDbSchema extends DBSchema {
   scenes: { key: Id; value: Scene; indexes: { projectId: Id } };
   battlemaps: { key: Id; value: Battlemap; indexes: { sceneId: Id; mediaId: Id } };
   actions: { key: Id; value: Action; indexes: { sceneId: Id } };
-  soundNodes: { key: Id; value: SoundNode; indexes: { libraryId: string; mediaId: Id } };
+  soundNodes: { key: Id; value: LibraryNode; indexes: { libraryId: string; mediaId: Id } };
   media: { key: Id; value: Media };
   playSessions: { key: Id; value: PlaySession };
 }

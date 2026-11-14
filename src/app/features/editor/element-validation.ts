@@ -14,6 +14,8 @@ export function elementProblem(element: ActionElement): string | null {
     case 'play-sound':
     case 'stop-sound':
       return element.soundId ? null : 'action.form.soundRequired';
+    case 'play-video':
+      return element.videoId ? null : 'action.form.videoRequired';
     case 'change-scene':
       return element.sceneId ? null : 'action.form.sceneRequired';
     case 'show-action':

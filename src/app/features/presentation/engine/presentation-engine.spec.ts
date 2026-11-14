@@ -86,7 +86,7 @@ describe('PresentationEngine', () => {
     await repository().saveScene(aScene('p1', 'B'));
     await repository().saveBattlemap(aBattlemap('A', 'm1', { id: 'b1', name: 'Salle', order: 0 }));
     await repository().saveBattlemap(aBattlemap('A', 'm2', { id: 'b2', name: 'Étage', order: 1 }));
-    await repository().saveSoundNodes([
+    await repository().saveLibraryNodes([
       aSoundNode('p1', { id: 'taverne', name: 'Taverne', mediaId: 'son-taverne' }),
       aSoundNode('p1', { id: 'fantome', name: 'Supprimé', mediaId: 'absent-1' }),
       aSoundNode('global', { id: 'pluie', name: 'Pluie', mediaId: 'son-pluie' }),

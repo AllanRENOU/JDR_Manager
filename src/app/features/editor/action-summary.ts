@@ -1,10 +1,11 @@
-import { Action, ActionElement, Battlemap, Id, SceneNode, SoundNode } from '../../core/models';
+import { Action, ActionElement, Battlemap, Id, SceneNode, LibraryNode } from '../../core/models';
 
 /** Données nécessaires pour nommer ce que vise un élément. */
 export interface SummaryContext {
+  /** Noms des éléments des bibliothèques (sons et vidéos), par id de `LibraryNode`. */
   soundNames: Readonly<Record<Id, string>>;
   /** Bibliothèques de sons (projet et globale) : choix d'un son dans l'éditeur d'action. */
-  soundNodes?: readonly SoundNode[];
+  soundNodes?: readonly LibraryNode[];
   battlemaps: readonly Battlemap[];
   sceneNodes: readonly SceneNode[];
   /** Actions de la scène : cible de « Afficher l'action » et « Masquer l'action » (ACT-12). */
@@ -34,6 +35,14 @@ export function summarizeElement(element: ActionElement, context: SummaryContext
     }
     case 'stop-all-sounds':
       return { key: 'action.summary.stopAll', params: {}, missing: false };
+    case 'play-video': {
+      const name = sound(element.videoId);
+      return name
+        ? { key: 'action.summary.playVideo', params: { name }, missing: false }
+        : { key: 'action.summary.playVideoMissing', params: {}, missing: true };
+    }
+    case 'stop-video':
+      return { key: 'action.summary.stopVideo', params: {}, missing: false };
     case 'show-battlemap': {
       const map = context.battlemaps.find((b) => b.id === element.battlemapId);
       return map
@@ -96,6 +105,8 @@ export function describeElement(element: ActionElement, context: SummaryContext)
     case 'play-sound':
     case 'stop-sound':
       return target(element.soundId, context.soundNames[element.soundId]);
+    case 'play-video':
+      return target(element.videoId, context.soundNames[element.videoId]);
     case 'show-battlemap':
       return target(
         element.battlemapId,
@@ -118,6 +129,7 @@ export function describeElement(element: ActionElement, context: SummaryContext)
       }
       return describeActionTargets(actionTargets(element.actionIds, context));
     case 'stop-all-sounds':
+    case 'stop-video':
       return { missing: false };
   }
 }

@@ -30,10 +30,11 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
 | 10 | Écran de Présentation (PC) | 21 | 21 | Terminé |
 | 11 | Fenêtre joueurs | 7 | 7 | Terminé |
 | 12 | Reprise et cohérence des données | 6 | 6 | Terminé |
+| 12 ter | Vidéos (fait avant le 12 bis) | 12 | 2 | En cours |
 | 12 bis | Hors ligne et tablette | 8 | 0 | À faire |
 | 13 | Robustesse, performance, accessibilité | 16 | 15 | En cours |
 | 14 | Recette V1 | 6 | 0 | À faire |
-| **Total** | | **223** | **208** | |
+| **Total** | | **235** | **210** | |
 
 ---
 
@@ -628,13 +629,59 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
 
 ---
 
+## Lot 12 ter — Vidéos
+
+> Ajouté le 13/11/2026 (demande d'Allan) et fait **avant le lot 12 bis**. Exigences : PRD §5.2 bis (VID-01 à VID-13), ACT-14, ACT-15, CTL-13 ; TRD §1.4 bis (TEC-44 à TEC-49), §3, §9.1, D10, D11 ; Brief §2.6, §6.12, §7.2.
+>
+> ✅ Décisions (Allan, 13/11/2026) : vidéos copiées dans IndexedDB comme les sons ; mêmes dossiers que les sons, page renommée « Bibliothèque » ; « Lancer la vidéo » n'attend pas la fin ; une seule vidéo à la fois, par-dessus la battlemap, qui réapparaît à la fin ; volume réglé dans l'élément, aucune autre option ; sons d'ambiance **coupés** pendant la vidéo ; arrêt au changement de scène et à l'affichage d'une battlemap, pause par le bouton global ; vidéo non enregistrée dans la partie ; carte « Vidéo en cours » côté MJ ; fenêtre joueurs fermée → notification discrète ; lancement manuel possible ; MP4 + WebM, confirmation au-delà de 500 Mo ; aperçu dans une fenêtre ; son refusé → vidéo muette + notification ; export : case « Inclure les vidéos ».
+>
+> ✅ Décisions (Allan, 14/11/2026) : couleurs `--el-video-*` posées telles que proposées, validées visuellement sur `/dev/themes` ; réafficher la battlemap déjà affichée arrête aussi la vidéo ; renommage complet dans le code (`SoundNode` → `LibraryNode`, `features/sound-library` → `features/library`, `SoundLibraryPage` / `SoundLibraryStore` → `LibraryPage` / `LibraryStore`), store IndexedDB `soundNodes` inchangé ; prototype dans `prototypes/` à la racine du dépôt, testé avec `D:\Content\Videos\SNK-S4 partie 4.mp4` (2,08 Go) ; **pas** de bloc vidéo dans le fil d'actualité ; lancement manuel à 100 %, et volume de la vidéo en cours **réglable à la main** sur la carte « Vidéo en cours », comme pour un son (non enregistré) ; vidéo illisible ou introuvable (`video-error`) → notification, sons rétablis, carte retirée ; vidéo en pause par le bouton global → les ambiances restent coupées jusqu'à la fin ou à l'arrêt de la vidéo. ⚠️ Problèmes Windows connus (`check:i18n` sur `features/dev`, CRLF de `format:check`, `ng test` depuis Bash) : **non corrigés**, le projet repasse bientôt sous Linux (décision d'Allan).
+
+- [x] **12t.1** Prototype `prototypes/prototype-video.html` : vidéo avec son dans une fenêtre ouverte par `window.open` sans clic dedans (Chrome, Edge, Firefox) ; vidéo de 1 à 2 Go en `Blob` IndexedDB (durée d'import, mémoire, déplacement, URL lue depuis une autre fenêtre). Résultats validés par Allan. [TEC-47, TEC-49]
+  - Note : ℹ️ Info (14/11/2026) : prototype autonome `prototypes/prototype-video.html` (écran du MJ ; la même page avec `?role=player` sert de fenêtre joueurs), à servir en HTTP : `npx http-server prototypes -p 4300 -c-1`, puis `http://localhost:4300/prototype-video.html`. Testé dans **Edge 64 bits (Chromium), profil neuf**, piloté par CDP, avec `SNK-S4 partie 4.mp4` (1,94 Go, 1 h 25) :
+    - **lecture avec son sans aucun clic dans la fenêtre joueurs** (ouverte par un clic sur l'écran du MJ ; `navigator.userActivation.hasBeenActive = false` dans la fenêtre joueurs), y compris pour les relances ;
+    - import : durée lue en 0,1 s (`loadedmetadata`), copie dans IndexedDB en **12 s** (≈ 165 Mo/s), mémoire JS inchangée (le `File` n'est pas chargé en mémoire) ;
+    - lecture dans la fenêtre joueurs : `get()` du Blob 10 ms, métadonnées ≈ 100 ms, première image **150 à 330 ms** après le message ; mémoire JS de la fenêtre joueurs ≈ 3 Mo ; tous processus Edge confondus, + 130 Mo à la lecture et + 100 Mo après des déplacements ;
+    - déplacements à 50 %, 90 % et 10 % : image reprise en 35 à 240 ms ;
+    - pause, reprise et volume (`HTMLMediaElement.volume`) par `BroadcastChannel` : OK ;
+    - une URL `blob:` créée par l'écran du MJ se lit aussi dans la fenêtre joueurs (même origine), mais la conception retenue (la fenêtre joueurs lit IndexedDB et crée sa propre URL) est aussi rapide et ne dépend pas de la durée de vie de l'écran du MJ : on la garde (TEC-44) ;
+    - rechargement de la fenêtre joueurs → `bye` puis `ping`, vidéo terminée côté MJ ; fermeture → « Vidéo non diffusée » (VID-07) : OK.
+    ✅ Test d'Allan dans **Chrome** (profil réel, à la main) : lecture **avec son, sans clic** dans la fenêtre joueurs ; import en 12,9 s (154 Mo/s) ; première image 2,8 s pour la toute première lecture lancée 3 s après la fin de l'import (accès à froid), puis **128 ms** aux lectures suivantes.
+    ⚠️ Alerte : prototype testé **dans Chrome et Edge seulement** (Chromium). **Firefox non testé** (non installé sur le PC d'Allan) : le repli muet (`NotAllowedError` → `muted`, `video-muted`, clic dans la fenêtre joueurs, TEC-47) est donc codé sans avoir été vu en vrai ; à vérifier en recette (lot 14) si Firefox est utilisé. La première lecture juste après un import peut mettre quelques secondes à démarrer.
+- [x] **12t.2** Modèle et contrat : `SoundNode` → `LibraryNode` (`mediaKind`), méthodes `listLibraryNodes`, `saveLibraryNodes`, `deleteLibraryNode`, `countLibraryUsages` (compte aussi les `play-video`) ; éléments `play-video` et `stop-video` ; store `soundNodes` inchangé (pas de migration). [TRD §3, §4.1]
+  - Note : ℹ️ Info : `core/models/sound-node.ts` → `library-node.ts` : `LibraryNode`, `LibraryId` (ex-`SoundLibraryId`), `GLOBAL_LIBRARY` (ex-`GLOBAL_SOUND_LIBRARY`), `LibraryMediaKind` (`'sound' | 'video'`), `mediaKind?` et `mediaKindOf(node)` (absent = `sound`). Méthodes du dépôt renommées partout (26 fichiers, dont les tests et `src/testing`) ; schéma IndexedDB inchangé, pas de `DB_VERSION`. `countLibraryUsages()` compte une action une fois par son ou vidéo visé (`play-sound`, `stop-sound`, `play-video`). Éléments `PlayVideoElement` (`videoId`, `volume` 0–1) et `StopVideoElement` ajoutés à l'union `ActionElement`, **pas encore** à `ACTION_ELEMENT_TYPES` ni au menu « Ajouter un élément » (12t.8). Pour que les tables exhaustives compilent, déjà posés : `newElement` (vidéo vide, volume 1), `elementProblem` (`action.form.videoRequired`), `summarizeElement` / `describeElement` (`action.summary.playVideo` / `playVideoMissing` / `stopVideo`), icônes Lucide `Film` (lancer) et `SquareStop` (arrêter), libellés `action.types.play-video` / `stop-video`. ⚠️ Provisoire : pastille `neutral` pour les deux types en attendant les jetons `--el-video-*` (12t.7) ; `ActionRunner` ignore encore ces éléments (12t.10) ; `SummaryContext.soundNames` contient déjà les noms des vidéos (tous les éléments de bibliothèque), renommage éventuel en 12t.8. Le dossier `features/sound-library` et ses classes seront renommés en 12t.4 (écran). Tests ajoutés : dépôt (usages des vidéos, `mediaKind` enregistré / absent), résumé et détail vidéo, validation ; `pill.spec` (12 types). `ng build`, `ng lint`, `lint:styles`, `check:themes` OK ; `ng test` 462 tests OK (lancé depuis PowerShell). ⚠️ Alerte : le test « espace les éléments affichés, d'une action d'ouverture à l'autre » du moteur a échoué une fois dans la suite complète et passe seul (3 fois sur 3) : test de minutage sensible à la charge, sans lien avec 12t.2. `check:i18n` et `format:check` : seulement les problèmes Windows connus (pages `features/dev`, fins de ligne CRLF), non corrigés (décision d'Allan) ; fichiers modifiés formatés par Prettier.
+- [ ] **12t.3** Médias : formats `mp4` / `webm` (`resolveMediaType`, `FORMAT_LABELS.video`), `MediaDuration` (sons et vidéos), `getStorageUsage().videos` affiché dans Paramètres › Stockage. [VID-01, TEC-34, TEC-36, NF-14]
+  - Note : —
+- [ ] **12t.4** Écran « Bibliothèque » : titre, navigation « Scènes / Bibliothèque », bouton de l'accueil, routes `/library` et `/projects/:projectId/library` (anciennes routes redirigées), traductions. [VID-02, TRD §2.3]
+  - Note : —
+- [ ] **12t.5** Import de vidéos (bouton, glisser-déposer) : `mediaKind` posé à l'import, confirmation au-delà de 500 Mo, « Import en cours (n / N) », quota. [VID-01, VID-03, TEC-36]
+  - Note : —
+- [ ] **12t.6** Tableau et arborescence : icône et colonne Type, filtre Tous / Sons / Vidéos, aperçu « Voir » dans une fenêtre, avertissement à la suppression d'une vidéo (ou d'un dossier) utilisée. [VID-02, VID-04, VID-05]
+  - Note : —
+- [ ] **12t.7** Jetons `--el-video-*` dans les deux thèmes (valeurs à valider), type d'élément (icône, couleur, pastille). [Brief §2.6, §11.3]
+  - Note : —
+- [ ] **12t.8** Éditeur d'action : « Lancer la vidéo » (choix limité aux vidéos, volume) et « Arrêter la vidéo » ; résumé, validation, vidéo supprimée signalée, duplication de scène. [ACT-14, ACT-15, PRS-07]
+  - Note : —
+- [ ] **12t.9** Fenêtre joueurs : lecteur `<video>` par-dessus la battlemap, messages `play-video` / `pause-video` / `resume-video` / `stop-video`, état renvoyé au MJ, repli muet si le son est refusé. [VID-06, VID-12, TEC-44, TEC-47, TRD §9.1]
+  - Note : —
+- [ ] **12t.10** Moteur : `PlayerVideo`, `playVideo` / `stopVideo` dans l'`ActionContext`, fenêtre fermée → notification, arrêts (fin, nouvelle vidéo, scène, battlemap, fermeture de la fenêtre), coupure des sons (`AudioPlayer.duck`), bouton global pause, rien d'enregistré. [VID-06 à VID-11, TEC-45, TEC-46, TEC-48]
+  - Note : —
+- [ ] **12t.11** Écran du MJ : carte « Vidéo en cours » (temps restant, Pause / Reprendre, Arrêter, « Sons coupés », « Muette »), résumé de la section Sons, « Lancer un son ou une vidéo ». [CTL-08, CTL-13, Brief §6.12]
+  - Note : —
+- [ ] **12t.12** Vérification dans Chromium et Firefox : vidéo longue en deux fenêtres, coupure et retour des sons, arrêts, mode un seul écran, reprise de partie (vidéo non relancée), place de stockage ; mise à jour de `CLAUDE.md`. [VID-01 à VID-13]
+  - Note : —
+
+**Critère de fin** : une vidéo importée dans la bibliothèque est lancée par une action et diffusée dans la fenêtre joueurs pendant que les ambiances sont coupées, puis la battlemap et les sons reviennent.
+
+---
+
 ## Lot 12 bis — Hors ligne et tablette
 
 > Ajouté après le jalon J4 (décision d'Allan) : Présentation sur tablette Android (Chrome) en V1, application utilisable sans connexion internet et lancée depuis un fichier HTML, transfert des projets du PC vers la tablette.
 
 - [ ] **12b.1** Conception : lancement hors ligne depuis un fichier HTML (fichier unique, application installable, ou autre), validée par Allan après prototypes sur PC et sur tablette Android. [O5, PRJ-04, NF-04]
   - Note : —
-- [ ] **12b.2** Format d'export d'un projet (scènes, actions, battlemaps, sons du projet et sons de la bibliothèque globale utilisés) et « Exporter le projet » depuis l'accueil. [PRJ-04, PRJ-05]
+- [ ] **12b.2** Format d'export d'un projet (scènes, actions, battlemaps, sons et vidéos du projet, sons et vidéos de la bibliothèque globale utilisés) et « Exporter le projet » depuis l'accueil, avec la case « Inclure les vidéos » (cochée par défaut, poids affiché). [PRJ-04, PRJ-05, VID-13]
   - Note : —
 - [ ] **12b.3** « Importer un projet » (nouveau projet, fichiers refusés expliqués, quota). [PRJ-05]
   - Note : —
@@ -642,7 +689,7 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
   - Note : —
 - [ ] **12b.5** Mise en page tablette : fil à gauche, onglets Actions / Cartes / Sons, « Scène suivante » en bas, cibles ≥ 48 px. [CTL-12, Brief §7.3]
   - Note : —
-- [ ] **12b.6** Tablette : un seul écran (pas de fenêtre joueurs), plein écran et son débloqués au toucher, stockage persistant. [NF-04, TEC-43]
+- [ ] **12b.6** Tablette : un seul écran (pas de fenêtre joueurs, donc vidéos non diffusées et signalées, VID-07), plein écran et son débloqués au toucher, stockage persistant. [NF-04, TEC-43]
   - Note : —
 - [ ] **12b.7** Lecteur `.zip` hors ligne : Présentation seule d'un projet exporté. [PRJ-04]
   - Note : —
@@ -722,6 +769,7 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
 
 | Sujet | Statut | Note |
 |---|---|---|
+| Diffusion de vidéos (lot 12 ter) | 📝 Spécifié (2026-11-13), à faire avant le lot 12 bis | ✅ Demande (Allan) : importer des vidéos comme les sons, page renommée « Bibliothèque », éléments « Lancer la vidéo » / « Arrêter la vidéo », vidéo jouée seulement dans la fenêtre joueurs (ignorée si elle n'est pas ouverte). Décisions d'Allan : voir l'en-tête du lot 12 ter. Documents mis à jour : PRD (§5.2 bis VID-01 à VID-13, ACT-14, ACT-15, CTL-13, risques), TRD (TEC-36, TEC-44 à TEC-49, §3, §4.1, §9.1, D10, D11), Brief (§2.6, §6.12, §7.2), Plan, `specifications.md`. ✅ Validé (Allan, 14/11/2026) : couleurs `--el-video-*` proposées (contrôle visuel sur `/dev/themes`) ; arrêt de la vidéo même quand on réaffiche la battlemap déjà affichée ; renommage complet dans le code (voir l'en-tête du lot). |
 | « Afficher / Masquer l'action » vers plusieurs actions (ACT-12, ACT-13) | ✅ Fait (2026-11-13) | ✅ Demande (Allan) : choisir une liste d'actions. Réalisation : `ShowActionElement` / `HideActionElement` portent `actionIds: Id[]` (au lieu de `actionId`), rangés dans l'ordre des actions de la scène ; **`DB_VERSION` 2**, migration `migrateActionTargets` (`jdr-db.ts`) : `actionId` → `[actionId]`, vide → `[]`. Éditeur : cases à cocher au lieu de boutons radio (désactivées par « Masquer toutes les actions ») ; action visée supprimée : avertissement « Une action choisie a été supprimée. » et bouton « Retirer » qui l'enlève de la liste ; résumé « afficher « X » » pour une action, « afficher N actions » pour plusieurs ; détail replié = noms séparés par des virgules ; avertissement à la suppression d'une action visée par l'une de ces listes ; duplication de scène : toutes les cibles remappées. Présentation : toutes les actions visées sont affichées / masquées en un seul enregistrement ; une action supprimée est ignorée et signalée (les autres sont traitées). TRD §3 et PRD ACT-12 / ACT-13 mis à jour. Tests : `jdr-db` (migration), `element-form`, `action-summary`, `presentation-engine`. ⚠️ Alerte : depuis le shell Bash de Claude, `ng test` échoue (« Vitest failed to find the runner », casse de la lettre de lecteur) ; passe depuis PowerShell. `check:i18n` signale les pages `features/dev` sous Windows (filtre `'/features/dev/'` avec des `/`) et `format:check` les fins de ligne CRLF de la copie de travail : préexistant, non corrigé. ⚠️ À vérifier par Allan dans le navigateur. |
 | Élément « Masquer l'action » (ACT-13) | ✅ Fait (2026-11-13) | ✅ Demande (Allan) : pendant d'« Afficher l'action ». ✅ Décisions (Allan) : l'action masquée s'affiche comme une action masquée au départ (œil barré, lançable) et une action terminée garde son ✓ ; cibles = autres actions « Clic du MJ » de la scène (pas elle-même) ; une action en cours se termine normalement. Réalisation : `HideActionElement` (`hide-action`, icône `EyeOff`, couleur `action`), `SceneState.hiddenActionIds` (facultatif, pas de changement de schéma ni de `DB_VERSION`) ; `hidden` d'une `ManualAction` = terminée, ou dans `hiddenActionIds`, ou masquée au départ sans être affichée ; « Afficher l'action » retire aussi l'action de `hiddenActionIds`. Éditeur : formulaire partagé avec « Afficher l'action » (`ng-template #actionChoice`, aide et erreur propres), résumé, validation, duplication de scène (cible remappée), avertissement à la suppression d'une action visée (« affichée ou masquée par… »). Cible supprimée en Présentation : message `presentation.errors.missingActionToHide`. PRD ACT-13 et TRD §3 mis à jour. Tests : `action-runner`, `presentation-engine`, `element-form`, `action-summary`, `action-editor`, `editor-store`, `pill`. ✅ Demande (Allan) : case « Masquer toutes les actions » (`HideActionElement.all`) ; cochée, les actions du formulaire sont désactivées et le choix précédent est effacé (`actionId: ''`) ; résumé « masquer toutes les actions », jamais signalé comme cible supprimée. En Présentation, toutes les actions « Clic du MJ » de la scène sont ajoutées à `hiddenActionIds`, y compris celle qui contient l'élément ; « Afficher l'action » en réaffiche une. ⚠️ À vérifier par Allan dans le navigateur. |
 | « Changer de scène » attend le MJ en Présentation (ACT-09, FIL-05) | ✅ Fait (2026-11-13) | ✅ Demande (Allan) : la scène ne change plus immédiatement. Le fil affiche un bloc comme « Clic de l'utilisateur », texte « Aller à la scène '…' » (nom de la scène cible, `presentation.goToSceneNamed`) et bouton « Aller » (`presentation.go`) ; Entrée et C le valident aussi. Réalisation : `ActionRunner` vérifie la cible (`canChangeScene`), puis `beforeDisplay` et `waitForUserClick` avec l'élément `change-scene` ; l'action est marquée effectuée après le clic. Le bloc est un `UserClickFeedItem` (pas de changement du modèle ni du schéma) ; `PresentationEngine.targetSceneName(item)` dit au `Feed` qu'il s'agit d'un changement de scène (icône clap). Scène quittée avant le clic : bloc retiré, action non effectuée (comme un clic). Cible supprimée : message, ni bloc ni changement. ✅ Décision (Allan) : apostrophes droites autour du nom de la scène (pas de guillemets « … »). PRD ACT-09 mis à jour. Tests `action-runner.spec.ts`, `presentation-engine.spec.ts`, `feed.spec.ts`. ✅ Demande (Allan) : dans l'éditeur aussi, « Changer de scène » est montré entre les textes de l'action, comme les clics : ligne en pointillés `ActionPause` (icône clap, couleur `el-scene-fg`) « Aller à la scène '…' » (`scene.pause.changeScene`) ; scène cible supprimée : « Changer de scène : scène supprimée » en rouge (PRS-07). `EditorStore.actionTextGroups` inclut l'élément, `EditorStore.sceneNameOf(id)`. Tests `action-pause.spec.ts`, `editor-store.spec.ts`, `editor-page.spec.ts`. ⚠️ À vérifier par Allan dans le navigateur, deux thèmes. |

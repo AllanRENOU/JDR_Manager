@@ -55,6 +55,16 @@ Deux ressources transverses :
   - dans les actions (lancer / arrêter un son) ;
   - directement en mode Présentation (lancement manuel).
 
+### 3.1 Vidéos (évolution du 13/11/2026, lot 12 ter)
+
+- Les bibliothèques contiennent aussi des **vidéos** (MP4, WebM), importées comme les sons (bouton, glisser-déposer) et rangées **dans les mêmes dossiers**. L'écran s'appelle désormais **« Bibliothèque »** ; un filtre Tous / Sons / Vidéos aide à s'y retrouver.
+- Les vidéos sont **copiées dans le navigateur**, comme les sons et les images : le projet reste autonome, mais une vidéo occupe deux fois sa taille sur le PC. Au-delà de 500 Mo, l'import demande une confirmation.
+- Une vidéo se prévisualise dans une fenêtre (bouton « Voir »).
+- En Présentation, une vidéo est jouée **uniquement dans la fenêtre joueurs**, par-dessus la battlemap, une seule à la fois ; à la fin, la battlemap réapparaît. Si la fenêtre joueurs n'est pas ouverte, rien n'est diffusé, une notification le signale et l'action continue.
+- Pendant la vidéo, les sons d'ambiance sont **coupés**, puis reprennent à la fin.
+- La vidéo s'arrête au changement de scène, à l'affichage d'une battlemap, au lancement d'une autre vidéo, ou par « Arrêter la vidéo » ; le bouton global lecture / pause la met en pause. Elle n'est pas enregistrée dans la partie.
+- Le MJ voit une carte « Vidéo en cours » (temps restant, pause, arrêt) et peut lancer n'importe quelle vidéo à la main.
+
 ---
 
 ## 4. Mode Édition
@@ -117,6 +127,8 @@ Une action est composée de :
 | Changer de scène | Choix de la scène cible (fenêtre de sélection, cf. §4.1). Les éléments placés après celui-ci ne sont pas exécutés (l'action est interrompue au changement de scène). |
 | Attendre | Durée en secondes (temporise les éléments suivants) |
 | Clic de l'utilisateur | Texte à saisir (obligatoire). Met l'action en pause jusqu'au clic du MJ (cf. §5.4) |
+| Lancer la vidéo | Choix d'une vidéo dans une bibliothèque ; **volume**. N'attend pas la fin de la vidéo (cf. §3.1) |
+| Arrêter la vidéo | — (arrête la vidéo en cours) |
 | *(Version future)* Faire apparaître une action | Choix de l'action |
 
 Dans l'éditeur d'action, chaque élément est une carte **dépliable** (poignée de déplacement, icône du type, boutons Supprimer et Replier) ; dépliée, elle affiche le formulaire de ses paramètres.

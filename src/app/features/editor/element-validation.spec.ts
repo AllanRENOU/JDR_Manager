@@ -24,6 +24,16 @@ describe('elementProblem', () => {
     );
   });
 
+  it('exige une vidéo choisie pour « Lancer la vidéo » ; une vidéo supprimée n’est pas bloquante', () => {
+    expect(elementProblem({ id: 'e', type: 'play-video', videoId: '', volume: 1 })).toBe(
+      'action.form.videoRequired',
+    );
+    expect(
+      elementProblem({ id: 'e', type: 'play-video', videoId: 'supprimée', volume: 1 }),
+    ).toBeNull();
+    expect(elementProblem({ id: 'e', type: 'stop-video' })).toBeNull();
+  });
+
   it('une cible supprimée n’est pas bloquante (signalée, PRS-07)', () => {
     expect(elementProblem({ id: 'e', type: 'change-scene', sceneId: 'supprimée' })).toBeNull();
     expect(elementProblem({ id: 'e', type: 'stop-sound', soundId: 'supprimé' })).toBeNull();

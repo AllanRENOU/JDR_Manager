@@ -1,4 +1,4 @@
-import { GLOBAL_SOUND_LIBRARY, Id, SoundNode, TreeNode } from '../../core/models';
+import { GLOBAL_LIBRARY, Id, LibraryNode, TreeNode } from '../../core/models';
 import { pathTo } from '../tree/tree-model';
 
 /** Noms affichés des deux bibliothèques (déjà traduits). */
@@ -14,17 +14,17 @@ const rootId = (libraryId: string) => `library:${libraryId}`;
  * globale, chacune sous un dossier racine qui porte son nom.
  */
 export function soundChoiceNodes(
-  sounds: readonly SoundNode[],
+  sounds: readonly LibraryNode[],
   projectId: Id,
   names: LibraryNames,
 ): TreeNode[] {
-  const libraries = [projectId, GLOBAL_SOUND_LIBRARY];
+  const libraries = [projectId, GLOBAL_LIBRARY];
   const roots: TreeNode[] = libraries.map((libraryId, order) => ({
     id: rootId(libraryId),
     parentId: null,
     order,
     kind: 'folder',
-    name: libraryId === GLOBAL_SOUND_LIBRARY ? names.global : names.project,
+    name: libraryId === GLOBAL_LIBRARY ? names.global : names.project,
   }));
   const nodes = sounds
     .filter((n) => libraries.includes(n.libraryId))
@@ -41,14 +41,14 @@ export function soundChoiceNodes(
 /** Emplacement d'un son : « Ce projet › Ambiances › Taverne animée » ; `null` s'il n'existe plus. */
 export function soundPath(
   soundId: Id,
-  sounds: readonly SoundNode[],
+  sounds: readonly LibraryNode[],
   names: LibraryNames,
 ): string | null {
   const sound = sounds.find((n) => n.id === soundId && n.kind === 'item');
   if (!sound) {
     return null;
   }
-  const library = sound.libraryId === GLOBAL_SOUND_LIBRARY ? names.global : names.project;
+  const library = sound.libraryId === GLOBAL_LIBRARY ? names.global : names.project;
   const inLibrary = sounds.filter((n) => n.libraryId === sound.libraryId);
   return [library, ...pathTo(inLibrary, sound.id).map((n) => n.name)].join(' › ');
 }

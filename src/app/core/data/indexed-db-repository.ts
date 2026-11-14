@@ -10,8 +10,8 @@ import {
   Project,
   Scene,
   SceneNode,
-  SoundLibraryId,
-  SoundNode,
+  LibraryId,
+  LibraryNode,
   newId,
 } from '../models';
 import { resolveMediaType } from '../media/media-types';
@@ -183,19 +183,19 @@ export class IndexedDbRepository implements DataRepository {
     await (await this.db()).delete('actions', id);
   }
 
-  // ── Bibliothèques de sons ──────────────────────────────────────────────
+  // ── Bibliothèques (sons et vidéos ; store `soundNodes`) ────────────────
 
-  async listSoundNodes(libraryId: SoundLibraryId): Promise<SoundNode[]> {
+  async listLibraryNodes(libraryId: LibraryId): Promise<LibraryNode[]> {
     const db = await this.db();
     return byOrder(await db.getAllFromIndex('soundNodes', 'libraryId', libraryId));
   }
 
-  async saveSoundNodes(nodes: SoundNode[]): Promise<void> {
+  async saveLibraryNodes(nodes: LibraryNode[]): Promise<void> {
     const tx = (await this.db()).transaction('soundNodes', 'readwrite');
     await Promise.all([...nodes.map((node) => tx.store.put(node)), tx.done]);
   }
 
-  async deleteSoundNode(id: Id): Promise<void> {
+  async deleteLibraryNode(id: Id): Promise<void> {
     const tx = (await this.db()).transaction(ALL_STORES, 'readwrite');
     const node = await tx.objectStore('soundNodes').get(id);
     if (node) {
@@ -251,16 +251,19 @@ export class IndexedDbRepository implements DataRepository {
     return usage;
   }
 
-  async countSoundUsages(): Promise<Record<Id, number>> {
+  async countLibraryUsages(): Promise<Record<Id, number>> {
     const counts: Record<Id, number> = {};
     for (const action of await (await this.db()).getAll('actions')) {
-      const soundIds = new Set<Id>();
+      // Une action compte une fois par son ou vidéo, même si plusieurs éléments le visent.
+      const nodeIds = new Set<Id>();
       for (const element of action.elements) {
         if (element.type === 'play-sound' || element.type === 'stop-sound') {
-          soundIds.add(element.soundId);
+          nodeIds.add(element.soundId);
+        } else if (element.type === 'play-video') {
+          nodeIds.add(element.videoId);
         }
       }
-      for (const id of soundIds) {
+      for (const id of nodeIds) {
         counts[id] = (counts[id] ?? 0) + 1;
       }
     }

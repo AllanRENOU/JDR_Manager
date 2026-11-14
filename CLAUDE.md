@@ -13,7 +13,7 @@ Contexte de travail pour Claude. À lire avant tout développement dans ce dép�
 
 Application web Angular, données dans le navigateur (IndexedDB), en français, PC (Chrome, Edge, Firefox).
 
-## Documents de référence (dossier parent `../`)
+## Documents de référence (dossier `Documentation/`)
 
 | Document                 | Contenu                                                                                                          | Quand le lire                                       |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
@@ -164,7 +164,7 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
   - `labels` (clés), `extraMenuItems` (`{ label, appliesTo, run, hidden? }`), `ariaLabel` ;
   - modèle d'élément `<ng-template #item let-node let-row="row">`.
 - Sorties : `create` (puis appeler `tree.startRename(id)`), `rename`, `remove` (déjà confirmée), `move`.
-- Pour un `move` : `applyMove(nodes, move)` dans `tree-model.ts` renvoie les nœuds à enregistrer (`saveSceneNodes` / `saveSoundNodes`).
+- Pour un `move` : `applyMove(nodes, move)` dans `tree-model.ts` renvoie les nœuds à enregistrer (`saveSceneNodes` / `saveLibraryNodes`).
 - `tree-model.ts` fournit aussi `pathTo()` (chemin « A › B › C »), `descendantIds()` et `filterNodes()`.
 
 ## Écrans et services de fonctionnalité (lot 4)
@@ -214,7 +214,7 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - `PlaySessionStore` : `updateScene(sceneId, fn)` / `setCurrentScene` enregistrent tout de suite (écritures enchaînées, erreur → notification).
 - Ressource supprimée (son, scène cible) : notification `presentation.errors.*`, la partie continue (NF-25).
 - Tests : `useFakeAudio()` (`src/testing/fake-audio.ts`) fournit un faux `AudioContext` (rampes journalisées), un faux `MediaUrls` (médias `absent*` introuvables) et espionne `play` / `pause` ; à mettre dans tout test qui démarre le moteur. Lire les espions **au moment du test** (`vi.mocked(HTMLMediaElement.prototype.play)` dans une fonction), pas au chargement du fichier.
-- Prototype Web Audio autonome : `../prototypes/prototype-web-audio.html`.
+- Prototypes autonomes : dossier `prototypes/` à la racine du dépôt (`prototype-video.html`, lot 12 ter). Le prototype Web Audio du lot 9 n'y est plus.
 
 ## Éditeur d'action (lot 8)
 
@@ -241,7 +241,7 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Import : `store.importFiles(files)` (bouton et `appFileDrop`) lit la durée avec `AudioDuration` (`core/media`) puis `uploadMedia(file, { durationMs })` ; une erreur de quota est renvoyée dans `failure`, pas levée.
 - Nom d'un son du tableau : `SoundName` (`features/sound-library/sound-name`) ; clic = renommer, le champ se pose par-dessus le nom masqué (la ligne et la colonne ne bougent pas). L'écran garde `editingId` et enregistre.
 - Pré-écoute : `SoundPreview` (fourni par l'écran, un seul `<audio>`, URL via `MediaUrls`) et `app-listen-button`. Le lecteur de Présentation (Web Audio) est un autre service, lot 9.
-- Dépôt : `countSoundUsages()` (« Utilisé dans », avertissement à la suppression), `getMediaInfo(ids)` (infos d'un média sans le `Blob`).
+- Dépôt : `countLibraryUsages()` (« Utilisé dans », avertissement à la suppression ; compte aussi les `play-video`). Modèle : `LibraryNode` (ex-`SoundNode`, store `soundNodes`), `mediaKind` lu par `mediaKindOf()` (absent = son), `getMediaInfo(ids)` (infos d'un média sans le `Blob`).
 - `app-tree` : `[canCreateItems]="false"` masque « Nouvel élément » ; `folderTone="global"` colore les dossiers de la bibliothèque globale ; `[deleteMessage]` (fonction stable `node => message | null`) remplace le message de confirmation de suppression (ex. dossier contenant des sons utilisés).
 - Règle d'Allan : **toute suppression d'un son utilisé par des actions doit avertir** (son seul ou dossier). Idem pour une scène (ou un dossier de scènes) visée par un « Changer de scène » : `listSceneLinks(projectId)` + `EditorStore.sceneTargetCount()`.
 - Utilitaires : `formatDuration(ms)` (`shared/util/duration.ts`), `formatLabel(mimeType)` (`core/media/media-types.ts`).

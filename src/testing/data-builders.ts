@@ -7,8 +7,8 @@ import {
   Project,
   Scene,
   SceneNode,
-  SoundLibraryId,
-  SoundNode,
+  LibraryId,
+  LibraryNode,
   newId,
 } from '../app/core/models';
 
@@ -70,9 +70,9 @@ export function anAction(sceneId: Id, overrides: Partial<Action> = {}): Action {
 }
 
 export function aSoundNode(
-  libraryId: SoundLibraryId,
-  overrides: Partial<SoundNode> = {},
-): SoundNode {
+  libraryId: LibraryId,
+  overrides: Partial<LibraryNode> = {},
+): LibraryNode {
   return {
     id: newId(),
     libraryId,

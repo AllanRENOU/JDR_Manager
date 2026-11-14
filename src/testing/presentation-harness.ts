@@ -70,7 +70,7 @@ export async function seedPresentation(actions: Action[] = []): Promise<void> {
   await repository.saveScene(aScene('p1', 'C'));
   await repository.saveBattlemap(aBattlemap('A', 'm1', { id: 'b1', name: 'Salle', order: 0 }));
   await repository.saveBattlemap(aBattlemap('A', 'm2', { id: 'b2', name: 'Étage', order: 1 }));
-  await repository.saveSoundNodes([
+  await repository.saveLibraryNodes([
     aSoundNode('p1', { id: 'taverne', name: 'Taverne', mediaId: 'son-taverne' }),
     aSoundNode('global', { id: 'pluie', name: 'Pluie', mediaId: 'son-pluie' }),
   ]);

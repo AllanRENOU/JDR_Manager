@@ -90,6 +90,7 @@ Chaque type a une couleur d'icône (`-fg`) et une couleur de fond (`-bg`), utili
 | Clic de l'utilisateur | `--el-click-fg`, `--el-click-bg` |
 | Changer de scène | `--el-scene-fg`, `--el-scene-bg` |
 | Afficher l'action | `--el-action-fg`, `--el-action-bg` |
+| Lancer / arrêter la vidéo (lot 12 ter) | `--el-video-fg`, `--el-video-bg` |
 
 ### 2.7 Dossiers et visuels de remplacement
 
@@ -279,6 +280,8 @@ Hauteurs : **44 px** (standard), 40 px (en-tête), 34–36 px (dans un volet), 4
 - Carte de son repliée : 48 px, icône haut-parleur turquoise, nom, « boucle » si applicable, bouton **Pause / Lecture** à droite.
 - Carte dépliée (clic sur la carte) : fond `--bg-raised`, bordure `--border-default`, curseur de volume et valeur en %.
 - Bouton global lecture / pause dans l'en-tête de la section : une seule icône selon l'état.
+- **Vidéo en cours** (lot 12 ter, PRD CTL-13) : carte en tête de la section Sons, fond `--el-video-bg`, icône vidéo `--el-video-fg` (Lucide `Clapperboard`), nom, temps restant (`-1:24`) et barre de progression fine, mention « Sons coupés » en `--text-tertiary`, boutons icône **Pause / Reprendre** et **Arrêter** (`aria-label`). « Muette » s'affiche si le son a été refusé (PRD VID-12). Les cartes de sons en dessous sont estompées pendant la coupure. Carte dépliée (clic) : curseur de volume et valeur en %, comme une carte de son (décision d'Allan, 14/11/2026). Pas de carte quand aucune vidéo ne passe.
+- Le bouton « Lancer un son » devient **« Lancer un son ou une vidéo »**.
 
 ### 6.13 Glisser-déposer de fichiers
 
@@ -318,11 +321,11 @@ Tant qu'aucune image n'est importée, une battlemap ou une vignette de projet es
 | **Accueil** | En-tête + titre « Mes projets » + grille de cartes, carte « Créer un projet » en dernier |
 | **Édition — scène** | Arborescence à gauche ; textes au centre (texte de scène puis textes d'action, chacun sous le nom de l'action en sous-titre) ; volet droit Actions / Battlemaps / Enchaînement |
 | **Édition — action** | Modale 900 px : nom, déclencheur (contrôle segmenté), éléments dépliables réordonnables, « Ajouter un élément » |
-| **Bibliothèque de sons** | Arborescence « Ce projet » + « Bibliothèque globale » à gauche (dossiers et sons ; choisir un son ouvre son dossier et le met en évidence) ; tableau des sons avec pré-écoute ; bouton « Importer des sons » ; calque de dépôt au glisser |
+| **Bibliothèque** (sons et vidéos, lot 12 ter) | Navigation d'en-tête « Scènes / Bibliothèque ». Arborescence « Ce projet » + « Bibliothèque globale » à gauche (dossiers, sons et vidéos, icône haut-parleur ou vidéo ; choisir un élément ouvre son dossier et le met en évidence) ; au-dessus du tableau, filtre Tous / Sons / Vidéos (contrôle segmenté) ; tableau : type (icône), nom, durée, taille, format, utilisation ; bouton **Écouter** pour un son, **Voir** pour une vidéo (fenêtre `lg` avec lecteur `<video controls>`) ; bouton « Importer des sons ou des vidéos » ; calque de dépôt au glisser (formats sons et vidéos) ; confirmation avant d'importer un fichier de plus de 500 Mo (taille, place occupée) ; « Import en cours (n / N) » pendant l'import |
 | **Présentation — lancement** | Modale : dernière scène, choix d'affichage (cartes radio), Recommencer (appui long de 3 s, fond qui se remplit de gauche à droite en `--danger-border`, message sous le bouton si clic simple) / Continuer |
 | **Présentation — MJ (PC)** | En-tête avec scène et « Aller à une scène » ; fil au centre avec bouton flottant « Scène suivante » ; volet droit Battlemap / Actions / Sons |
 | **Présentation — MJ (tablette)** | Fil à gauche, volet à onglets à droite, « Scène suivante » en bas, cibles ≥ 48 px |
-| **Fenêtre joueurs** | Fond noir, battlemap seule en plein écran, aucun contrôle |
+| **Fenêtre joueurs** | Fond noir, battlemap seule en plein écran, aucun contrôle. Une vidéo s'affiche par-dessus, en entier (bandes noires), sans contrôle ni transition, puis laisse réapparaître la battlemap |
 
 ### 7.3 Tablette
 
@@ -460,6 +463,9 @@ C'est le **seul endroit** du document où figurent les valeurs des couleurs. Cha
 | `--el-click-*` | `#E8C377` / `#3A3220` | `#8A5A0C` / `#F6E4BE` |
 | `--el-scene-*` | `#E8C377` / `#2E2A1F` | `#A84A14` / `#F6DCC4` |
 | `--el-action-*` | `#C3B1EE` / `#2D2839` | `#6B4AA6` / `#EBE2F6` |
+| `--el-video-*` | `#7FC4E8` / `#1F3140` | `#1F6A8A` / `#D6E9F1` |
+
+> `--el-video-*` (lot 12 ter) : valeurs proposées, à valider par Allan dans les deux thèmes (bleu ciel, distinct du turquoise des sons et du bleu des textes).
 
 **Dossiers et visuels de remplacement**
 

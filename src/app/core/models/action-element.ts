@@ -14,7 +14,7 @@ export interface ShowBattlemapElement extends BaseElement {
 /** Lance un son. Le paramétrage audio est porté par l'élément, pas par le son (spécifications §3). */
 export interface PlaySoundElement extends BaseElement {
   type: 'play-sound';
-  /** Id du `SoundNode` (bibliothèque globale ou du projet). */
+  /** Id du `LibraryNode` du son (bibliothèque globale ou du projet). */
   soundId: Id;
   /** Volume de 0 à 1. */
   volume: number;
@@ -32,6 +32,23 @@ export interface StopSoundElement extends BaseElement {
 /** Arrête tous les sons en cours. */
 export interface StopAllSoundsElement extends BaseElement {
   type: 'stop-all-sounds';
+}
+
+/**
+ * Lance une vidéo dans la fenêtre joueurs, par-dessus la battlemap (ACT-14, VID-06). L'action
+ * n'attend pas la fin de la vidéo. Seul le volume est réglable.
+ */
+export interface PlayVideoElement extends BaseElement {
+  type: 'play-video';
+  /** Id du `LibraryNode` de la vidéo (bibliothèque globale ou du projet). */
+  videoId: Id;
+  /** Volume de 0 à 1 (0 = muette). */
+  volume: number;
+}
+
+/** Arrête la vidéo en cours dans la fenêtre joueurs ; sans effet s'il n'y en a pas (ACT-15). */
+export interface StopVideoElement extends BaseElement {
+  type: 'stop-video';
 }
 
 /** Ajoute un texte au fil d'actualité. */
@@ -92,6 +109,8 @@ export type ActionElement =
   | PlaySoundElement
   | StopSoundElement
   | StopAllSoundsElement
+  | PlayVideoElement
+  | StopVideoElement
   | AddTextElement
   | ChangeSceneElement
   | WaitElement

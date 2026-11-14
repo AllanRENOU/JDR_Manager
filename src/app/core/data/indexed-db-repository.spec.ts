@@ -15,7 +15,7 @@ import {
 } from '../../../testing/data-builders';
 import { useNodeBlob } from '../../../testing/node-blob';
 import { stubObjectUrls } from '../../../testing/object-url';
-import { GLOBAL_SOUND_LIBRARY } from '../models';
+import { GLOBAL_LIBRARY, mediaKindOf } from '../models';
 import { isDataError } from './data-error';
 import { JdrDb, openJdrDb } from './jdr-db';
 import { INDEXED_DB_NAME, IndexedDbRepository } from './indexed-db-repository';
@@ -211,19 +211,19 @@ describe('IndexedDbRepository', () => {
       expect((await repository.listActions('s1')).map((a) => a.id)).toEqual([second.id]);
     });
   });
-  describe('bibliothèques de sons', () => {
+  describe('bibliothèques (sons et vidéos)', () => {
     it('sépare la bibliothèque globale de celles des projets et trie par ordre', async () => {
       const project = aProject();
-      await repository.saveSoundNodes([
-        aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Pluie', order: 1 }),
-        aSoundNode(GLOBAL_SOUND_LIBRARY, { name: 'Orage', order: 0 }),
+      await repository.saveLibraryNodes([
+        aSoundNode(GLOBAL_LIBRARY, { name: 'Pluie', order: 1 }),
+        aSoundNode(GLOBAL_LIBRARY, { name: 'Orage', order: 0 }),
         aSoundNode(project.id, { name: 'Thème du méchant' }),
       ]);
-      expect((await repository.listSoundNodes(GLOBAL_SOUND_LIBRARY)).map((n) => n.name)).toEqual([
+      expect((await repository.listLibraryNodes(GLOBAL_LIBRARY)).map((n) => n.name)).toEqual([
         'Orage',
         'Pluie',
       ]);
-      expect((await repository.listSoundNodes(project.id)).map((n) => n.name)).toEqual([
+      expect((await repository.listLibraryNodes(project.id)).map((n) => n.name)).toEqual([
         'Thème du méchant',
       ]);
     });
@@ -231,17 +231,17 @@ describe('IndexedDbRepository', () => {
     it('supprime un dossier de sons avec ses descendants et les fichiers devenus inutilisés', async () => {
       const used = aMedia({ mimeType: 'audio/mpeg' });
       const shared = aMedia({ mimeType: 'audio/mpeg' });
-      const folder = aSoundNode(GLOBAL_SOUND_LIBRARY, { kind: 'folder', name: 'Ambiances' });
-      const rain = aSoundNode(GLOBAL_SOUND_LIBRARY, { parentId: folder.id, mediaId: used.id });
-      const wind = aSoundNode(GLOBAL_SOUND_LIBRARY, { parentId: folder.id, mediaId: shared.id });
-      const kept = aSoundNode(GLOBAL_SOUND_LIBRARY, { mediaId: shared.id });
+      const folder = aSoundNode(GLOBAL_LIBRARY, { kind: 'folder', name: 'Ambiances' });
+      const rain = aSoundNode(GLOBAL_LIBRARY, { parentId: folder.id, mediaId: used.id });
+      const wind = aSoundNode(GLOBAL_LIBRARY, { parentId: folder.id, mediaId: shared.id });
+      const kept = aSoundNode(GLOBAL_LIBRARY, { mediaId: shared.id });
       await raw.put('media', used);
       await raw.put('media', shared);
-      await repository.saveSoundNodes([folder, rain, wind, kept]);
+      await repository.saveLibraryNodes([folder, rain, wind, kept]);
 
-      await repository.deleteSoundNode(folder.id);
+      await repository.deleteLibraryNode(folder.id);
 
-      expect((await repository.listSoundNodes(GLOBAL_SOUND_LIBRARY)).map((n) => n.id)).toEqual([
+      expect((await repository.listLibraryNodes(GLOBAL_LIBRARY)).map((n) => n.id)).toEqual([
         kept.id,
       ]);
       expect(await raw.get('media', used.id)).toBeUndefined();
@@ -249,8 +249,8 @@ describe('IndexedDbRepository', () => {
     });
 
     it('compte les actions qui lancent ou arrêtent chaque son, tous projets confondus', async () => {
-      const rain = aSoundNode(GLOBAL_SOUND_LIBRARY);
-      const wind = aSoundNode(GLOBAL_SOUND_LIBRARY);
+      const rain = aSoundNode(GLOBAL_LIBRARY);
+      const wind = aSoundNode(GLOBAL_LIBRARY);
       const play = (soundId: string) => ({
         id: crypto.randomUUID(),
         type: 'play-sound' as const,
@@ -270,7 +270,35 @@ describe('IndexedDbRepository', () => {
       );
       await repository.saveAction(anAction('scene-c'));
 
-      expect(await repository.countSoundUsages()).toEqual({ [rain.id]: 2, [wind.id]: 1 });
+      expect(await repository.countLibraryUsages()).toEqual({ [rain.id]: 2, [wind.id]: 1 });
+    });
+
+    it('compte aussi les actions qui lancent chaque vidéo (VID-05)', async () => {
+      const intro = aSoundNode(GLOBAL_LIBRARY, { mediaKind: 'video' });
+      const playVideo = (videoId: string) => ({
+        id: crypto.randomUUID(),
+        type: 'play-video' as const,
+        videoId,
+        volume: 1,
+      });
+      await repository.saveAction(
+        anAction('scene-a', {
+          elements: [playVideo(intro.id), { id: 'y', type: 'stop-video' }, playVideo(intro.id)],
+        }),
+      );
+      await repository.saveAction(anAction('scene-b', { elements: [playVideo(intro.id)] }));
+
+      expect(await repository.countLibraryUsages()).toEqual({ [intro.id]: 2 });
+    });
+
+    it('enregistre la nature du fichier (son ou vidéo) avec le nœud', async () => {
+      const video = aSoundNode(GLOBAL_LIBRARY, { name: 'Intro', mediaKind: 'video' });
+      const legacy = aSoundNode(GLOBAL_LIBRARY, { name: 'Pluie', order: 1 });
+      await repository.saveLibraryNodes([video, legacy]);
+      const [savedVideo, savedLegacy] = await repository.listLibraryNodes(GLOBAL_LIBRARY);
+      expect(mediaKindOf(savedVideo)).toBe('video');
+      expect(savedLegacy.mediaKind).toBeUndefined();
+      expect(mediaKindOf(savedLegacy)).toBe('sound');
     });
 
     it('liste les liens « Changer de scène » des actions du projet (12.3)', async () => {
@@ -296,7 +324,7 @@ describe('IndexedDbRepository', () => {
     });
 
     it('ignore la suppression d’un son inconnu', async () => {
-      await expect(repository.deleteSoundNode('inconnu')).resolves.toBeUndefined();
+      await expect(repository.deleteLibraryNode('inconnu')).resolves.toBeUndefined();
     });
   });
   describe('partie sauvegardée', () => {
@@ -422,7 +450,7 @@ describe('IndexedDbRepository', () => {
       );
       const battlemap = aBattlemap('s1', image);
       await repository.saveBattlemap(battlemap);
-      await repository.saveSoundNodes([aSoundNode(GLOBAL_SOUND_LIBRARY, { mediaId: sound })]);
+      await repository.saveLibraryNodes([aSoundNode(GLOBAL_LIBRARY, { mediaId: sound })]);
 
       await repository.deleteMedia(image);
       await repository.deleteMedia(sound);

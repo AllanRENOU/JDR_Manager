@@ -4,7 +4,7 @@ import { aSoundNode, anAction } from '../../../testing/data-builders';
 import { useNodeBlob } from '../../../testing/node-blob';
 import { useTestRepository } from '../../../testing/test-repository';
 import { DATA_REPOSITORY } from '../../core/data/data-repository';
-import { SoundNode } from '../../core/models';
+import { LibraryNode } from '../../core/models';
 import { AudioDuration } from '../../core/media/audio-duration';
 import { SoundLibraryStore, soundName } from './sound-library-store';
 
@@ -30,10 +30,10 @@ describe('SoundLibraryStore', () => {
   });
 
   const repository = () => TestBed.inject(DATA_REPOSITORY);
-  const names = (nodes: readonly SoundNode[]) => nodes.map((n) => n.name);
+  const names = (nodes: readonly LibraryNode[]) => nodes.map((n) => n.name);
 
   it('charge la bibliothèque du projet puis la globale ; dossiers et sons dans les arborescences', async () => {
-    await repository().saveSoundNodes([
+    await repository().saveLibraryNodes([
       aSoundNode('p1', { kind: 'folder', name: 'Ambiances' }),
       aSoundNode('p1', { name: 'Taverne', order: 1 }),
       aSoundNode('global', { kind: 'folder', name: 'Météo' }),
@@ -51,34 +51,36 @@ describe('SoundLibraryStore', () => {
   });
 
   it('crée un dossier en dernière position, l’ouvre et l’enregistre', async () => {
-    await repository().saveSoundNodes([aSoundNode('p1', { kind: 'folder', name: 'A', order: 4 })]);
+    await repository().saveLibraryNodes([
+      aSoundNode('p1', { kind: 'folder', name: 'A', order: 4 }),
+    ]);
     await store.load('p1');
     const folder = await store.createFolder('p1', null, 'Nouveau dossier');
     expect(folder).toMatchObject({ libraryId: 'p1', parentId: null, order: 5, kind: 'folder' });
     expect(store.opened()).toEqual({ libraryId: 'p1', folderId: folder.id });
-    expect(names(await repository().listSoundNodes('p1'))).toEqual(['A', 'Nouveau dossier']);
+    expect(names(await repository().listLibraryNodes('p1'))).toEqual(['A', 'Nouveau dossier']);
   });
 
   it('renomme un dossier', async () => {
     const folder = aSoundNode('global', { kind: 'folder', name: 'Météo' });
-    await repository().saveSoundNodes([folder]);
+    await repository().saveLibraryNodes([folder]);
     await store.load();
     await store.rename('global', folder.id, 'Climat');
     expect(names(store.nodesOf('global'))).toEqual(['Climat']);
-    expect(names(await repository().listSoundNodes('global'))).toEqual(['Climat']);
+    expect(names(await repository().listLibraryNodes('global'))).toEqual(['Climat']);
   });
 
   it('supprime un dossier et son contenu ; le dossier ouvert supprimé ramène à la racine', async () => {
     const parent = aSoundNode('p1', { kind: 'folder', name: 'Effets' });
     const child = aSoundNode('p1', { kind: 'folder', name: 'Portes', parentId: parent.id });
     const sound = aSoundNode('p1', { name: 'Grincement', parentId: child.id });
-    await repository().saveSoundNodes([parent, child, sound]);
+    await repository().saveLibraryNodes([parent, child, sound]);
     await store.load('p1');
     store.open('p1', child.id);
 
     await store.remove('p1', parent.id);
     expect(store.nodesOf('p1')).toEqual([]);
-    expect(await repository().listSoundNodes('p1')).toEqual([]);
+    expect(await repository().listLibraryNodes('p1')).toEqual([]);
     expect(store.opened()).toEqual({ libraryId: 'p1', folderId: null });
   });
 
@@ -86,12 +88,12 @@ describe('SoundLibraryStore', () => {
     const a = aSoundNode('p1', { kind: 'folder', name: 'A', order: 0 });
     const sound = aSoundNode('p1', { name: 'Son', order: 1 });
     const b = aSoundNode('p1', { kind: 'folder', name: 'B', order: 2 });
-    await repository().saveSoundNodes([a, sound, b]);
+    await repository().saveLibraryNodes([a, sound, b]);
     await store.load('p1');
 
     await store.move('p1', { id: b.id, parentId: null, order: 0 });
     expect(names(store.nodesOf('p1'))).toEqual(['B', 'A', 'Son']);
-    const saved = await repository().listSoundNodes('p1');
+    const saved = await repository().listLibraryNodes('p1');
     expect(saved.find((n) => n.id === sound.id)?.order).toBe(2);
 
     await store.move('p1', { id: sound.id, parentId: a.id, order: 0 });
@@ -103,7 +105,7 @@ describe('SoundLibraryStore', () => {
   it('choisir un son dans l’arborescence ouvre son dossier et le met en évidence', async () => {
     const folder = aSoundNode('p1', { kind: 'folder', name: 'Ambiances' });
     const sound = aSoundNode('p1', { name: 'Taverne', parentId: folder.id });
-    await repository().saveSoundNodes([folder, sound]);
+    await repository().saveLibraryNodes([folder, sound]);
     await store.load('p1');
 
     store.select('p1', sound.id);
@@ -133,7 +135,7 @@ describe('SoundLibraryStore', () => {
       order: 0,
     });
     const root = aSoundNode('p1', { name: 'À la racine' });
-    await repository().saveSoundNodes([folder, rain, wind, root]);
+    await repository().saveLibraryNodes([folder, rain, wind, root]);
     await repository().saveAction(
       anAction('s1', {
         elements: [{ id: 'e', type: 'stop-sound', soundId: rain.id }],
@@ -155,7 +157,7 @@ describe('SoundLibraryStore', () => {
 
   it('recherche les sons par nom dans toutes les bibliothèques affichées, sans accents (6.4)', async () => {
     const folder = aSoundNode('p1', { kind: 'folder', name: 'Ambiances' });
-    await repository().saveSoundNodes([
+    await repository().saveLibraryNodes([
       folder,
       aSoundNode('p1', { name: 'Forêt de nuit', parentId: folder.id }),
       aSoundNode('global', { name: 'Foret pluvieuse' }),
@@ -178,7 +180,7 @@ describe('SoundLibraryStore', () => {
   it('importe les sons dans le dossier ouvert, à la suite, et refuse les autres formats (6.5)', async () => {
     const folder = aSoundNode('p1', { kind: 'folder', name: 'Ambiances' });
     const existing = aSoundNode('p1', { name: 'Ancien', parentId: folder.id, order: 3 });
-    await repository().saveSoundNodes([folder, existing]);
+    await repository().saveLibraryNodes([folder, existing]);
     await store.load('p1');
     store.open('p1', folder.id);
 
@@ -199,9 +201,9 @@ describe('SoundLibraryStore', () => {
       ['Taverne animée', 'audio/ogg', 90_000],
       ['vent', 'audio/wav', undefined],
     ]);
-    expect((await repository().listSoundNodes('p1')).filter((n) => n.kind === 'item')).toHaveLength(
-      3,
-    );
+    expect(
+      (await repository().listLibraryNodes('p1')).filter((n) => n.kind === 'item'),
+    ).toHaveLength(3);
     expect(store.importing()).toBe(false);
   });
 
@@ -235,7 +237,7 @@ describe('SoundLibraryStore', () => {
     const folder = aSoundNode('p1', { kind: 'folder', name: 'Effets' });
     const sub = aSoundNode('p1', { kind: 'folder', name: 'Portes', parentId: folder.id });
     const used = aSoundNode('p1', { name: 'Grincement', parentId: sub.id });
-    await repository().saveSoundNodes([
+    await repository().saveLibraryNodes([
       folder,
       sub,
       used,

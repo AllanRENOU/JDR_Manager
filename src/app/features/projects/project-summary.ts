@@ -21,7 +21,7 @@ export async function loadProjectSummary(
 ): Promise<ProjectSummary> {
   const [nodes, sounds, session] = await Promise.all([
     repository.listSceneNodes(project.id),
-    repository.listSoundNodes(project.id),
+    repository.listLibraryNodes(project.id),
     repository.getPlaySession(project.id),
   ]);
   const scenes = nodes.filter((n) => n.kind === 'item');

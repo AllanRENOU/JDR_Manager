@@ -20,7 +20,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 
 | # | Objectif |
 |---|---|
-| O1 | Réunir dans un seul outil le texte, les battlemaps et l'ambiance sonore d'un scénario. |
+| O1 | Réunir dans un seul outil le texte, les battlemaps, l'ambiance sonore et les vidéos d'un scénario. |
 | O2 | Permettre au MJ d'animer une partie en quelques clics, sans quitter l'outil ni chercher ses ressources. |
 | O3 | Automatiser les enchaînements récurrents (texte + carte + son) grâce aux actions. |
 | O4 | Ne jamais perdre l'avancement d'une partie : reprendre exactement là où on s'était arrêté. |
@@ -71,7 +71,9 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | PRJ-04 | Export d'un projet en `.zip` autonome (HTML + toutes les ressources, y compris les sons de la bibliothèque globale utilisés), lisible hors ligne sur une tablette. | W |
 | PRJ-05 | Sauvegarde / restauration d'un projet (`.zip` données + médias). Conception préalable nécessaire. | W |
 
-### 5.2 Bibliothèques de sons
+### 5.2 Bibliothèques (sons et vidéos)
+
+> Les exigences SON- valent pour tous les éléments d'une bibliothèque, sons et vidéos ; ce qui est propre aux vidéos est en §5.2 bis.
 
 | ID | Exigence | Priorité |
 |---|---|---|
@@ -81,6 +83,26 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | SON-04 | Les bibliothèques sont organisées en arborescence de dossiers (créer, renommer, supprimer, déplacer), avec les mêmes interactions que l'arborescence des scènes (SCN-08 à SCN-11). | M |
 | SON-05 | L'utilisateur peut pré-écouter un son depuis la bibliothèque. | S |
 | SON-06 | L'utilisateur peut aussi importer des sons en les **glissant-déposant depuis son disque**. Pendant le glisser, un calque couvre tout l'écran et indique le nombre de fichiers, le dossier de destination (dossier ouvert) et les formats acceptés ; il disparaît au dépôt ou si le fichier ressort de la fenêtre. | M |
+
+### 5.2 bis Vidéos
+
+> Évolution demandée par Allan le 13/11/2026 (lot 12 ter). Décisions d'Allan reportées ci-dessous.
+
+| ID | Exigence | Priorité |
+|---|---|---|
+| VID-01 | L'utilisateur importe des **vidéos** comme des sons (bouton, sélection multiple, glisser-déposer), dans la bibliothèque du projet ou la bibliothèque globale. Sons et vidéos sont **rangés dans les mêmes dossiers**. Formats acceptés : **MP4** (H.264) et **WebM**. La durée est lue à l'import. | M |
+| VID-02 | L'écran des sons devient l'écran **« Bibliothèque »** (navigation « Scènes / Bibliothèque », bouton « Bibliothèque globale » de l'accueil). Le tableau distingue sons et vidéos (icône, colonne « Type ») et propose un filtre **Tous / Sons / Vidéos**. Bouton d'import : « Importer des sons ou des vidéos ». | M |
+| VID-03 | Un fichier de plus de **500 Mo** n'est importé qu'après une confirmation qui rappelle sa taille et la place qu'il occupera (le fichier est copié dans l'outil, NF-11). Un quota dépassé affiche un message clair. | M |
+| VID-04 | Aperçu : pour une vidéo, le bouton de pré-écoute devient **« Voir »** et ouvre une fenêtre avec un lecteur (lecture, pause, volume, position). | S |
+| VID-05 | Supprimer une vidéo (ou un dossier qui en contient) utilisée par des actions **avertit** du nombre d'actions concernées, comme pour un son. | M |
+| VID-06 | En Présentation, une vidéo est jouée **uniquement dans la fenêtre joueurs**, jamais sur l'écran du MJ. Elle s'affiche **par-dessus la battlemap**, en entier (bandes noires si besoin), et disparaît à la fin : la battlemap courante réapparaît. **Une seule vidéo à la fois** : en lancer une autre remplace celle en cours. | M |
+| VID-07 | Si la fenêtre joueurs n'est pas ouverte (mode « Un seul écran », fenêtre fermée ou bloquée, tablette), la vidéo n'est pas lancée : une **notification discrète** l'indique (« Vidéo non diffusée : la fenêtre joueurs n'est pas ouverte ») et l'action passe à l'élément suivant. | M |
+| VID-08 | Pendant une vidéo, **les sons en cours sont coupés** (fondu court), y compris ceux lancés pendant la vidéo ; ils reprennent à leur volume à la fin ou à l'arrêt de la vidéo. Ils continuent de s'écouler pendant la coupure (pas de pause). | M |
+| VID-09 | La vidéo s'arrête : à sa fin ; par l'élément « Arrêter la vidéo » ou le bouton Arrêter de sa carte ; quand une autre vidéo est lancée ; au **changement de scène** ; à l'**affichage d'une battlemap** (élément « Afficher une battlemap » ou sélecteur de battlemap) ; à la fermeture de la fenêtre joueurs. | M |
+| VID-10 | Le bouton global **lecture / pause** (CTL-10) met aussi la vidéo en pause et la fait reprendre. | M |
+| VID-11 | Une vidéo n'est **pas enregistrée** dans la partie : « Continuer » ou le retour sur une scène ne la relance pas. | M |
+| VID-12 | Si le navigateur refuse de lire la vidéo avec le son dans la fenêtre joueurs (lecture automatique bloquée), la vidéo est jouée **muette** et une notification demande au MJ de cliquer une fois dans la fenêtre joueurs pour autoriser le son. | S |
+| VID-13 | Export d'un projet (PRJ-04, PRJ-05) : case **« Inclure les vidéos »**, cochée par défaut, avec le poids de l'export ; sans les vidéos, les éléments qui les lancent sont signalés comme visant une vidéo absente (PRS-07). | S |
 
 ### 5.3 Scènes (Édition)
 
@@ -127,6 +149,8 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | ACT-11 | Élément **Clic de l'utilisateur** (texte obligatoire ; met l'action en pause jusqu'au clic du MJ). | M |
 | ACT-12 | Élément **Afficher l'action** (choix d'**une ou plusieurs** actions « Clic du MJ » de la même scène, par cases à cocher) et option **« Masquer l'action au départ »** d'une action « Clic du MJ ». En Présentation, une action masquée au départ est traitée comme une action effectuée (masquée, visible avec « Voir toutes les actions », lançable) ; « Afficher l'action » la rend de nouveau disponible, qu'elle soit masquée au départ ou effectuée. Une action visée supprimée est signalée (PRS-07). | M |
 | ACT-13 | Élément **Masquer l'action** (choix d'**une ou plusieurs** autres actions « Clic du MJ » de la même scène, ou case **« Masquer toutes les actions »** qui rend ce choix impossible et masque en Présentation toutes les actions « Clic du MJ » de la scène, y compris celle qui contient l'élément). En Présentation, l'action visée est retirée de la liste comme une action masquée au départ (œil barré, visible avec « Voir toutes les actions », lançable) ; une action terminée garde son état « terminée » ; une action en cours se termine normalement. « Afficher l'action » la rend de nouveau disponible. Une action visée supprimée est signalée (PRS-07). | M |
+| ACT-14 | Élément **Lancer la vidéo** (choix d'une vidéo dans une bibliothèque, comme pour un son ; **volume** de 0 à 100 %, 0 % = muette ; aucune autre option). En Présentation, l'action **n'attend pas** la fin de la vidéo : elle passe tout de suite à l'élément suivant (VID-06 à VID-08). Vidéo supprimée : signalée dans l'éditeur, et en Présentation un message s'affiche et la partie continue (PRS-07). | M |
+| ACT-15 | Élément **Arrêter la vidéo** (aucun paramètre) : arrête la vidéo en cours dans la fenêtre joueurs ; sans effet s'il n'y en a pas. | M |
 
 ### 5.6 Présentation — lancement et persistance
 
@@ -135,10 +159,10 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | PRS-01 | Sans partie sauvegardée, la Présentation ouvre la **première scène**. | M |
 | PRS-02 | Si une partie sauvegardée existe, le MJ choisit **Continuer** ou **Recommencer**. | M |
 | PRS-03 | « Recommencer » se valide en restant appuyé 3 secondes sur le bouton (le fond se remplit comme une barre de progression) ; un clic simple affiche un message : rester appuyé pour valider, tout ce qui a été fait sera perdu. | M |
-| PRS-04 | L'état de **chaque scène** est sauvegardé automatiquement : actions effectuées, battlemap affichée, sons en cours (avec leur état de pause et leur volume, sans la position de lecture), fil d'actualité. | M |
+| PRS-04 | L'état de **chaque scène** est sauvegardé automatiquement : actions effectuées, battlemap affichée, sons en cours (avec leur état de pause et leur volume, sans la position de lecture), fil d'actualité. La vidéo en cours n'est pas sauvegardée (VID-11). | M |
 | PRS-05 | « Continuer » rouvre la dernière scène ouverte dans l'état exact où elle était ; les sons en cours reprennent depuis le début. | M |
 | PRS-06 | Revenir sur une scène déjà visitée restaure son état, sans relancer ses actions d'ouverture. | M |
-| PRS-07 | Si le projet a été modifié : une action supprimée n'est plus visible ; une battlemap supprimée affiche un message d'erreur ; un son supprimé n'est pas lancé et un message d'erreur s'affiche ; un élément « Changer de scène » dont la scène cible a été supprimée ne change pas de scène et un message d'erreur s'affiche (il est aussi signalé dans l'éditeur d'action). | M |
+| PRS-07 | Si le projet a été modifié : une action supprimée n'est plus visible ; une battlemap supprimée affiche un message d'erreur ; un son ou une vidéo supprimés ne sont pas lancés et un message d'erreur s'affiche ; un élément « Changer de scène » dont la scène cible a été supprimée ne change pas de scène et un message d'erreur s'affiche (il est aussi signalé dans l'éditeur d'action). | M |
 | PRS-08 | Plusieurs parties sauvegardées par projet (ex. une par groupe). | W |
 | PRS-09 | **Mode démo** : le bouton « Présenter » de l’en-tête d’un projet ouvert (éditeur, écran Sons) lance la Présentation à partir de la scène ouverte (depuis l’écran Sons : la dernière scène ouverte dans l’éditeur), sans fenêtre de lancement. La partie sauvegardée n’est pas lue, et rien de ce qui est fait en démo n’est enregistré. Une pastille « Démo » le signale ; la flèche de retour ramène à l’éditeur, sur la scène en cours. La vraie partie se lance depuis la carte du projet (accueil). | S |
 
@@ -147,7 +171,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | ID | Exigence | Priorité |
 |---|---|---|
 | AFF-01 | Mode **un seul écran** : tout est affiché sur l'écran du MJ. | M |
-| AFF-02 | Mode **deux fenêtres** : une fenêtre joueurs (TV / projecteur) n'affiche que la battlemap courante, synchronisée en temps réel avec l'écran du MJ. | S |
+| AFF-02 | Mode **deux fenêtres** : une fenêtre joueurs (TV / projecteur) n'affiche que la battlemap courante, synchronisée en temps réel avec l'écran du MJ, et les vidéos lancées (VID-06). | S |
 | AFF-03 | Le choix du mode d'affichage se fait au lancement de la Présentation. | S |
 
 ### 5.8 Présentation — fil d'actualité
@@ -161,7 +185,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | FIL-05 | Un élément « Clic de l'utilisateur » affiche son texte, puis un bouton **« Cliquer pour continuer »** en bas à droite du bloc ; l'action reprend après le clic ; le bloc reste ensuite dans le fil, marqué comme validé. | M |
 | FIL-06 | À chaque nouvel élément, le fil défile automatiquement pour placer cet élément en haut de l'écran. | M |
 | FIL-07 | Le MJ peut remonter dans le fil pour relire les éléments précédents. | M |
-| FIL-08 | Les sons et les noms des actions ne sont pas tracés dans le fil. | M |
+| FIL-08 | Les sons, les vidéos et les noms des actions ne sont pas tracés dans le fil. | M |
 | FIL-09 | Les textes ne sont pas modifiables en Présentation. | M |
 | FIL-10 | Le Markdown des textes est interprété dans le fil (titres, gras, italique, listes, citations, liens, tableaux) ; un lien s'ouvre dans un nouvel onglet. | S |
 
@@ -176,11 +200,12 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | CTL-05 | Un bouton de **navigation libre**, plus discret, ouvre l'arborescence des scènes pour aller vers n'importe quelle scène. | M |
 | CTL-06 | Au changement de scène, les actions en cours sont interrompues et les sons en cours sont coupés **en fondu**. | M |
 | CTL-07 | Un sélecteur permet de choisir la battlemap affichée parmi celles de la scène. | M |
-| CTL-08 | Le MJ voit les sons en cours, peut **mettre en pause / reprendre** chacun d'eux (pas d'arrêt manuel), et peut lancer n'importe quel son des bibliothèques. | M |
+| CTL-08 | Le MJ voit les sons en cours, peut **mettre en pause / reprendre** chacun d'eux (pas d'arrêt manuel), et peut lancer n'importe quel son ou n'importe quelle vidéo des bibliothèques (bouton « Lancer un son ou une vidéo », même fenêtre de choix). | M |
 | CTL-09 | Un clic sur la carte d'un son en cours l'agrandit et affiche un **curseur de volume**. | M |
 | CTL-10 | Un bouton global **lecture / pause** affiche Pause tant qu'au moins un son joue (met tout en pause) et Lecture quand tous sont en pause (fait tout reprendre). | M |
 | CTL-11 | Sur PC, le panneau de contrôle a trois parties repliables (Battlemap, Actions, Sons), avec un résumé dans chaque en-tête ; le bouton lecture / pause global reste visible dans l'en-tête de Sons. L'état plié / déplié est mémorisé comme préférence d'affichage. | S |
 | CTL-12 | Sur tablette, le panneau de contrôle utilise des onglets (Actions, Cartes, Sons) avec de grandes zones tactiles. | W |
+| CTL-13 | Pendant une vidéo, une carte **« Vidéo en cours »** s'affiche en tête de la partie Sons : nom, temps restant, mention « Sons coupés », boutons **Pause / Reprendre** et **Arrêter** ; en la dépliant, le MJ règle le volume de la vidéo, comme pour un son (non enregistré ; 100 % pour une vidéo lancée à la main, décision d'Allan du 14/11/2026). Elle disparaît à la fin de la vidéo. Le résumé de l'en-tête de Sons signale la vidéo. | M |
 
 ---
 
@@ -201,7 +226,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 
 | ID | Exigence | Priorité |
 |---|---|---|
-| NF-10 | Les projets et leurs fichiers (images, sons) sont enregistrés **localement**, dans le navigateur, sans dépendre d'un serveur. | M |
+| NF-10 | Les projets et leurs fichiers (images, sons, vidéos) sont enregistrés **localement**, dans le navigateur, sans dépendre d'un serveur. | M |
 | NF-11 | Les fichiers importés sont copiés dans l'outil : déplacer ou supprimer le fichier d'origine sur le PC n'a aucun effet sur le projet. | M |
 | NF-12 | L'outil demande au navigateur de ne pas effacer ses données automatiquement (seule une action volontaire de l'utilisateur doit pouvoir les supprimer). | M |
 | NF-14 | L'application affiche la place de stockage utilisée. | C |
@@ -216,7 +241,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | NF-22 | Les longues ambiances sonores (plusieurs dizaines de minutes) sont lues sans ralentir l'application. | M |
 | NF-23 | Une séance de 4 heures ne provoque pas de ralentissement progressif de l'application. | M |
 | NF-24 | L'état de la partie est sauvegardé à chaque changement : une fermeture inattendue du navigateur ne fait rien perdre. | M |
-| NF-25 | Une ressource manquante (battlemap, son) n'interrompt jamais la partie : un message d'erreur est affiché et la partie continue. | M |
+| NF-25 | Une ressource manquante (battlemap, son, vidéo) n'interrompt jamais la partie : un message d'erreur est affiché et la partie continue. | M |
 
 ### 6.4 Ergonomie
 
@@ -253,6 +278,8 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 |---|---|---|
 | Risque | **Perte de données** : vider les données du navigateur efface tous les projets. | Demande de stockage persistant (NF-12, TRD TEC-26) ; sauvegarde / restauration en version future (PRJ-05). |
 | Risque | **Quota de stockage** atteint avec de nombreux sons ou grandes images. | Affichage de la place utilisée (NF-14) ; message clair en cas d'échec d'import. |
+| Risque | **Poids des vidéos** : une vidéo est copiée dans le navigateur (deux fois sa taille sur le PC) et alourdit l'export. | Copie dans IndexedDB conservée (décision d'Allan, 13/11/2026 ; quota large : environ 60 % du disque sur Chrome / Edge, 50 % sur Firefox avec stockage persistant) ; confirmation au-delà de 500 Mo (VID-03) ; vidéos comptées à part dans Paramètres › Stockage (NF-14) ; case « Inclure les vidéos » à l'export (VID-13). |
+| Risque | **Lecture automatique** : la fenêtre joueurs n'a reçu aucun clic, le navigateur peut y refuser une vidéo avec son. | Prototype en début de lot 12 ter ; repli : vidéo muette et notification au MJ (VID-12). |
 | Risque | **Lecture audio bloquée** : les navigateurs interdisent la lecture automatique de son avant une interaction de l'utilisateur. | Le lancement de la Présentation passe par un clic (choix Continuer / Recommencer / affichage), ce qui débloque l'audio. |
 | Hypothèse | Le MJ anime en présentiel avec un PC (et éventuellement un second écran). | — |
 | Question ouverte | **Présentation sur tablette en V1** : souhaitée, mais une tablette n'a pas accès aux projets enregistrés dans le navigateur du PC. | À décider : avancer un export / import de projet, avancer l'export `.zip` (PRJ-04), ou garder la tablette hors V1 (NF-04). |
@@ -277,5 +304,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | **Scène** | Un moment du scénario, avec son texte, ses battlemaps et ses actions. |
 | **Battlemap** | Carte ou image montrée aux joueurs. |
 | **Action** | Suite d'éléments (texte, carte, son, attente…) lancée à l'ouverture d'une scène ou par un clic du MJ. |
+| **Bibliothèque** | Ensemble de sons et de vidéos rangés en dossiers ; il y a une bibliothèque par projet et une bibliothèque globale. |
+| **Vidéo** | Fichier vidéo d'une bibliothèque, diffusé seulement dans la fenêtre joueurs. |
 | **Fil d'actualité** | Zone de l'écran du MJ où s'affichent, dans l'ordre, les textes et battlemaps de la scène. |
 | **Partie sauvegardée** | État de la Présentation d'un projet (scène courante et état de chaque scène). |

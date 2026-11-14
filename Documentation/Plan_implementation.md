@@ -176,6 +176,19 @@ Ce document découpe la V1 en **lots** ordonnés. Chaque lot liste ses tâches, 
 
 **Fin du jalon J4** : une séance complète peut être animée sur PC, avec ou sans fenêtre joueurs.
 
+### Lot 12 ter — Vidéos · M
+
+> Ajouté le 13/11/2026 (demande d'Allan). Fait **avant le lot 12 bis**, pour que l'export de projet (12b.2) prévoie dès le départ la case « Inclure les vidéos ».
+
+| Tâche | Réf. |
+|---|---|
+| Prototype : lecture avec son dans la fenêtre joueurs sans clic, vidéo de 1 à 2 Go en `Blob` IndexedDB | TEC-47, TEC-49 |
+| Modèle et données : `LibraryNode` (`mediaKind`), formats `mp4` / `webm`, durée à l'import, éléments `play-video` / `stop-video`, stockage par type | VID-01, TEC-34, TEC-36, NF-14 |
+| Écran « Bibliothèque » : renommage, routes, filtre, import (confirmation > 500 Mo), aperçu « Voir », avertissement à la suppression | VID-01 à VID-05 |
+| Éditeur d'action : éléments « Lancer la vidéo » et « Arrêter la vidéo » | ACT-14, ACT-15 |
+| Fenêtre joueurs : lecteur vidéo, messages, repli muet | VID-06, VID-12, TEC-44, TEC-47 |
+| Moteur et écran du MJ : `PlayerVideo`, coupure des sons, arrêts, carte « Vidéo en cours », lancement manuel | VID-06 à VID-11, CTL-08, CTL-13, TEC-45, TEC-46 |
+
 ### Lot 13 — Robustesse, performance, accessibilité · M
 
 | Tâche | Réf. |
@@ -234,6 +247,8 @@ Une tâche est terminée quand :
 | Fondus et pause audio sur Firefox | Comportements Web Audio différents | Prototype audio dès le début du lot 9 |
 | Taille des médias | Quota du navigateur atteint plus vite que prévu | Tests avec un projet volumineux pendant le lot 6 |
 | Signal Forms (API récente) | Courbe d'apprentissage | Prévoir un formulaire pilote en début de lot 8 |
+| Vidéo avec son bloquée dans la fenêtre joueurs (lecture automatique) | Repli muet, ou changement de conception si le blocage est systématique | Prototype en tête du lot 12 ter (TEC-49) |
+| Poids des vidéos (stockage, export vers la tablette) | Quota, durée d'import, zip de plusieurs Go | Prototype 12t.1 ; confirmation > 500 Mo ; case « Inclure les vidéos » à l'export |
 
 ---
 

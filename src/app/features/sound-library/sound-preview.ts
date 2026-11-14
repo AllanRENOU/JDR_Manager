@@ -1,7 +1,7 @@
 import { DOCUMENT, DestroyRef, Injectable, inject, signal } from '@angular/core';
 
 import { MediaUrls } from '../../core/media/media-urls';
-import { Id, SoundNode } from '../../core/models';
+import { Id, LibraryNode } from '../../core/models';
 
 /**
  * Pré-écoute d'un son de la bibliothèque (SON-05) : lecture simple, un seul son à la fois, avec
@@ -28,7 +28,7 @@ export class SoundPreview {
   }
 
   /** Lance la pré-écoute du son, ou l'arrête s'il est déjà en cours. */
-  async toggle(sound: SoundNode): Promise<void> {
+  async toggle(sound: LibraryNode): Promise<void> {
     if (this.playingId() === sound.id) {
       this.stop();
       return;
@@ -40,7 +40,7 @@ export class SoundPreview {
    * Lance la pré-écoute (arrête la précédente).
    * @throws si le fichier est introuvable ou si le navigateur refuse la lecture.
    */
-  async play(sound: SoundNode): Promise<void> {
+  async play(sound: LibraryNode): Promise<void> {
     this.stop();
     if (!sound.mediaId) {
       return;

@@ -24,6 +24,9 @@ export const ELEMENT_TONES: Record<ActionElementType, PillTone> = {
   'play-sound': 'sound',
   'stop-sound': 'stop-all',
   'stop-all-sounds': 'stop-all',
+  // Couleur vidéo (jetons --el-video-*) posée en 12t.7.
+  'play-video': 'neutral',
+  'stop-video': 'neutral',
   'add-text': 'text',
   wait: 'wait',
   'user-click': 'click',
