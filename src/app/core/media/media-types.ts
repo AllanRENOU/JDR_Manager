@@ -1,5 +1,5 @@
 /** Catégorie d'un média importé. */
-export type MediaKind = 'image' | 'sound';
+export type MediaKind = 'image' | 'sound' | 'video';
 
 export interface MediaType {
   kind: MediaKind;
@@ -21,6 +21,8 @@ const BY_EXTENSION: Record<string, MediaType> = {
   ogg: { kind: 'sound', mimeType: 'audio/ogg' },
   wav: { kind: 'sound', mimeType: 'audio/wav' },
   m4a: { kind: 'sound', mimeType: 'audio/mp4' },
+  mp4: { kind: 'video', mimeType: 'video/mp4' },
+  webm: { kind: 'video', mimeType: 'video/webm' },
 };
 
 /** Variantes de types MIME rencontrées selon les navigateurs et systèmes. */
@@ -40,6 +42,8 @@ const BY_MIME: Record<string, MediaType> = {
   'audio/mp4': BY_EXTENSION['m4a'],
   'audio/x-m4a': BY_EXTENSION['m4a'],
   'audio/m4a': BY_EXTENSION['m4a'],
+  'video/mp4': BY_EXTENSION['mp4'],
+  'video/webm': BY_EXTENSION['webm'],
 };
 
 /** Valeur de l'attribut `accept` d'un `<input type="file">` pour une catégorie. */
@@ -61,22 +65,34 @@ export function resolveMediaType(file: Pick<File, 'name' | 'type'>): MediaType |
     return BY_MIME[mime];
   }
   const extension = file.name.toLowerCase().split('.').pop() ?? '';
-  // Un type MIME connu mais d'une autre famille (ex. vidéo .mp4) reste refusé.
+  // Un type MIME d'une autre famille (ex. PDF nommé .png) reste refusé.
   if (
     mime &&
     !mime.startsWith('image/') &&
     !mime.startsWith('audio/') &&
+    !mime.startsWith('video/') &&
     mime !== 'application/octet-stream'
   ) {
     return null;
   }
-  return BY_EXTENSION[extension] ?? null;
+  const type = BY_EXTENSION[extension];
+  // Le type MIME du navigateur, quand il est connu, doit être de la même famille que l'extension.
+  return type &&
+    (!mime || mime === 'application/octet-stream' || mime.startsWith(familyPrefix(type.kind)))
+    ? type
+    : null;
+}
+
+/** Début du type MIME d'une catégorie. */
+function familyPrefix(kind: MediaKind): string {
+  return kind === 'sound' ? 'audio/' : `${kind}/`;
 }
 
 /** Libellés des formats acceptés, pour les messages (ex. « PNG, JPG, WebP »). */
 export const FORMAT_LABELS: Record<MediaKind, readonly string[]> = {
   image: ['PNG', 'JPG', 'WebP'],
   sound: ['MP3', 'OGG', 'WAV', 'M4A'],
+  video: ['MP4', 'WebM'],
 };
 
 /** Libellé court du format d'un média enregistré (colonne « Format » du tableau des sons). */
@@ -88,6 +104,8 @@ const LABEL_BY_MIME: Record<string, string> = {
   'audio/ogg': 'OGG',
   'audio/wav': 'WAV',
   'audio/mp4': 'M4A',
+  'video/mp4': 'MP4',
+  'video/webm': 'WebM',
 };
 
 /** Libellé du format d'un type MIME normalisé ; à défaut, la partie après « / » en majuscules. */

@@ -238,7 +238,7 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 
 - Écran `SoundLibraryPage` sur `/projects/:projectId/sounds` (projet + globale) et `/sounds` (globale seule). Navigation Scènes / Sons : `app-project-nav` (`shared/project-nav`) dans l'en-tête.
 - État : `SoundLibraryStore` (`features/sound-library`), même modèle que `EditorStore`. Les arborescences montrent dossiers et sons (`store.trees()`) ; choisir un son (`store.select()`) ouvre son dossier et le met en évidence (`store.selectedSoundId()`). Le dossier ouvert est `store.opened()` (`folderId: null` = racine). `store.rows()` = sons du dossier ouvert, ou résultats de `store.query()`.
-- Import : `store.importFiles(files)` (bouton et `appFileDrop`) lit la durée avec `AudioDuration` (`core/media`) puis `uploadMedia(file, { durationMs })` ; une erreur de quota est renvoyée dans `failure`, pas levée.
+- Import : `store.importFiles(files)` (bouton et `appFileDrop`) lit la durée avec `MediaDuration` (`core/media`) puis `uploadMedia(file, { durationMs })` ; une erreur de quota est renvoyée dans `failure`, pas levée.
 - Nom d'un son du tableau : `SoundName` (`features/sound-library/sound-name`) ; clic = renommer, le champ se pose par-dessus le nom masqué (la ligne et la colonne ne bougent pas). L'écran garde `editingId` et enregistre.
 - Pré-écoute : `SoundPreview` (fourni par l'écran, un seul `<audio>`, URL via `MediaUrls`) et `app-listen-button`. Le lecteur de Présentation (Web Audio) est un autre service, lot 9.
 - Dépôt : `countLibraryUsages()` (« Utilisé dans », avertissement à la suppression ; compte aussi les `play-video`). Modèle : `LibraryNode` (ex-`SoundNode`, store `soundNodes`), `mediaKind` lu par `mediaKindOf()` (absent = son), `getMediaInfo(ids)` (infos d'un média sans le `Blob`).
@@ -247,7 +247,7 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Utilitaires : `formatDuration(ms)` (`shared/util/duration.ts`), `formatLabel(mimeType)` (`core/media/media-types.ts`).
 - `resource()` : `hasValue()` est `false` quand le chargeur renvoie `undefined` ; tester « introuvable » avec `status() === 'resolved' && !value()`.
 - **Budget de styles** : 4 ko par composant (avertissement de `ng build`, à surveiller : `grep WARN`). Au-delà, sortir un sous-composant (ex. `ListenButton`).
-- Tests audio : jsdom ne lit pas l'audio. Fournir un faux `AudioDuration`, et espionner `HTMLMediaElement.prototype.play` / `pause`.
+- Tests audio : jsdom ne lit pas l'audio. Fournir un faux `MediaDuration`, et espionner `HTMLMediaElement.prototype.play` / `pause`.
 - Vérification dans Chromium : un script peut remplir IndexedDB (`jdr-manager`) une fois l'accueil chargé (la base doit d'abord être créée par l'application) ; `Storage.overrideQuotaForOrigin` (CDP) simule un petit quota. `navigator.storage.estimate()` sous-estime les `Blob`.
 
 ## Robustesse, performance, accessibilité (lot 13)

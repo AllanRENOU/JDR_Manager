@@ -239,11 +239,20 @@ export class IndexedDbRepository implements DataRepository {
   }
 
   async getStorageUsage(): Promise<StorageUsage> {
-    const usage: StorageUsage = { images: { count: 0, bytes: 0 }, sounds: { count: 0, bytes: 0 } };
+    const usage: StorageUsage = {
+      images: { count: 0, bytes: 0 },
+      sounds: { count: 0, bytes: 0 },
+      videos: { count: 0, bytes: 0 },
+    };
     // Parcours par curseur : seuls le type et la taille sont lus, pas le contenu des fichiers.
     let cursor = await (await this.db()).transaction('media').store.openCursor();
     while (cursor) {
-      const kind = cursor.value.mimeType.startsWith('audio/') ? usage.sounds : usage.images;
+      const { mimeType } = cursor.value;
+      const kind = mimeType.startsWith('audio/')
+        ? usage.sounds
+        : mimeType.startsWith('video/')
+          ? usage.videos
+          : usage.images;
       kind.count += 1;
       kind.bytes += cursor.value.size;
       cursor = await cursor.continue();

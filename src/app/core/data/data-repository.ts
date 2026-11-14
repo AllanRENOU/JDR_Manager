@@ -103,10 +103,17 @@ export interface DataRepository {
   deletePlaySession(projectId: Id): Promise<void>;
 }
 
-/** Place occupée par les médias (images et sons), en octets. */
+/** Nombre de fichiers et place occupée (octets) d'une catégorie de médias. */
+export interface MediaUsage {
+  count: number;
+  bytes: number;
+}
+
+/** Place occupée par les médias, par catégorie (NF-14 ; vidéos comptées à part, TEC-36). */
 export interface StorageUsage {
-  images: { count: number; bytes: number };
-  sounds: { count: number; bytes: number };
+  images: MediaUsage;
+  sounds: MediaUsage;
+  videos: MediaUsage;
 }
 
 /** Action contenant des éléments « Changer de scène » : sa scène et les scènes visées. */

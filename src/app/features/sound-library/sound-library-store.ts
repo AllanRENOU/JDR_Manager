@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { DATA_REPOSITORY } from '../../core/data/data-repository';
-import { AudioDuration } from '../../core/media/audio-duration';
+import { MediaDuration } from '../../core/media/media-duration';
 import { resolveMediaType } from '../../core/media/media-types';
 import { baseName } from '../../shared/util/file-name';
 import { GLOBAL_LIBRARY, Id, MediaInfo, LibraryId, LibraryNode, newId } from '../../core/models';
@@ -52,7 +52,7 @@ export interface ImportResult {
 @Injectable()
 export class SoundLibraryStore {
   private readonly repository = inject(DATA_REPOSITORY);
-  private readonly durations = inject(AudioDuration);
+  private readonly durations = inject(MediaDuration);
 
   /** Bibliothèques affichées, dans l'ordre : `[projectId, 'global']` ou `['global']`. */
   readonly libraries = signal<readonly LibraryId[]>([]);

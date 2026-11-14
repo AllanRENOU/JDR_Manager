@@ -5,27 +5,19 @@
   @if (usage.hasValue()) {
     @let u = usage.value();
     <dl class="usage">
-      <div class="usage__row">
-        <dt>{{ 'settings.storage.images' | transloco }}</dt>
-        <dd>
-          {{
-            plural('settings.storage.files', u.images.count) | transloco: { count: u.images.count }
-          }}
-          · {{ size(u.images.bytes) }}
-        </dd>
-      </div>
-      <div class="usage__row">
-        <dt>{{ 'settings.storage.sounds' | transloco }}</dt>
-        <dd>
-          {{
-            plural('settings.storage.files', u.sounds.count) | transloco: { count: u.sounds.count }
-          }}
-          · {{ size(u.sounds.bytes) }}
-        </dd>
-      </div>
+      @for (category of categories; track category) {
+        @let c = u[category];
+        <div class="usage__row">
+          <dt>{{ 'settings.storage.' + category | transloco }}</dt>
+          <dd>
+            {{ plural('settings.storage.files', c.count) | transloco: { count: c.count } }}
+            · {{ size(c.bytes) }}
+          </dd>
+        </div>
+      }
       <div class="usage__row usage__row--total">
         <dt>{{ 'settings.storage.total' | transloco }}</dt>
-        <dd>{{ size(u.images.bytes + u.sounds.bytes) }}</dd>
+        <dd>{{ size(u.images.bytes + u.sounds.bytes + u.videos.bytes) }}</dd>
       </div>
       @if (estimate.value(); as e) {
         <div class="usage__row">

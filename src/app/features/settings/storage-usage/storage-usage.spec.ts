@@ -18,14 +18,16 @@ describe('StorageUsage', () => {
     }),
   );
 
-  it('affiche la place occupée par les images et les sons (13.1.2, NF-14)', async () => {
+  it('affiche la place occupée par les images, les sons et les vidéos (13.1.2, NF-14, TEC-36)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const image = aMedia();
     const sound = aMedia({ mimeType: 'audio/mpeg', fileName: 'pluie.mp3' });
+    const video = aMedia({ mimeType: 'video/mp4', fileName: 'intro.mp4' });
     // L'import passe par uploadMedia ; ici on enregistre directement des médias de taille connue.
     for (const [media, size] of [
       [image, 3 * 1024 * 1024],
       [sound, 1536],
+      [video, 5 * 1024 * 1024],
     ] as const) {
       const file = new File([new Uint8Array(size)], media.fileName, { type: media.mimeType });
       await repository.uploadMedia(file);
@@ -33,6 +35,7 @@ describe('StorageUsage', () => {
     expect(await repository.getStorageUsage()).toEqual({
       images: { count: 1, bytes: 3 * 1024 * 1024 },
       sounds: { count: 1, bytes: 1536 },
+      videos: { count: 1, bytes: 5 * 1024 * 1024 },
     });
 
     const persistence = TestBed.inject(StoragePersistence);
@@ -50,7 +53,8 @@ describe('StorageUsage', () => {
     expect(rows).toEqual([
       'Images (battlemaps) 1 fichier · 3 Mo',
       'Sons 1 fichier · 1,5 Ko',
-      'Total 3 Mo',
+      'Vidéos 1 fichier · 5 Mo',
+      'Total 8 Mo',
       'Place disponible pour l’application (estimation du navigateur) 2 Go',
     ]);
     expect(el.querySelector('.protection--off')?.textContent).toContain('Données non protégées');

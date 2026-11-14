@@ -379,6 +379,19 @@ describe('IndexedDbRepository', () => {
       expect((await raw.get('media', id))?.durationMs).toBe(1500);
     });
 
+    it('importe une vidéo MP4 ou WebM avec sa durée (VID-01)', async () => {
+      const mp4 = await repository.uploadMedia(
+        new File(['vidéo'], 'intro.mp4', { type: 'video/mp4' }),
+        { durationMs: 90_000 },
+      );
+      const webm = await repository.uploadMedia(new File(['vidéo'], 'boucle.webm', { type: '' }));
+      expect(await raw.get('media', mp4)).toMatchObject({
+        mimeType: 'video/mp4',
+        durationMs: 90_000,
+      });
+      expect((await raw.get('media', webm))?.mimeType).toBe('video/webm');
+    });
+
     it('renvoie les informations des médias sans leur contenu, en ignorant les absents', async () => {
       const sound = aMedia({ mimeType: 'audio/ogg', fileName: 'pluie.ogg', durationMs: 1500 });
       await raw.put('media', sound);

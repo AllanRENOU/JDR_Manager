@@ -5,7 +5,7 @@ import { useNodeBlob } from '../../../testing/node-blob';
 import { useTestRepository } from '../../../testing/test-repository';
 import { DATA_REPOSITORY } from '../../core/data/data-repository';
 import { LibraryNode } from '../../core/models';
-import { AudioDuration } from '../../core/media/audio-duration';
+import { MediaDuration } from '../../core/media/media-duration';
 import { SoundLibraryStore, soundName } from './sound-library-store';
 
 const fakeDuration = (file: File) => (file.name.startsWith('vent') ? null : 90_000);
@@ -21,7 +21,7 @@ describe('SoundLibraryStore', () => {
         ...useTestRepository(),
         // jsdom ne lit pas l'audio : durée simulée d'après le nom du fichier.
         {
-          provide: AudioDuration,
+          provide: MediaDuration,
           useValue: { read: (file: File) => Promise.resolve(fakeDuration(file)) },
         },
       ],

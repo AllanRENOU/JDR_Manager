@@ -7,7 +7,7 @@ import { stubObjectUrls } from '../../../../testing/object-url';
 import { useTestRepository } from '../../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
-import { AudioDuration } from '../../../core/media/audio-duration';
+import { MediaDuration } from '../../../core/media/media-duration';
 import { GLOBAL_LIBRARY, Id, LibraryNode } from '../../../core/models';
 import { Tree } from '../../../shared/tree/tree';
 import { Modals } from '../../../shared/ui/modal/modals';
@@ -24,7 +24,7 @@ describe('SoundLibraryPage', () => {
       providers: [
         provideRouter([]),
         ...useTestRepository(),
-        { provide: AudioDuration, useValue: { read: () => Promise.resolve(65_000) } },
+        { provide: MediaDuration, useValue: { read: () => Promise.resolve(65_000) } },
       ],
     });
   });

@@ -9,6 +9,8 @@ describe('resolveMediaType', () => {
     ['pluie.ogg', 'audio/ogg', 'audio/ogg'],
     ['pluie.wav', 'audio/x-wav', 'audio/wav'],
     ['pluie.m4a', 'audio/x-m4a', 'audio/mp4'],
+    ['intro.mp4', 'video/mp4', 'video/mp4'],
+    ['intro.webm', 'video/webm', 'video/webm'],
   ])('accepte %s (%s) et normalise en %s', (name, type, expected) => {
     expect(resolveMediaType({ name, type })?.mimeType).toBe(expected);
   });
@@ -21,12 +23,24 @@ describe('resolveMediaType', () => {
     expect(resolveMediaType({ name: 'carte.jpeg', type: 'application/octet-stream' })?.kind).toBe(
       'image',
     );
+    expect(resolveMediaType({ name: 'intro.MP4', type: '' })).toEqual({
+      kind: 'video',
+      mimeType: 'video/mp4',
+    });
+  });
+
+  it('accepte une extension de vidéo avec un type MIME vidéo non standard (VID-01)', () => {
+    expect(resolveMediaType({ name: 'intro.webm', type: 'video/x-matroska' })?.mimeType).toBe(
+      'video/webm',
+    );
   });
 
   it.each([
     ['notes.txt', 'text/plain'],
     ['carte.gif', 'image/gif'],
-    ['film.mp4', 'video/mp4'],
+    ['film.mov', 'video/quicktime'],
+    ['voix.webm', 'audio/webm'],
+    ['carte.png', 'audio/x-inconnu'],
     ['sans-extension', ''],
     ['faux.png', 'application/pdf'],
   ])('refuse %s (%s)', (name, type) => {
@@ -39,6 +53,7 @@ describe('acceptAttribute', () => {
     expect(acceptAttribute('image')).toBe('.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp');
     expect(acceptAttribute('sound')).toContain('.m4a');
     expect(acceptAttribute('sound')).not.toContain('image');
+    expect(acceptAttribute('video')).toBe('.mp4,.webm,video/mp4,video/webm');
   });
 });
 
@@ -47,6 +62,8 @@ describe('formatLabel', () => {
     expect(formatLabel('audio/mpeg')).toBe('MP3');
     expect(formatLabel('audio/mp4')).toBe('M4A');
     expect(formatLabel('image/webp')).toBe('WebP');
+    expect(formatLabel('video/mp4')).toBe('MP4');
+    expect(formatLabel('video/webm')).toBe('WebM');
     expect(formatLabel('audio/flac')).toBe('FLAC');
   });
 });

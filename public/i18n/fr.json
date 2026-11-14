@@ -499,9 +499,10 @@
     },
     "storage": {
       "title": "Stockage",
-      "hint": "Les projets, battlemaps et sons sont enregistrés dans ce navigateur, sur cet ordinateur.",
+      "hint": "Les projets, battlemaps, sons et vidéos sont enregistrés dans ce navigateur, sur cet ordinateur.",
       "images": "Images (battlemaps)",
       "sounds": "Sons",
+      "videos": "Vidéos",
       "total": "Total",
       "available": "Place disponible pour l’application (estimation du navigateur)",
       "files": {
