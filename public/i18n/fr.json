@@ -279,7 +279,7 @@
       "waitHelp": "Affiché sur la ligne de l’attente dans l’éditeur et pendant l’attente en Présentation.",
       "clickText": "Texte affiché au MJ",
       "clickTextRequired": "Ce texte est obligatoire.",
-      "clickHelp": "L’action s’arrête ici jusqu’à ce que le MJ clique sur « Continuer » dans le fil d’actualité.",
+      "clickHelp": "L’action s’arrête ici jusqu’à ce que le MJ clique sur « Continuer » dans le fil d’actualité, ce qui relance l’action.",
       "battlemapRequired": "Choisissez une battlemap.",
       "soundRequired": "Choisissez un son.",
       "videoRequired": "Choisissez une vidéo.",

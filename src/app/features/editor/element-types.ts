@@ -24,7 +24,13 @@ export interface ElementTypeInfo {
   labelKey: string;
   icon: LucideIcon;
   tone: PillTone;
+  /** Clé de l'aide affichée en infobulle sur le nom du type (carte de l'éditeur d'action). */
+  helpKey?: string;
 }
+
+const HELP_KEYS: Partial<Record<ActionElementType, string>> = {
+  'user-click': 'action.form.clickHelp',
+};
 
 const ICONS: Record<ActionElementType, LucideIcon> = {
   'show-battlemap': LucideMap,
@@ -63,6 +69,7 @@ export const ELEMENT_TYPE_INFOS: readonly ElementTypeInfo[] = MENU_ORDER.map((ty
   labelKey: `action.types.${type}`,
   icon: ICONS[type],
   tone: ELEMENT_TONES[type],
+  helpKey: HELP_KEYS[type],
 }));
 
 export function elementTypeInfo(type: ActionElementType): ElementTypeInfo {

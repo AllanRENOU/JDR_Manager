@@ -11,7 +11,13 @@
   <span class="card__icon" [class]="'card__icon card__icon--' + info().tone" aria-hidden="true">
     <svg [lucideIcon]="info().icon"></svg>
   </span>
-  <span class="card__type">{{ type }}</span>
+  @let help = info().helpKey;
+  <span
+    class="card__type"
+    [class.card__type--help]="help"
+    [attr.title]="help ? (help | transloco) : null"
+    >{{ type }}</span
+  >
   @let d = detail();
   <span class="card__detail" [class.card__detail--missing]="d.missing">
     {{ d.raw ?? (d.key ? (d.key | transloco: d.params) : '') }}

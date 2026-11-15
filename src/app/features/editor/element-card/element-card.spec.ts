@@ -58,6 +58,19 @@ describe('ElementCard', () => {
     expect(el.querySelector('.card__detail')?.classList).toContain('card__detail--missing');
   });
 
+  it('affiche l’aide du « Clic de l’utilisateur » en infobulle sur le nom du type', async () => {
+    const fixture = TestBed.createComponent(Host);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.card__type')?.hasAttribute('title')).toBe(false);
+
+    fixture.componentInstance.element.set({ id: 'e', type: 'user-click', text: '' });
+    await fixture.whenStable();
+    expect(el.querySelector('.card__type')?.getAttribute('title')).toBe(
+      'L’action s’arrête ici jusqu’à ce que le MJ clique sur « Continuer » dans le fil d’actualité, ce qui relance l’action.',
+    );
+  });
+
   it('se déplie pour montrer le formulaire et émet la suppression (8.2.2)', async () => {
     const fixture = TestBed.createComponent(Host);
     await fixture.whenStable();

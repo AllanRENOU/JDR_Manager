@@ -70,6 +70,13 @@
   font-weight: font-weight(semibold);
 }
 
+// Titre avec une aide en infobulle : au-dessus de la zone de clic de l'en-tête pour recevoir le survol.
+.card__type--help {
+  position: relative;
+  z-index: 1;
+  cursor: help;
+}
+
 .card__detail {
   flex: 1;
   min-width: 0;
