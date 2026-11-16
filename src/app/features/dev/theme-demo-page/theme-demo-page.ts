@@ -15,6 +15,7 @@ import {
   LucideMousePointerClick,
   LucidePalette,
   LucidePencil,
+  LucideScrollText,
   LucideType,
   LucideVolumeX,
 } from '@lucide/angular';
@@ -47,6 +48,7 @@ import { Theme, ThemeId } from '../../../core/theme/theme';
     LucideClapperboard,
     LucideEye,
     LucideFilm,
+    LucideScrollText,
   ],
   templateUrl: './theme-demo-page.html',
   styleUrl: './theme-demo-page.scss',

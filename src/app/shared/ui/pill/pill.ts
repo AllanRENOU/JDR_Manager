@@ -17,7 +17,8 @@ export type PillTone =
   | 'click'
   | 'scene'
   | 'action'
-  | 'video';
+  | 'video'
+  | 'sheet';
 
 /** Couleur associée à chaque type d'élément d'action (Brief §2.6). */
 export const ELEMENT_TONES: Record<ActionElementType, PillTone> = {
@@ -33,8 +34,7 @@ export const ELEMENT_TONES: Record<ActionElementType, PillTone> = {
   'change-scene': 'scene',
   'show-action': 'action',
   'hide-action': 'action',
-  // Couleur provisoire : jetons `--el-sheet-*` et ton `sheet` ajoutés en 15.6.
-  'show-sheet': 'text',
+  'show-sheet': 'sheet',
 };
 
 /**

@@ -89,6 +89,11 @@
   min-width: 0;
 }
 
+.sheet-item svg {
+  flex-shrink: 0;
+  color: color(el-sheet-fg);
+}
+
 .sheet-item__name {
   overflow: hidden;
   text-overflow: ellipsis;
