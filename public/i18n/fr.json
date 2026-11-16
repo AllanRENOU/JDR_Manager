@@ -431,6 +431,14 @@
     "contentLabel": "Fiche ouverte",
     "empty": "Choisissez une fiche ou créez-en une.",
     "search": "Rechercher dans les fiches",
+    "titleField": "Titre de la fiche",
+    "text": "Texte de la fiche",
+    "textPlaceholder": "Notes, description, statistiques… (Markdown)",
+    "unused": "Utilisée dans aucune action",
+    "usedIn": {
+      "one": "Utilisée dans {{ count }} action",
+      "other": "Utilisée dans {{ count }} actions"
+    },
     "noResult": "Aucune fiche ne correspond à « {{ query }} ».",
     "newSheet": "Nouvelle fiche",
     "newSheetName": "Nouvelle fiche",

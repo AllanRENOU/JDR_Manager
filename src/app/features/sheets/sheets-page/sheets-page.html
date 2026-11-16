@@ -19,6 +19,16 @@
     ></svg>
     <app-project-nav [projectId]="project.id" />
   }
+  @if (store.saveState() !== 'idle') {
+    <span
+      headerEnd
+      class="save-state"
+      [class.save-state--error]="store.saveState() === 'error'"
+      role="status"
+    >
+      {{ 'common.saveState.' + store.saveState() | transloco }}
+    </span>
+  }
   @if (project) {
     <!-- Démo à partir de la dernière scène ouverte dans l'éditeur : rien n'est lu ni enregistré. -->
     <a
@@ -91,7 +101,7 @@
               [deleteMessage]="deleteMessage"
               [ariaLabel]="'sheet.treeLabel' | transloco"
               [selectedId]="store.selectedId()"
-              (selectedIdChange)="store.open($event)"
+              (selectedIdChange)="open($event)"
               [collapsedIds]="visibleCollapsed()"
               (collapsedIdsChange)="onCollapsedChange($event)"
               (create)="create($event)"
@@ -115,9 +125,52 @@
       </aside>
 
       <section class="sheets__content" [attr.aria-label]="'sheet.contentLabel' | transloco">
-        @if (store.selectedNode(); as node) {
-          <h2 class="sheet-title">{{ node.name }}</h2>
-        } @else {
+        <!-- Une vue par fiche (suivi par id) : le champ de texte repart de la valeur figée à
+             l'ouverture, même si deux fiches ont le même texte. -->
+        @for (node of selectedNodes(); track node.id) {
+          <article class="sheet">
+            @if (store.selectedFolders().length > 0) {
+              <p class="sheet__path">
+                {{ folderPath() }}
+              </p>
+            }
+            <h2 class="sheet__heading">
+              <!-- Titre = nom du nœud (FCH-04) : Entrée ou sortie du champ enregistre, Échap
+                   annule, un titre vide est refusé. -->
+              <input
+                #titleInput
+                appCapitalize
+                class="sheet__title"
+                type="text"
+                maxlength="120"
+                [value]="node.name"
+                [attr.aria-label]="'sheet.titleField' | transloco"
+                (keydown.enter)="titleInput.blur()"
+                (keydown.escape)="titleInput.value = node.name; titleInput.blur()"
+                (blur)="renameSheet(node, titleInput)"
+              />
+            </h2>
+            <app-field
+              class="sheet__text"
+              [label]="'sheet.text' | transloco"
+              [hiddenLabel]="true"
+              #textField
+            >
+              <textarea
+                appInput
+                appMarkdownEditor
+                surface="card"
+                rows="12"
+                [id]="textField.controlId"
+                [placeholder]="'sheet.textPlaceholder' | transloco"
+                [value]="store.initialText()"
+                (input)="store.editText($any($event.target).value)"
+                (blur)="flush()"
+              ></textarea>
+            </app-field>
+            <p class="sheet__usage">{{ usageText() }}</p>
+          </article>
+        } @empty {
           <div class="empty">
             <app-placeholder class="empty__visual">
               <svg lucideScrollText aria-hidden="true"></svg>

@@ -12,7 +12,9 @@ import { useTestRepository } from '../../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
 import { Id } from '../../../core/models';
+import { UiPreferences } from '../../../core/preferences/ui-preferences';
 import { Modals } from '../../../shared/ui/modal/modals';
+import { lastOpenedSheetKey } from '../sheets-store';
 import { SheetsPage } from './sheets-page';
 
 describe('SheetsPage', () => {
@@ -29,6 +31,10 @@ describe('SheetsPage', () => {
   });
 
   async function render(projectId: Id) {
+    return (await renderFixture(projectId)).el;
+  }
+
+  async function renderFixture(projectId: Id) {
     const fixture = TestBed.createComponent(SheetsPage);
     fixture.componentRef.setInput('projectId', projectId);
     const el = fixture.nativeElement as HTMLElement;
@@ -36,7 +42,7 @@ describe('SheetsPage', () => {
       await fixture.whenStable();
       expect(el.querySelector('.sheets__tree, app-alert')).not.toBeNull();
     });
-    return el;
+    return { fixture, el };
   }
 
   it('affiche le projet, la navigation avec « Fiches » active et l’état vide', async () => {
@@ -95,7 +101,9 @@ describe('SheetsPage', () => {
     );
     await vi.waitFor(async () => {
       await new Promise((resolve) => setTimeout(resolve));
-      expect(el.querySelector('.sheet-title')?.textContent).toContain('Garde du pont');
+      expect((el.querySelector('.sheet__title') as HTMLInputElement | null)?.value).toBe(
+        'Garde du pont',
+      );
     });
   });
 
@@ -189,5 +197,127 @@ describe('SheetsPage', () => {
       'Ses fiches sont affichées par 2 actions « Afficher une fiche »',
     );
     expect(await confirmText('Pont')).toContain('La fiche « Pont » sera supprimée.');
+  });
+
+  describe('fiche ouverte (FCH-04, FCH-05, FCH-07)', () => {
+    async function prepare() {
+      const repository = TestBed.inject(DATA_REPOSITORY);
+      const project = aProject();
+      const folder = aSheetNode(project.id, { kind: 'folder', name: 'PNJ' });
+      const sub = aSheetNode(project.id, { kind: 'folder', name: 'Village', parentId: folder.id });
+      const garde = aSheetNode(project.id, { parentId: sub.id, name: 'Garde' });
+      const pont = aSheetNode(project.id, { name: 'Pont', order: 1 });
+      await repository.saveProject(project);
+      await repository.saveSheetNodes([folder, sub, garde, pont]);
+      await repository.saveSheet(aSheet(project.id, garde.id, { text: 'Fatigué' }));
+      await repository.saveSheet(aSheet(project.id, pont.id, { text: 'Fatigué' }));
+      await repository.saveSceneNodes([aSceneNode(project.id, { id: 'scene' })]);
+      await repository.saveAction(
+        anAction('scene', { elements: [{ id: 'e', type: 'show-sheet', sheetId: garde.id }] }),
+      );
+      TestBed.inject(UiPreferences).set(lastOpenedSheetKey(project.id), garde.id);
+      return { repository, project, garde, pont };
+    }
+
+    const textarea = (el: HTMLElement) =>
+      el.querySelector('.sheet__text textarea') as HTMLTextAreaElement;
+    const title = (el: HTMLElement) => el.querySelector('.sheet__title') as HTMLInputElement;
+
+    it('affiche le chemin, le titre, le texte et le nombre d’actions qui l’utilisent', async () => {
+      const { project } = await prepare();
+      const el = await render(project.id);
+      await vi.waitFor(() => expect(title(el)).not.toBeNull());
+
+      expect(el.querySelector('.sheet__path')?.textContent?.trim()).toBe('PNJ › Village');
+      expect(title(el).value).toBe('Garde');
+      expect(title(el).getAttribute('aria-label')).toBe('Titre de la fiche');
+      expect(textarea(el).value).toBe('Fatigué');
+      expect(el.querySelector('.sheet__usage')?.textContent).toContain('Utilisée dans 1 action');
+    });
+
+    it('enregistre le texte saisi à la sortie du champ et l’indique dans l’en-tête', async () => {
+      const { project, repository, garde } = await prepare();
+      const el = await render(project.id);
+      await vi.waitFor(() => expect(textarea(el)).not.toBeNull());
+
+      textarea(el).value = 'Fatigué et **bavard**';
+      textarea(el).dispatchEvent(new Event('input'));
+      textarea(el).dispatchEvent(new Event('blur'));
+
+      await vi.waitFor(async () =>
+        expect((await repository.getSheet(garde.id))?.text).toBe('Fatigué et **bavard**'),
+      );
+      await vi.waitFor(() =>
+        expect(el.querySelector('.save-state')?.textContent).toContain('Enregistré'),
+      );
+    });
+
+    it('repart du texte de l’autre fiche quand on en change, même si les textes sont égaux', async () => {
+      const { project, repository, garde, pont } = await prepare();
+      const el = await render(project.id);
+      await vi.waitFor(() => expect(textarea(el)).not.toBeNull());
+      textarea(el).value = 'Saisie en cours';
+      textarea(el).dispatchEvent(new Event('input'));
+
+      const row = [...el.querySelectorAll<HTMLElement>('.tree__row')].find((r) =>
+        r.textContent?.includes('Pont'),
+      )!;
+      row.click();
+
+      await vi.waitFor(async () => {
+        await new Promise((resolve) => setTimeout(resolve));
+        expect(title(el).value).toBe('Pont');
+      });
+      expect(textarea(el).value).toBe('Fatigué');
+      expect(el.querySelector('.sheet__path')).toBeNull();
+      expect(el.querySelector('.sheet__usage')?.textContent).toContain(
+        'Utilisée dans aucune action',
+      );
+      expect((await repository.getSheet(garde.id))?.text).toBe('Saisie en cours');
+      expect((await repository.getSheet(pont.id))?.text).toBe('Fatigué');
+    });
+
+    it('renomme la fiche depuis son titre ; Échap annule, un titre vide est refusé', async () => {
+      const { project, repository } = await prepare();
+      const el = await render(project.id);
+      await vi.waitFor(() => expect(title(el)).not.toBeNull());
+
+      title(el).value = 'Autre';
+      title(el).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      title(el).dispatchEvent(new Event('blur'));
+      title(el).value = '   ';
+      title(el).dispatchEvent(new Event('blur'));
+      expect(title(el).value).toBe('Garde');
+
+      title(el).value = 'Garde du pont';
+      title(el).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      title(el).dispatchEvent(new Event('blur'));
+      await vi.waitFor(async () =>
+        expect(
+          (await repository.listSheetNodes(project.id)).find(
+            (n) => n.kind === 'item' && n.order === 0,
+          )?.name,
+        ).toBe('Garde du pont'),
+      );
+      await vi.waitFor(() =>
+        expect(
+          [...el.querySelectorAll('.tree__label')].map((l) => l.textContent?.trim()),
+        ).toContain('Garde du pont'),
+      );
+    });
+
+    it('enregistre la saisie en attente quand on quitte l’écran', async () => {
+      const { project, repository, garde } = await prepare();
+      const { fixture, el } = await renderFixture(project.id);
+      await vi.waitFor(() => expect(textarea(el)).not.toBeNull());
+      textarea(el).value = 'Avant de partir';
+      textarea(el).dispatchEvent(new Event('input'));
+
+      fixture.destroy();
+
+      await vi.waitFor(async () =>
+        expect((await repository.getSheet(garde.id))?.text).toBe('Avant de partir'),
+      );
+    });
   });
 });

@@ -5,7 +5,7 @@ import { useTestRepository } from '../../../testing/test-repository';
 import { DATA_REPOSITORY, DataRepository } from '../../core/data/data-repository';
 import { Project } from '../../core/models';
 import { UiPreferences } from '../../core/preferences/ui-preferences';
-import { SheetsStore, lastOpenedSheetKey } from './sheets-store';
+import { SHEET_SAVE_DELAY_MS, SheetsStore, lastOpenedSheetKey } from './sheets-store';
 
 describe('SheetsStore', () => {
   let store: SheetsStore;
@@ -55,7 +55,7 @@ describe('SheetsStore', () => {
     const garde = aSheetNode(project.id, { name: 'Garde' });
     await repository.saveSheetNodes([garde]);
     await store.load(project.id);
-    store.open(garde.id);
+    await store.open(garde.id);
     expect(TestBed.inject(UiPreferences).get(lastOpenedSheetKey(project.id), null)).toBe(garde.id);
 
     await store.load(project.id);
@@ -70,7 +70,7 @@ describe('SheetsStore', () => {
     const folder = aSheetNode(project.id, { kind: 'folder' });
     await repository.saveSheetNodes([folder]);
     await store.load(project.id);
-    store.open(folder.id);
+    await store.open(folder.id);
     expect(store.selectedId()).toBeNull();
   });
 
@@ -129,7 +129,7 @@ describe('SheetsStore', () => {
     await repository.saveSheetNodes([folder, inner, kept]);
     await repository.saveSheet(aSheet(project.id, inner.id));
     await store.load(project.id);
-    store.open(inner.id);
+    await store.open(inner.id);
 
     await store.removeNode(folder.id);
 
@@ -182,7 +182,76 @@ describe('SheetsStore', () => {
     expect(store.creationParent(folder.id)).toBe(folder.id);
     expect(store.creationParent(inner.id)).toBe(folder.id);
     expect(store.creationParent()).toBeNull();
-    store.open(inner.id);
+    await store.open(inner.id);
     expect(store.creationParent()).toBe(folder.id);
+  });
+
+  describe('texte de la fiche ouverte (FCH-05)', () => {
+    async function twoSheets() {
+      const folder = aSheetNode(project.id, { kind: 'folder', name: 'PNJ' });
+      const garde = aSheetNode(project.id, { parentId: folder.id, name: 'Garde' });
+      const pont = aSheetNode(project.id, { name: 'Pont', order: 1 });
+      await repository.saveSheetNodes([folder, garde, pont]);
+      await repository.saveSheet(aSheet(project.id, garde.id, { text: 'Fatigué' }));
+      await repository.saveSheet(aSheet(project.id, pont.id, { text: '' }));
+      await store.load(project.id);
+      return { folder, garde, pont };
+    }
+
+    it('donne le texte et le chemin de la fiche ouverte', async () => {
+      const { folder, garde } = await twoSheets();
+      await store.open(garde.id);
+      expect(store.initialText()).toBe('Fatigué');
+      expect(store.selectedFolders()).toEqual([folder]);
+    });
+
+    it('enregistre la saisie après un temps de calme, sans toucher au texte figé', async () => {
+      const { garde } = await twoSheets();
+      await store.open(garde.id);
+      store.editText('Fatigu');
+      store.editText('Fatigué et bavard');
+      expect(store.saveState()).toBe('pending');
+      await new Promise((resolve) => setTimeout(resolve, SHEET_SAVE_DELAY_MS / 2));
+      expect((await repository.getSheet(garde.id))?.text).toBe('Fatigué');
+
+      await vi.waitFor(() => expect(store.saveState()).toBe('saved'), { timeout: 2000 });
+      expect((await repository.getSheet(garde.id))?.text).toBe('Fatigué et bavard');
+      expect(store.sheets()[garde.id].text).toBe('Fatigué et bavard');
+      expect(store.initialText()).toBe('Fatigué');
+    });
+
+    it('enregistre la saisie en attente avant d’ouvrir une autre fiche', async () => {
+      const { garde, pont } = await twoSheets();
+      await store.open(garde.id);
+      store.editText('Endormi');
+
+      await store.open(pont.id);
+
+      expect((await repository.getSheet(garde.id))?.text).toBe('Endormi');
+      expect(store.selectedId()).toBe(pont.id);
+      expect(store.initialText()).toBe('');
+    });
+
+    it('flush() enregistre tout de suite ; une erreur est signalée', async () => {
+      const { garde } = await twoSheets();
+      await store.open(garde.id);
+      store.editText('Vite');
+      await store.flush();
+      expect((await repository.getSheet(garde.id))?.text).toBe('Vite');
+
+      vi.spyOn(repository, 'saveSheet').mockRejectedValueOnce(new Error('disque plein'));
+      store.editText('Perdu ?');
+      await expect(store.flush()).rejects.toThrow('disque plein');
+      expect(store.saveState()).toBe('error');
+    });
+
+    it('enregistre la saisie avant de supprimer une autre fiche', async () => {
+      const { garde, pont } = await twoSheets();
+      await store.open(garde.id);
+      store.editText('Gardé');
+      await store.removeNode(pont.id);
+      expect((await repository.getSheet(garde.id))?.text).toBe('Gardé');
+      expect(store.selectedId()).toBe(garde.id);
+    });
   });
 });

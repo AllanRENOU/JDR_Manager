@@ -1,4 +1,13 @@
-import { Component, computed, effect, inject, input, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
@@ -17,6 +26,9 @@ import { Tree, TreeCreateEvent, TreeRenameEvent } from '../../../shared/tree/tre
 import { TreeLabels } from '../../../shared/tree/tree-labels';
 import { TreeMoveEvent } from '../../../shared/tree/tree-model';
 import { Input } from '../../../shared/ui/input/input';
+import { MarkdownEditor } from '../../../shared/markdown/markdown-editor';
+import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
+import { Field } from '../../../shared/ui/field/field';
 import { ProjectNav } from '../../../shared/project-nav/project-nav';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { AppHeader } from '../../../shared/ui/app-header/app-header';
@@ -43,7 +55,10 @@ const SHEET_TREE_LABELS: Partial<TreeLabels> = {
     AppHeader,
     Alert,
     Button,
+    Capitalize,
+    Field,
     Input,
+    MarkdownEditor,
     Placeholder,
     ProjectNav,
     RouterLink,
@@ -59,6 +74,7 @@ const SHEET_TREE_LABELS: Partial<TreeLabels> = {
     LucideSearch,
   ],
   providers: [SheetsStore],
+  host: { '(window:beforeunload)': 'onBeforeUnload()' },
   templateUrl: './sheets-page.html',
   styleUrl: './sheets-page.scss',
 })
@@ -75,6 +91,27 @@ export class SheetsPage {
   protected readonly visibleCollapsed = computed(() =>
     this.store.searching() ? [] : this.collapsed(),
   );
+
+  /** Fiche ouverte, en liste d'un élément au plus (vue recréée à chaque changement de fiche). */
+  protected readonly selectedNodes = computed(() => {
+    const node = this.store.selectedNode();
+    return node ? [node] : [];
+  });
+  /** Chemin des dossiers de la fiche ouverte : « PNJ › Village ». */
+  protected readonly folderPath = computed(() =>
+    this.store
+      .selectedFolders()
+      .map((f) => f.name)
+      .join(' › '),
+  );
+  /** « Utilisée dans N actions » (FCH-07). */
+  protected readonly usageText = computed(() => {
+    const node = this.store.selectedNode();
+    const count = node ? this.store.usageCount(node.id) : 0;
+    return count === 0
+      ? this.transloco.translate('sheet.unused')
+      : this.transloco.translate(pluralKey('sheet.usedIn', count), { count });
+  });
 
   /**
    * Confirmation de suppression d'une fiche (ou d'un dossier) affichée par des actions : avertit
@@ -96,6 +133,31 @@ export class SheetsPage {
     effect(() => {
       this.store.load(this.projectId()).catch((error) => this.notifications.fromError(error));
     });
+    // Rien ne se perd en quittant l'écran : la saisie en attente est enregistrée.
+    inject(DestroyRef).onDestroy(() => this.flush());
+  }
+
+  protected open(id: Id | null): void {
+    this.run(this.store.open(id));
+  }
+
+  protected flush(): void {
+    this.run(this.store.flush());
+  }
+
+  /** Fermeture ou rechargement de l'onglet : enregistrement de la saisie en attente. */
+  protected onBeforeUnload(): void {
+    void this.store.flush();
+  }
+
+  /** Titre modifié dans la zone centrale ; un titre vide rétablit l'ancien (FCH-04). */
+  protected renameSheet(node: SheetNode, input: HTMLInputElement): void {
+    const name = input.value.trim();
+    if (!name) {
+      input.value = node.name;
+      return;
+    }
+    this.run(this.store.renameNode(node.id, name));
   }
 
   protected onCollapsedChange(ids: readonly Id[]): void {

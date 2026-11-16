@@ -3,11 +3,24 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { DATA_REPOSITORY } from '../../core/data/data-repository';
 import { UiPreferences } from '../../core/preferences/ui-preferences';
 import { Id, Project, Sheet, SheetNode, TreeNodeKind, newId } from '../../core/models';
-import { TreeMoveEvent, applyMove, descendantIds } from '../../shared/tree/tree-model';
+import { TreeMoveEvent, applyMove, descendantIds, pathTo } from '../../shared/tree/tree-model';
+import { DebouncedTask } from '../../shared/util/debounced-task';
 import { filterSheetNodes } from './sheet-search';
 
 /** État de chargement de l'écran Fiches. */
 export type SheetsStatus = 'loading' | 'ready' | 'missing';
+
+/** État de l'enregistrement automatique du texte (affiché dans l'en-tête, comme l'éditeur). */
+export type SheetSaveState = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
+
+/** Délai de l'enregistrement automatique pendant la saisie (comme l'éditeur de scène). */
+export const SHEET_SAVE_DELAY_MS = 500;
+
+/** Texte saisi en attente d'enregistrement. */
+interface PendingText {
+  sheetId: Id;
+  text: string;
+}
 
 /** Clé `UiPreferences` de la dernière fiche ouverte d'un projet (rouverte au retour sur l'écran). */
 export function lastOpenedSheetKey(projectId: Id): string {
@@ -39,6 +52,16 @@ export class SheetsStore {
   readonly selectedId = signal<Id | null>(null);
   /** Recherche au-dessus de l'arborescence, sur le titre et le texte (FCH-06). */
   readonly query = signal('');
+  /**
+   * Texte de la fiche ouverte, figé à l'ouverture : le champ s'y lie, jamais à la valeur
+   * enregistrée, pour qu'un enregistrement en retard n'écrase pas la saisie.
+   */
+  readonly initialText = signal('');
+  readonly saveState = signal<SheetSaveState>('idle');
+  private readonly textSave = new DebouncedTask<PendingText>(
+    (pending) => this.saveText(pending),
+    SHEET_SAVE_DELAY_MS,
+  );
 
   /** Le projet a au moins une fiche ou un dossier (sinon : état vide de l'écran). */
   readonly hasNodes = computed(() => this.nodes().length > 0);
@@ -51,6 +74,11 @@ export class SheetsStore {
   readonly selectedNode = computed(
     () => this.nodes().find((n) => n.id === this.selectedId()) ?? null,
   );
+  /** Dossiers de la fiche ouverte, de la racine au plus proche (chemin affiché au-dessus du titre). */
+  readonly selectedFolders = computed(() => {
+    const node = this.selectedNode();
+    return node ? pathTo(this.nodes(), node.id).slice(0, -1) : [];
+  });
 
   /**
    * Charge le projet et ses fiches, puis rouvre la dernière fiche ouverte si elle existe encore ;
@@ -78,18 +106,64 @@ export class SheetsStore {
     this.sheets.set(Object.fromEntries(sheets.map((s) => [s.id, s])));
     this.usages.set(usages);
     const last = this.preferences.get<Id | null>(lastOpenedSheetKey(projectId), null);
-    this.selectedId.set(nodes.some((n) => n.id === last && n.kind === 'item') ? last : null);
+    const selected = nodes.some((n) => n.id === last && n.kind === 'item') ? last : null;
+    this.selectedId.set(selected);
+    this.initialText.set(selected ? (this.sheets()[selected]?.text ?? '') : '');
+    this.saveState.set('idle');
     this.status.set('ready');
   }
 
-  /** Ouvre une fiche (un dossier est ignoré) et la mémorise pour le retour sur l'écran. */
-  open(id: Id | null): void {
+  /**
+   * Ouvre une fiche (un dossier est ignoré) et la mémorise pour le retour sur l'écran. La saisie
+   * en attente de la fiche précédente est d'abord enregistrée.
+   */
+  async open(id: Id | null): Promise<void> {
     const node = this.nodes().find((n) => n.id === id);
-    if (!node || node.kind !== 'item') {
+    if (!node || node.kind !== 'item' || node.id === this.selectedId()) {
       return;
     }
+    await this.flush();
+    this.select(node);
+  }
+
+  /** Saisie dans le texte de la fiche ouverte : enregistrée après un temps de calme (FCH-05). */
+  editText(text: string): void {
+    const sheetId = this.selectedId();
+    if (sheetId) {
+      this.saveState.set('pending');
+      this.textSave.schedule({ sheetId, text });
+    }
+  }
+
+  /** Enregistre tout de suite la saisie en attente (sortie du champ, changement de fiche ou d'écran). */
+  flush(): Promise<void> {
+    return this.textSave.flush();
+  }
+
+  private select(node: SheetNode): void {
     this.selectedId.set(node.id);
+    this.initialText.set(this.sheets()[node.id]?.text ?? '');
     this.preferences.set(lastOpenedSheetKey(node.projectId), node.id);
+  }
+
+  private saveText({ sheetId, text }: PendingText): Promise<void> {
+    return this.enqueue(async () => {
+      const project = this.requireProject();
+      const sheet: Sheet = { id: sheetId, projectId: project.id, text };
+      this.saveState.set('saving');
+      try {
+        await this.repository.saveSheet(sheet);
+        await this.touchProject();
+      } catch (error) {
+        this.saveState.set('error');
+        throw error;
+      }
+      // Une fiche supprimée pendant l'attente n'est pas recréée dans l'état de l'écran.
+      if (this.nodes().some((n) => n.id === sheetId)) {
+        this.sheets.update((sheets) => ({ ...sheets, [sheetId]: sheet }));
+      }
+      this.saveState.set(this.textSave.pending ? 'pending' : 'saved');
+    });
   }
 
   /**
@@ -118,7 +192,7 @@ export class SheetsStore {
    * est ouverte. La recherche est effacée pour que le nouveau nœud soit visible.
    */
   createNode(kind: TreeNodeKind, parentId: Id | null, name: string): Promise<SheetNode> {
-    return this.enqueue(async () => {
+    return this.enqueueAfterFlush(async () => {
       const project = this.requireProject();
       const siblings = this.nodes().filter((n) => n.parentId === parentId);
       const node: SheetNode = {
@@ -138,7 +212,7 @@ export class SheetsStore {
       }
       this.query.set('');
       if (kind === 'item') {
-        this.open(node.id);
+        this.select(node);
       }
       await this.touchProject();
       return node;
@@ -165,7 +239,7 @@ export class SheetsStore {
    * Les actions qui l'affichaient la signaleront comme supprimée (PRS-07).
    */
   removeNode(id: Id): Promise<void> {
-    return this.enqueue(async () => {
+    return this.enqueueAfterFlush(async () => {
       const removed = descendantIds(this.nodes(), id).add(id);
       await this.repository.deleteSheetNode(id);
       this.nodes.update((nodes) => nodes.filter((n) => !removed.has(n.id)));
@@ -175,6 +249,7 @@ export class SheetsStore {
       const selected = this.selectedId();
       if (selected && removed.has(selected)) {
         this.selectedId.set(null);
+        this.initialText.set('');
       }
       await this.touchProject();
     });
@@ -194,6 +269,12 @@ export class SheetsStore {
       );
       await this.touchProject();
     });
+  }
+
+  /** Enregistre la saisie en attente, puis enchaîne l'écriture. */
+  private async enqueueAfterFlush<T>(task: () => Promise<T>): Promise<T> {
+    await this.flush();
+    return this.enqueue(task);
   }
 
   /** Enchaîne une écriture après les précédentes ; une erreur ne bloque pas les suivantes. */

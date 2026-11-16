@@ -100,9 +100,56 @@
   color: color(text-secondary);
 }
 
-// Titre provisoire : champ de titre, texte et enregistrement automatique en 15.5.
-.sheet-title {
+// Fiche ouverte (Brief §7.2) : colonne de 760 px au plus, comme le texte de scène.
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: space(12);
+  max-width: layout(feed-max);
+}
+
+.sheet__path {
+  color: color(text-secondary);
+  font-size: font-size(small);
+}
+
+// Titre modifiable : se lit comme un titre, le cadre n'apparaît qu'au survol et au focus.
+.sheet__title {
+  width: 100%;
+  margin-left: calc(-1 * #{space(8)});
+  padding: space(4) space(8);
+  border: 1px solid transparent;
+  border-radius: radius(sm);
+  background: transparent;
+  color: color(text-primary);
   font-family: font-family(title);
+  font-size: font-size(screen);
+  font-weight: font-weight(bold);
+  transition: transition(border-color, background-color);
+
+  &:hover {
+    border-color: color(border-subtle);
+  }
+
+  &:focus {
+    border-color: color(accent);
+    background: color(bg-card);
+    outline: none;
+  }
+}
+
+.sheet__usage {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+.save-state {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+.save-state--error {
+  color: color(danger-text);
 }
 
 // État vide (Brief §7.2) : visuel de remplacement, message et, à venir, « Nouvelle fiche ».
