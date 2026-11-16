@@ -1,0 +1,34 @@
+# Lot 15 — Fiches
+
+Détail du lot (sous-tâches et notes). Mode d'emploi et synthèse : [avancement.md](../avancement.md).
+
+> Ajouté le 16/11/2026 (demande d'Allan) et **intégré à la V1** : à faire avant le lot 12 bis (hors ligne et tablette, décision d'Allan) puis la recette (lot 14). L'emport des fiches dans l'export / import et le lecteur hors ligne est fait par le lot 12 bis (12b.2, 12b.3, 12b.7). Exigences : PRD §5.10 (FCH-01 à FCH-09), ACT-16, FIL-11, CTL-14 ; TRD §1.5 (TEC-54 à TEC-57), §3, §4.1, §4.2, §6.2, D12 ; Brief §2.6, §6.9, §6.10, §7.2, §11.3.
+>
+> ✅ Décisions (Allan, 16/11/2026) : une fiche = un titre + un texte Markdown, **sans image** ; fiches du **projet seulement** (pas de fiches globales) ; onglet « Fiches » entre Scènes et Bibliothèque ; arborescence à gauche et **fiche ouverte au centre**, modifiable, enregistrée automatiquement ; **titre = nom** dans l'arborescence ; recherche sur le **titre et le texte** ; élément « Afficher une fiche » : la fiche s'ouvre dans une **fenêtre** et **l'action continue** ; un bloc « Fiche : « titre » » cliquable est ajouté au fil **seulement si la fiche est ouverte par une action**, sans doublon à la relance ; ouverture à la main par un **bouton « Fiches » dans l'en-tête + raccourci** (F) et une fenêtre de recherche ; fenêtre en **lecture seule** ; fiches **jamais** montrées aux joueurs ; lot intégré à la **V1**, fait avant le lot 12 bis puis la recette (lot 14).
+>
+> ℹ️ Choix proposés, à confirmer en cours de lot : nom dans le code `Sheet` (`SheetNode`, `features/sheets`, `SheetsPage`, `SheetsStore`, `SheetDialog`, `SheetPicker`, élément `show-sheet`, route `/projects/:projectId/sheets`) ; icône Lucide `ScrollText` ; couleurs `--el-sheet-*` (Brief §11.3) ; pause d'affichage (`DISPLAY_GAP_MS`) avant « Afficher une fiche », comme pour un texte ; ouvrir une fiche ferme celle déjà affichée ; « Dupliquer » une fiche (FCH-09, priorité C).
+
+- [ ] **15.1** Modèle et données : `SheetNode`, `Sheet` (`ng g interface`), élément `ShowSheetElement` (`show-sheet`), entrée de fil `SheetFeedItem` ; stores `sheetNodes` et `sheets` (`DB_VERSION` + 1, bloc `upgrade`) ; méthodes `listSheetNodes`, `saveSheetNodes`, `deleteSheetNode` (cascade en une transaction), `listSheets`, `getSheet`, `saveSheet`, `countSheetUsages` ; `deleteProject` supprime les fiches ; fabriques de test. [TEC-54, D12, TRD §3, §4]
+  - Note : —
+- [ ] **15.2** Recherche : fonction pure `searchSheets(nodes, sheets, query)` (titre + texte, accents et casse ignorés, extrait autour de la première occurrence, Markdown rendu en texte brut) et tests. [FCH-06, TEC-55]
+  - Note : —
+- [ ] **15.3** Onglet « Fiches » : route `/projects/:projectId/sheets`, navigation « Scènes / Fiches / Bibliothèque » (`app-project-nav`), `SheetsPage` + `SheetsStore` (`@Injectable()` fourni par l'écran), en-tête (Présenter, paramètres) comme la Bibliothèque. [FCH-02, TRD §2.3]
+  - Note : —
+- [ ] **15.4** Arborescence des fiches : Nouveau dossier / Nouvelle fiche (puis `startRename`), renommer, déplacer (`applyMove`), supprimer avec confirmation et **avertissement** si des actions utilisent la fiche ou le dossier (`deleteMessage`), recherche au-dessus (arbre filtré), dernière fiche ouverte mémorisée (`UiPreferences`). [FCH-03, FCH-06, FCH-07]
+  - Note : —
+- [ ] **15.5** Fiche ouverte au centre : chemin, titre (= nom du nœud, `appCapitalize`, titre vide refusé), texte (`appMarkdownEditor`), enregistrement automatique (`DebouncedTask`, `flush()` au changement de fiche, à la sortie du champ, à la destruction et sur `beforeunload` ; champs liés à une valeur figée à l'ouverture), « Utilisée dans N actions », état vide. [FCH-01, FCH-04, FCH-05, FCH-07]
+  - Note : —
+- [ ] **15.6** Jetons `--el-sheet-*` dans les deux thèmes (valeurs à valider par Allan), ton de pastille, `ELEMENT_TYPE_INFOS` (libellé, icône `ScrollText`), pages `/dev/themes` et `/dev/components`. [Brief §2.6, §11.3]
+  - Note : —
+- [ ] **15.7** Éditeur d'action : élément « Afficher une fiche » (bouton de choix → `Selections.select({ mode: 'single' })` sur l'arborescence des fiches, chemin affiché, « Aucune fiche choisie », « Fiche supprimée » en rouge), résumé (`describeElement`, `summarizeElement`, `hasMissingTarget`), validation (`elementProblem`), ligne en lecture seule dans l'éditeur de scène (SCN-07), duplication de scène. [ACT-16, PRS-07]
+  - Note : —
+- [ ] **15.8** Moteur : `context.showSheet` (pause d'affichage, fiche supprimée → notification `presentation.errors.missingSheet`, bloc `sheet` sans doublon par `elementId` + `focus`, enregistrement), `openSheet(sheetId)` et signal `sheetRequest`, noms et textes des fiches chargés avec le projet, mode démo ; tests (`usePresentation()`). [ACT-16, FIL-11, TEC-56, TEC-52]
+  - Note : —
+- [ ] **15.9** Écran du MJ : fenêtre `SheetDialog` (taille `lg`, lecture seule, Markdown rendu, fiche vide) ouverte par un `effect` sur `sheetRequest` (ferme d'abord la fiche affichée) ; bloc « Fiche : « titre » » du `Feed` : un vrai `<button>` dont le clic **rouvre la fiche** (`engine.openSheet(sheetId)`), y compris après « Continuer » ou le retour sur la scène ; fiche supprimée signalée, bloc non cliquable. [FCH-08, FIL-11, Brief §6.9, §6.10]
+  - Note : —
+- [ ] **15.10** Ouverture à la main : bouton « Fiches » dans l'en-tête de la Présentation, raccourci **F** (`PRESENTATION_SHORTCUTS`, `onShortcut`, `aria-keyshortcuts`), fenêtre `SheetPicker` (recherche titre + texte, extraits, clavier haut / bas / Entrée) ; rien n'est ajouté au fil ; rien n'est envoyé à la fenêtre joueurs. [CTL-14, FCH-08, TEC-57]
+  - Note : —
+- [ ] **15.11** Vérification dans Chromium (deux thèmes) : création et recherche de fiches, enregistrement automatique, élément dans une action, bloc du fil après « Continuer », ouverture à la main (F), fenêtre joueurs inchangée ; mise à jour de `CLAUDE.md`. [FCH-01 à FCH-09]
+  - Note : —
+
+**Critère de fin** : une fiche préparée dans l'onglet Fiches s'ouvre en Présentation par une action (bloc dans le fil, qui la rouvre) et à la main par la recherche (bouton « Fiches » ou touche F), sans jamais apparaître dans la fenêtre joueurs.

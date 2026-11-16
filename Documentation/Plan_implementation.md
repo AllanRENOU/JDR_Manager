@@ -249,7 +249,7 @@ Une tâche est terminée quand :
 - les textes de l'interface sont dans `fr.json` ;
 - l'écran respecte le Brief UI/UX et fonctionne dans les deux thèmes ;
 - le comportement correspond au PRD et aux maquettes ; tout écart est reporté dans les documents.
-- la sous-tâche est cochée dans [`avancement.md`](./avancement.md), avec une note si une information, une remarque ou une alerte doit être remontée.
+- la sous-tâche est cochée dans le fichier de son lot ([`avancement/`](./avancement/), synthèse dans [`avancement.md`](./avancement.md)), avec une note si une information, une remarque ou une alerte doit être remontée.
 
 ---
 

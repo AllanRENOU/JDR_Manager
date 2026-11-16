@@ -15,27 +15,28 @@ Application web Angular, données dans le navigateur (IndexedDB), en français, 
 
 ## Documents de référence (dossier `Documentation/`)
 
-| Document                 | Contenu                                                                                                          | Quand le lire                                       |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| `avancement.md`          | Découpage en lots / sous-tâches, cases à cocher, notes                                                           | **Toujours** : il dit quoi faire et ce qui est fait |
-| `TRD.md`                 | Exigences techniques (TEC-xx), architecture, modèle, contrat d'accès aux données, moteur, thèmes                 | Avant toute tâche technique                         |
-| `PRD.md`                 | Exigences fonctionnelles (SCN-, ACT-, PRS-, FIL-, CTL-, NF-…)                                                    | Pour le comportement attendu                        |
-| `Brief_UI_UX.md`         | Jetons de couleurs (§2), typo (§3), composants (§6), écrans (§7), accessibilité (§8), valeurs des thèmes (§11.3) | Avant toute tâche d'interface                       |
-| `Plan_implementation.md` | Lots, jalons, ordre                                                                                              | Vue d'ensemble                                      |
-| `specifications.md`      | Idées et règles de départ                                                                                        | Si un comportement n'est pas clair                  |
+| Document                 | Contenu                                                                                                          | Quand le lire                                                                         |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `avancement.md`          | Synthèse et description générale de chaque lot, points ouverts                                                   | **Toujours** : il dit où on en est                                                    |
+| `avancement/lot-*.md`    | Détail d'un lot : sous-tâches, cases à cocher, notes, validation                                                 | **Seulement si nécessaire** : lot en cours, ou décision / note précise d'un lot passé |
+| `TRD.md`                 | Exigences techniques (TEC-xx), architecture, modèle, contrat d'accès aux données, moteur, thèmes                 | Avant toute tâche technique                                                           |
+| `PRD.md`                 | Exigences fonctionnelles (SCN-, ACT-, PRS-, FIL-, CTL-, NF-…)                                                    | Pour le comportement attendu                                                          |
+| `Brief_UI_UX.md`         | Jetons de couleurs (§2), typo (§3), composants (§6), écrans (§7), accessibilité (§8), valeurs des thèmes (§11.3) | Avant toute tâche d'interface                                                         |
+| `Plan_implementation.md` | Lots, jalons, ordre                                                                                              | Vue d'ensemble                                                                        |
+| `specifications.md`      | Idées et règles de départ                                                                                        | Si un comportement n'est pas clair                                                    |
 
-Les références entre crochets dans `avancement.md` (ex. `[TEC-35]`, `[Brief §6.13]`) renvoient à ces documents.
+Les références entre crochets dans les fichiers d'avancement (ex. `[TEC-35]`, `[Brief §6.13]`) renvoient à ces documents.
 
 ## Façon de travailler
 
-1. **Suivre `avancement.md`**, une sous-tâche à la fois, dans l'ordre.
+1. **Suivre `avancement.md`** pour savoir quel lot est en cours, puis le fichier de ce lot (`Documentation/avancement/lot-*.md`), une sous-tâche à la fois, dans l'ordre. Ne pas lire les fichiers des autres lots sans besoin.
 2. Après **chaque** sous-tâche :
-   - cocher `- [ ]` → `- [x]` ;
+   - cocher `- [ ]` → `- [x]` dans le fichier du lot ;
    - remplir `Note :` avec `ℹ️ Info`, `⚠️ Alerte` (écart, contournement, risque) ou `❓ Question` ;
-   - mettre à jour le tableau **Synthèse** : le nombre de sous-tâches terminées du lot, son état (`À faire` / `En cours` / `Terminé`) et le **Total**.
-3. En fin de lot, ajouter sous le « Critère de fin » une ligne `> ✅ Lot N validé : …` : commandes passées, actions à faire par Allan (ex. `npm install`), écarts au TRD.
+   - mettre à jour le tableau **Synthèse** d'`avancement.md` : le nombre de sous-tâches terminées du lot, son état (`À faire` / `En cours` / `Terminé`) et le **Total**.
+3. En fin de lot, ajouter sous le « Critère de fin » du fichier du lot une ligne `> ✅ Lot N validé : …` : commandes passées, actions à faire par Allan (ex. `npm install`), écarts au TRD.
 4. **Poser des questions** en cas de doute ou de problème plutôt que de deviner. Noter la décision d'Allan dans la note de la sous-tâche (`✅ Décision (Allan) : …`) et dans les documents concernés.
-5. Tout écart au TRD / Brief se note dans `avancement.md`. Si l'écart est durable, mettre aussi à jour le document de référence.
+5. Tout écart au TRD / Brief se note dans le fichier du lot. Si l'écart est durable, mettre aussi à jour le document de référence.
 6. Allan s'occupe lui-même de Git (pas de commit sans demande).
 
 ## Stack

@@ -39,7 +39,7 @@ ng serve           # serveur de développement : http://localhost:4200
 - Générer le code avec **Angular CLI** (`ng generate …`, `ng add …`) dès que possible (TRD TEC-18, §2.4).
 - Composants standalone, signals, zoneless, détection `OnPush` (par défaut depuis Angular 22), control flow natif, `inject()`.
 - Styles en SCSS uniquement via les jetons et fonctions de `src/styles` (TRD §10, Brief UI/UX).
-- Après chaque sous-tâche : cocher la case dans `avancement.md` et ajouter une note si nécessaire.
+- Après chaque sous-tâche : cocher la case dans le fichier du lot (`avancement/lot-*.md`), ajouter une note si nécessaire et mettre à jour la synthèse d'`avancement.md`.
 
 ## Structure
 
