@@ -105,11 +105,15 @@
   color: color(text-secondary);
 }
 
-// Fiche ouverte (Brief §7.2) : colonne de 760 px au plus, comme le texte de scène.
+// Fiche ouverte (Brief §7.2), mise en page de l'éditeur de scène : titre aligné à gauche
+// (760 px au plus), texte centré sur les trois quarts de la zone centrale.
 .sheet {
   display: flex;
   flex-direction: column;
   gap: space(12);
+}
+
+.sheet__heading {
   max-width: layout(feed-max);
 }
 
@@ -143,9 +147,16 @@
   }
 }
 
-// La barre d'outils Markdown flotte au-dessus du champ au focus : l'espace laissé sous le titre
-// l'accueille sans le recouvrir (le titre et le texte sont alignés à gauche).
+// Comme le texte de scène, centré ; la barre d'outils Markdown, qui flotte au-dessus du champ au
+// focus, a assez de place sous le titre pour ne pas le recouvrir.
+.sheet__text,
+.sheet__usage {
+  width: calc(100% * 3 / 4);
+  margin-inline: auto;
+}
+
 .sheet__text {
+  display: block;
   margin-top: space(32);
 }
 

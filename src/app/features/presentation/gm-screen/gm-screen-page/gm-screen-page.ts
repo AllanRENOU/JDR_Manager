@@ -172,14 +172,10 @@ export class GmScreenPage {
     if (title === null) {
       return;
     }
-    const path = pathTo(this.engine.sheetNodes(), sheetId)
-      .slice(0, -1)
-      .map((n) => n.name)
-      .join(' › ');
     this.sheetRef?.close();
     const ref = this.modals.open<unknown, SheetDialogData, SheetDialog>(SheetDialog, {
       size: 'lg',
-      data: { title, path, text: this.engine.sheetText(sheetId) },
+      data: { title, text: this.engine.sheetText(sheetId) },
     });
     this.sheetRef = ref;
     ref.closed.subscribe(() => {

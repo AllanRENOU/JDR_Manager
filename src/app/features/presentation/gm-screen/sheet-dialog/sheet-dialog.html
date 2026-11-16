@@ -1,7 +1,10 @@
-<app-modal [title]="sheet.title" [subtitle]="sheet.path">
+<app-modal [title]="sheet.title">
   @if (sheet.text.trim()) {
     <div class="sheet app-markdown" [innerHTML]="sheet.text | markdown"></div>
   } @else {
     <p class="empty">{{ 'presentation.sheetEmpty' | transloco }}</p>
   }
+  <button modalFooterEnd appButton="secondary" type="button" (click)="ref.close()">
+    {{ 'common.actions.close' | transloco }}
+  </button>
 </app-modal>

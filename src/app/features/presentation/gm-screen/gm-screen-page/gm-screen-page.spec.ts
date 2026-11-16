@@ -303,7 +303,7 @@ describe('GmScreenPage', () => {
 
     await page.engine.runAction('accueil');
     await waitDialog('Aubergiste');
-    expect(dialogs()[0].textContent).toContain('PNJ');
+    expect(dialogs()[0].textContent).not.toContain('PNJ');
     expect(dialogs()[0].querySelector('strong')?.textContent).toBe('Bourru');
 
     // Une autre fiche remplace la première.
