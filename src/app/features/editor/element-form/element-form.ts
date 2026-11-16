@@ -15,6 +15,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { LucideTriangleAlert } from '@lucide/angular';
 
 import { ActionElement, Id } from '../../../core/models';
+import { pathTo } from '../../../shared/tree/tree-model';
 import { MarkdownEditor } from '../../../shared/markdown/markdown-editor';
 import { Selections } from '../../../shared/selection-dialog/selections';
 import { Button } from '../../../shared/ui/button/button';
@@ -311,6 +312,21 @@ export class ElementForm {
     return names.join(' › ');
   });
 
+  /** Chemin de la fiche choisie (« PNJ › Garde ») ; `null` : pas choisie ; `false` : supprimée. */
+  protected readonly sheetLabel = computed<string | null | false>(() => {
+    const element = this.element();
+    if (element.type !== 'show-sheet' || !element.sheetId) {
+      return null;
+    }
+    const nodes = this.context().sheetNodes ?? [];
+    if (!nodes.some((n) => n.id === element.sheetId && n.kind === 'item')) {
+      return false;
+    }
+    return pathTo(nodes, element.sheetId)
+      .map((n) => n.name)
+      .join(' › ');
+  });
+
   /** Message d'erreur (clé de traduction) d'un champ, une fois le champ quitté. */
   protected error(field: keyof ElementFields): string {
     const state = this.form[field]();
@@ -377,6 +393,25 @@ export class ElementForm {
     });
     if (chosen?.[0]) {
       this.elementChange.emit({ ...element, sceneId: chosen[0] });
+    }
+  }
+
+  /** Fenêtre de sélection unique d'une fiche du projet, avec recherche (ACT-16). */
+  protected async chooseSheet(): Promise<void> {
+    const element = this.element();
+    if (element.type !== 'show-sheet') {
+      return;
+    }
+    const chosen = await this.selections.select({
+      title: this.transloco.translate('action.form.chooseSheetTitle'),
+      subtitle: this.transloco.translate('action.form.chooseSheetSubtitle'),
+      nodes: this.context().sheetNodes ?? [],
+      mode: 'single',
+      checkedIds: element.sheetId ? [element.sheetId] : [],
+    });
+    const latest = this.element();
+    if (chosen?.[0] && latest.type === 'show-sheet') {
+      this.elementChange.emit({ ...latest, sheetId: chosen[0] });
     }
   }
 }

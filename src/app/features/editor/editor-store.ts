@@ -16,6 +16,8 @@ import {
   Project,
   Scene,
   SceneNode,
+  SheetNode,
+  ShowSheetElement,
   LibraryNode,
   TreeNodeKind,
   Trigger,
@@ -42,10 +44,11 @@ export interface ActionText {
 }
 
 /**
- * Élément montré sous le texte de scène : texte (éditable), attente ou clic de l'utilisateur
- * (en lecture seule).
+ * Élément montré sous le texte de scène : texte (éditable), attente, clic de l'utilisateur,
+ * changement de scène ou fiche (en lecture seule).
  */
-export type ShownElement = AddTextElement | WaitElement | UserClickElement | ChangeSceneElement;
+export type ShownElement =
+  AddTextElement | WaitElement | UserClickElement | ChangeSceneElement | ShowSheetElement;
 
 /** Éléments montrés d'une même action, dans l'ordre de l'action, sous une seule pastille. */
 export interface ActionTextGroup {
@@ -129,6 +132,8 @@ export class EditorStore {
 
   /** Battlemaps de la scène ouverte, par `order`. */
   readonly battlemaps = signal<Battlemap[]>([]);
+  /** Arborescence des fiches du projet : choix et titre des fiches (« Afficher une fiche »). */
+  readonly sheetNodes = signal<readonly SheetNode[]>([]);
   /** Nœuds des bibliothèques de sons (projet puis globale), pour choisir et nommer les sons. */
   readonly soundNodes = signal<readonly LibraryNode[]>([]);
   /** Noms des sons (bibliothèque du projet et globale), pour résumer les actions. */
@@ -175,7 +180,8 @@ export class EditorStore {
             (e.type === 'add-text' && e !== sceneTextElement) ||
             e.type === 'wait' ||
             e.type === 'user-click' ||
-            e.type === 'change-scene',
+            e.type === 'change-scene' ||
+            e.type === 'show-sheet',
         ),
       }))
       .filter((group) => group.elements.length > 0);
@@ -201,6 +207,11 @@ export class EditorStore {
   /** Écritures enchaînées une à une : deux saisies rapprochées ne créent pas deux actions. */
   private writes: Promise<unknown> = Promise.resolve();
 
+  /** Titre d'une fiche du projet ; `null` si elle a été supprimée (PRS-07). */
+  sheetNameOf(sheetId: Id): string | null {
+    return this.sheetNodes().find((n) => n.id === sheetId && n.kind === 'item')?.name ?? null;
+  }
+
   /** Nom d'une scène du projet ; `null` si elle a été supprimée (PRS-07). */
   sceneNameOf(sceneId: Id): string | null {
     return this.sceneNodes().find((n) => n.id === sceneId && n.kind === 'item')?.name ?? null;
@@ -223,13 +234,15 @@ export class EditorStore {
       this.status.set('missing');
       return;
     }
-    const [nodes, projectSounds, globalSounds] = await Promise.all([
+    const [nodes, projectSounds, globalSounds, sheetNodes] = await Promise.all([
       this.repository.listSceneNodes(projectId),
       this.repository.listLibraryNodes(projectId),
       this.repository.listLibraryNodes(GLOBAL_LIBRARY),
+      this.repository.listSheetNodes(projectId),
     ]);
     this.project.set(project);
     this.sceneNodes.set(nodes);
+    this.sheetNodes.set(sheetNodes);
     this.soundNodes.set([...projectSounds, ...globalSounds]);
     await this.refreshSceneLinks();
     const firstItem = nodes.find((n) => n.kind === 'item');

@@ -1,4 +1,12 @@
-import { Action, ActionElement, Battlemap, Id, SceneNode, LibraryNode } from '../../core/models';
+import {
+  Action,
+  ActionElement,
+  Battlemap,
+  Id,
+  LibraryNode,
+  SceneNode,
+  SheetNode,
+} from '../../core/models';
 
 /** Données nécessaires pour nommer ce que vise un élément. */
 export interface SummaryContext {
@@ -10,8 +18,8 @@ export interface SummaryContext {
   sceneNodes: readonly SceneNode[];
   /** Actions de la scène : cible de « Afficher l'action » et « Masquer l'action » (ACT-12). */
   actions?: readonly Action[];
-  /** Titres des fiches du projet, par id de `SheetNode` (« Afficher une fiche », lot 15). */
-  sheetNames?: Readonly<Record<Id, string>>;
+  /** Arborescence des fiches du projet (« Afficher une fiche », lot 15). */
+  sheetNodes?: readonly SheetNode[];
 }
 
 /** Partie de résumé d'un élément : clé de traduction et paramètres ; `missing` = cible supprimée (PRS-07). */
@@ -77,7 +85,7 @@ export function summarizeElement(element: ActionElement, context: SummaryContext
         : { key: `action.summary.${verb}s`, params: { count: targets.length }, missing: false };
     }
     case 'show-sheet': {
-      const name = context.sheetNames?.[element.sheetId];
+      const name = sheetName(element.sheetId, context);
       return name
         ? { key: 'action.summary.sheet', params: { name }, missing: false }
         : { key: 'action.summary.sheetMissing', params: {}, missing: true };
@@ -137,11 +145,16 @@ export function describeElement(element: ActionElement, context: SummaryContext)
       }
       return describeActionTargets(actionTargets(element.actionIds, context));
     case 'show-sheet':
-      return target(element.sheetId, context.sheetNames?.[element.sheetId]);
+      return target(element.sheetId, sheetName(element.sheetId, context));
     case 'stop-all-sounds':
     case 'stop-video':
       return { missing: false };
   }
+}
+
+/** Titre d'une fiche du projet ; `undefined` si elle a été supprimée. */
+function sheetName(id: Id, context: SummaryContext): string | undefined {
+  return context.sheetNodes?.find((n) => n.id === id && n.kind === 'item')?.name;
 }
 
 /** Actions visées, dans l'ordre de la liste ; `undefined` pour une action supprimée. */

@@ -26,6 +26,10 @@
     color: color(el-scene-fg);
   }
 
+  :host(.pause--sheet) & {
+    color: color(el-sheet-fg);
+  }
+
   svg {
     width: space(18);
     height: space(18);

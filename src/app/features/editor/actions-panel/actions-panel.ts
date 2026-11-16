@@ -69,6 +69,7 @@ export class ActionsPanel {
     soundNodes: this.store.soundNodes(),
     battlemaps: this.store.battlemaps(),
     sceneNodes: this.store.sceneNodes(),
+    sheetNodes: this.store.sheetNodes(),
     actions: this.store.actions(),
   }));
 

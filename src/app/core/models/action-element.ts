@@ -135,6 +135,7 @@ export type ActionElementType = ActionElement['type'];
 /** Liste ordonnée des types d'éléments (menu « Ajouter un élément »). */
 export const ACTION_ELEMENT_TYPES: readonly ActionElementType[] = [
   'add-text',
+  'show-sheet',
   'show-battlemap',
   'play-sound',
   'stop-sound',

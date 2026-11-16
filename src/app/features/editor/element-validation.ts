@@ -18,6 +18,8 @@ export function elementProblem(element: ActionElement): string | null {
       return element.videoId ? null : 'action.form.videoRequired';
     case 'change-scene':
       return element.sceneId ? null : 'action.form.sceneRequired';
+    case 'show-sheet':
+      return element.sheetId ? null : 'action.form.sheetRequired';
     case 'show-action':
       return element.actionIds.length ? null : 'action.form.actionRequired';
     case 'hide-action':

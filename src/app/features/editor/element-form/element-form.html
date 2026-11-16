@@ -172,6 +172,38 @@
     </div>
   }
 
+  @case ('show-sheet') {
+    @let sheet = sheetLabel();
+    <div class="group">
+      <span class="label">{{ 'action.form.sheet' | transloco }}</span>
+      <button
+        class="choice"
+        [class.choice--missing]="sheet === false || !!choiceError()"
+        [attr.aria-invalid]="choiceError() ? true : null"
+        type="button"
+        (click)="chooseSheet()"
+      >
+        <span class="choice__value">
+          @if (sheet === false) {
+            <svg lucideTriangleAlert aria-hidden="true"></svg
+            >{{ 'action.form.sheetMissing' | transloco }}
+          } @else {
+            {{ sheet ?? ('action.form.noSheet' | transloco) }}
+          }
+        </span>
+        <span class="choice__action">
+          {{ (sheet ? 'action.form.change' : 'action.form.choose') | transloco }}
+        </span>
+      </button>
+      @if (choiceError()) {
+        <p class="error">{{ choiceError() | transloco }}</p>
+      }
+      @if (!(context().sheetNodes ?? []).length) {
+        <p class="help">{{ 'action.form.noSheetInProject' | transloco }}</p>
+      }
+    </div>
+  }
+
   @case ('show-action') {
     <ng-container *ngTemplateOutlet="actionChoice" />
   }

@@ -1,6 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { aBattlemap, aSceneNode, aSoundNode, anAction } from '../../../../testing/data-builders';
+import {
+  aBattlemap,
+  aSceneNode,
+  aSheetNode,
+  aSoundNode,
+  anAction,
+} from '../../../../testing/data-builders';
 import { useTestRepository } from '../../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
 import { ActionElement } from '../../../core/models';
@@ -19,11 +25,14 @@ describe('ElementForm', () => {
   const ending = aSoundNode('p1', { id: 'vid2', name: 'Fin', mediaKind: 'video' });
   const groundFloor = aBattlemap('s1', 'm1', { id: 'b1', name: 'Rez-de-chaussée' });
   const upstairs = aBattlemap('s1', 'm2', { id: 'b2', name: 'Étage' });
+  const npcs = aSheetNode('p1', { id: 'pnj', kind: 'folder', name: 'PNJ' });
+  const guard = aSheetNode('p1', { id: 'garde', name: 'Garde', parentId: npcs.id });
   const context: SummaryContext = {
     soundNames: {},
     soundNodes: [fight, rain, intro, ending],
     battlemaps: [groundFloor, upstairs],
     sceneNodes: [folder, tavern, forest],
+    sheetNodes: [npcs, guard],
   };
 
   beforeEach(() => {
@@ -225,6 +234,40 @@ describe('ElementForm', () => {
     expect(choiceButton(el).classList).toContain('choice--missing');
     expect(choiceButton(el).textContent).toContain('Scène supprimée');
     expect(choiceButton(el).textContent).toContain('Choisir');
+  });
+
+  it('Afficher une fiche : sélection unique dans l’arborescence des fiches, chemin affiché (ACT-16)', async () => {
+    const { el, emitted } = render({ id: 'e1', type: 'show-sheet', sheetId: '' });
+    expect(choiceButton(el).textContent).toContain('Aucune fiche choisie');
+    expect(el.textContent).not.toContain('pas encore de fiche');
+
+    select.mockResolvedValue(['garde']);
+    choiceButton(el).click();
+    await vi.waitFor(() =>
+      expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'show-sheet', sheetId: 'garde' }),
+    );
+    expect(select.mock.calls[0][0]).toMatchObject({
+      title: 'Fiche à afficher',
+      nodes: [npcs, guard],
+      mode: 'single',
+      checkedIds: [],
+    });
+    TestBed.tick();
+    expect(choiceButton(el).textContent).toContain('PNJ › Garde');
+    expect(choiceButton(el).textContent).toContain('Changer');
+  });
+
+  it('Afficher une fiche : une fiche supprimée est signalée ; sans fiche, une aide renvoie à l’onglet Fiches', () => {
+    const { el } = render({ id: 'e1', type: 'show-sheet', sheetId: 'supprimée' });
+    expect(choiceButton(el).classList).toContain('choice--missing');
+    expect(choiceButton(el).textContent).toContain('Fiche supprimée');
+
+    const { fixture } = render({ id: 'e2', type: 'show-sheet', sheetId: '' });
+    fixture.componentRef.setInput('context', { ...context, sheetNodes: [] });
+    TestBed.tick();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Ce projet n’a pas encore de fiche : créez-en dans l’onglet « Fiches ».',
+    );
   });
 
   it('Attendre : durée positive en secondes (8.3.7)', () => {

@@ -34,6 +34,13 @@ describe('elementProblem', () => {
     expect(elementProblem({ id: 'e', type: 'stop-video' })).toBeNull();
   });
 
+  it('exige une fiche choisie pour « Afficher une fiche » ; une fiche supprimée n’est pas bloquante', () => {
+    expect(elementProblem({ id: 'e', type: 'show-sheet', sheetId: '' })).toBe(
+      'action.form.sheetRequired',
+    );
+    expect(elementProblem({ id: 'e', type: 'show-sheet', sheetId: 'supprimée' })).toBeNull();
+  });
+
   it('une cible supprimée n’est pas bloquante (signalée, PRS-07)', () => {
     expect(elementProblem({ id: 'e', type: 'change-scene', sceneId: 'supprimée' })).toBeNull();
     expect(elementProblem({ id: 'e', type: 'stop-sound', soundId: 'supprimé' })).toBeNull();

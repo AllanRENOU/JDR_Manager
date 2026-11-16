@@ -1,17 +1,17 @@
 import { TestBed } from '@angular/core/testing';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
-import { ChangeSceneElement, UserClickElement, WaitElement } from '../../../core/models';
+import { ShownElement } from '../editor-store';
 import { ActionPause } from './action-pause';
 
 describe('ActionPause', () => {
   async function render(
-    element: WaitElement | UserClickElement | ChangeSceneElement,
-    sceneName: string | null = null,
+    element: Exclude<ShownElement, { type: 'add-text' }>,
+    targetName: string | null = null,
   ): Promise<HTMLElement> {
     TestBed.configureTestingModule({ imports: [ActionPause, getTranslocoTestingModule()] });
     const fixture = TestBed.createComponent(ActionPause);
     fixture.componentRef.setInput('element', element);
-    fixture.componentRef.setInput('sceneName', sceneName);
+    fixture.componentRef.setInput('targetName', targetName);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;
   }
@@ -58,6 +58,19 @@ describe('ActionPause', () => {
     const el = await render({ id: 's', type: 'change-scene', sceneId: 'b' }, null);
     expect(el.querySelector('.pause__missing')?.textContent?.trim()).toBe(
       'Changer de scène : scène supprimée',
+    );
+  });
+
+  it('Afficher une fiche : « Ouvrir la fiche » avec son titre', async () => {
+    const el = await render({ id: 'f', type: 'show-sheet', sheetId: 'garde' }, 'Garde du pont');
+    expect(el.classList).toContain('pause--sheet');
+    expect(el.textContent?.replace(/\s+/g, ' ').trim()).toBe('Ouvrir la fiche « Garde du pont »');
+  });
+
+  it('Afficher une fiche supprimée : signalé (PRS-07)', async () => {
+    const el = await render({ id: 'f', type: 'show-sheet', sheetId: 'garde' }, null);
+    expect(el.querySelector('.pause__missing')?.textContent).toContain(
+      'Afficher une fiche : fiche supprimée',
     );
   });
 });

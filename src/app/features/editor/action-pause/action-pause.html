@@ -4,6 +4,8 @@
     <svg lucideHourglass></svg>
   } @else if (el.type === 'change-scene') {
     <svg lucideClapperboard></svg>
+  } @else if (el.type === 'show-sheet') {
+    <svg lucideScrollText></svg>
   } @else {
     <svg lucideMousePointerClick></svg>
   }
@@ -19,10 +21,19 @@
 } @else if (el.type === 'change-scene') {
   <!-- Comme en Présentation : la scène change au clic du MJ sur « Aller ». -->
   <p class="pause__text">
-    @if (sceneName(); as name) {
+    @if (targetName(); as name) {
       {{ 'scene.pause.changeScene' | transloco: { name } }}
     } @else {
       <span class="pause__missing">{{ 'scene.pause.sceneMissing' | transloco }}</span>
+    }
+  </p>
+} @else if (el.type === 'show-sheet') {
+  <!-- Comme en Présentation : la fiche s'ouvre dans une fenêtre du MJ, l'action continue. -->
+  <p class="pause__text">
+    @if (targetName(); as name) {
+      {{ 'scene.pause.showSheet' | transloco: { name } }}
+    } @else {
+      <span class="pause__missing">{{ 'scene.pause.sheetMissing' | transloco }}</span>
     }
   </p>
 } @else {

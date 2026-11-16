@@ -1,6 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { aBattlemap, aProject, aScene, aSceneNode, anAction } from '../../../testing/data-builders';
+import {
+  aBattlemap,
+  anAction,
+  aProject,
+  aScene,
+  aSceneNode,
+  aSheetNode,
+} from '../../../testing/data-builders';
 import { useNodeBlob } from '../../../testing/node-blob';
 import { useTestRepository } from '../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../testing/transloco-testing';
@@ -197,6 +204,26 @@ describe('EditorStore', () => {
       return { project, act, tavern, market, crypt };
     }
 
+    it('charge les fiches du projet et donne leur titre (« Afficher une fiche », ACT-16)', async () => {
+      const { project } = await loadTree();
+      const garde = aSheetNode(project.id, { id: 'garde', name: 'Garde' });
+      await repository().saveSheetNodes([
+        garde,
+        aSheetNode(project.id, { id: 'pnj', kind: 'folder', name: 'PNJ' }),
+        aSheetNode('autre', { name: 'Autre projet' }),
+      ]);
+      await store.load(project.id);
+      expect(
+        store
+          .sheetNodes()
+          .map((n) => n.name)
+          .sort(),
+      ).toEqual(['Garde', 'PNJ']);
+      expect(store.sheetNameOf('garde')).toBe('Garde');
+      expect(store.sheetNameOf('pnj')).toBeNull();
+      expect(store.sheetNameOf('supprimée')).toBeNull();
+    });
+
     it('choisit le dossier de création selon la sélection de l’arborescence', async () => {
       const { act, tavern, crypt } = await loadTree();
       // Dossier sélectionné : création dedans.
@@ -293,6 +320,7 @@ describe('EditorStore', () => {
           { id: 'e2', type: 'change-scene', sceneId: market.id },
           { id: 'e3', type: 'show-action', actionIds: [text.id] },
           { id: 'e4', type: 'hide-action', actionIds: [text.id] },
+          { id: 'e5', type: 'show-sheet', sheetId: 'garde' },
         ],
       });
       await repository().saveBattlemap(map);
@@ -338,6 +366,8 @@ describe('EditorStore', () => {
         // « Afficher l'action » vise la copie de l'action (ACT-12).
         { id: expect.not.stringMatching(/^e3$/), type: 'show-action', actionIds: [actions[0].id] },
         { id: expect.not.stringMatching(/^e4$/), type: 'hide-action', actionIds: [actions[0].id] },
+        // Les fiches sont celles du projet : la copie vise la même fiche.
+        { id: expect.not.stringMatching(/^e5$/), type: 'show-sheet', sheetId: 'garde' },
       ]);
       // L'original n'a pas changé.
       expect((await repository().listActions(tavern.id))[1].elements[0]).toMatchObject({
@@ -456,6 +486,7 @@ describe('EditorStore', () => {
           order: 2,
           elements: [
             text('f1', 'Ils fuient.'),
+            { id: 'sh', type: 'show-sheet', sheetId: 'garde' },
             { id: 'cs', type: 'change-scene', sceneId: node.id },
           ],
         }),
@@ -473,7 +504,7 @@ describe('EditorStore', () => {
         store.actionTextGroups().map((g) => [g.action.name, g.elements.map((e) => e.id)]),
       ).toEqual([
         ['Bagarre', ['b1', 'w', 'b2', 'c']],
-        ['Fuite', ['f1', 'cs']],
+        ['Fuite', ['f1', 'sh', 'cs']],
       ]);
     });
 

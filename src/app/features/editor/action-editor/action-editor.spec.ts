@@ -182,7 +182,7 @@ describe('ActionEditor', () => {
         `${c.querySelector('.card__type')?.textContent?.trim()} ${c.querySelector('.card__detail')?.textContent?.trim()}`.trim(),
       );
 
-    it('ajoute un élément par le menu des 12 types, à la fin, seul déplié (8.2.3)', async () => {
+    it('ajoute un élément par le menu des 13 types, à la fin, seul déplié (8.2.3)', async () => {
       const { dialog, result } = open(
         anAction('s1', { name: 'Bagarre', elements: [text('a', 'Un')] }),
       );
@@ -192,7 +192,7 @@ describe('ActionEditor', () => {
       button(dialog, 'Ajouter un élément').click();
       await vi.waitFor(() => {
         TestBed.tick();
-        expect(document.querySelectorAll('.types-menu .app-menu-item')).toHaveLength(12);
+        expect(document.querySelectorAll('.types-menu .app-menu-item')).toHaveLength(13);
       });
       const items = [...document.querySelectorAll<HTMLButtonElement>('.types-menu .app-menu-item')];
       expect(items.map((i) => i.textContent?.trim())).toEqual([
@@ -203,13 +203,14 @@ describe('ActionEditor', () => {
         'Lancer la vidéo',
         'Arrêter la vidéo',
         'Afficher un texte',
+        'Afficher une fiche',
         'Changer de scène',
         'Afficher l’action',
         'Masquer l’action',
         'Attendre',
         'Clic de l’utilisateur',
       ]);
-      items[10].click();
+      items[11].click();
       TestBed.tick();
       expect(titles(dialog)).toEqual(['Afficher un texte Un', 'Attendre 1 s']);
       const cards = [...dialog.querySelectorAll('app-element-card')];

@@ -212,8 +212,12 @@
                 } @else {
                   <app-action-pause
                     [element]="element"
-                    [sceneName]="
-                      element.type === 'change-scene' ? store.sceneNameOf(element.sceneId) : null
+                    [targetName]="
+                      element.type === 'change-scene'
+                        ? store.sceneNameOf(element.sceneId)
+                        : element.type === 'show-sheet'
+                          ? store.sheetNameOf(element.sheetId)
+                          : null
                     "
                   />
                 }

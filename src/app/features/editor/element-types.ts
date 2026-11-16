@@ -58,6 +58,7 @@ const MENU_ORDER: readonly ActionElementType[] = [
   'play-video',
   'stop-video',
   'add-text',
+  'show-sheet',
   'change-scene',
   'show-action',
   'hide-action',

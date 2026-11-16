@@ -1,4 +1,4 @@
-import { aBattlemap, aSceneNode, anAction } from '../../../testing/data-builders';
+import { aBattlemap, aSceneNode, aSheetNode, anAction } from '../../../testing/data-builders';
 import {
   SummaryContext,
   describeElement,
@@ -157,6 +157,45 @@ describe('summarizeElement', () => {
     expect(describeElement(element, context)).toEqual({
       key: 'action.detail.allActions',
       missing: false,
+    });
+  });
+});
+
+describe('« Afficher une fiche » (ACT-16, PRS-07)', () => {
+  const folder = aSheetNode('p1', { id: 'pnj', kind: 'folder', name: 'PNJ' });
+  const garde = aSheetNode('p1', { id: 'garde', name: 'Garde', parentId: folder.id });
+  const context: SummaryContext = {
+    soundNames: {},
+    battlemaps: [],
+    sceneNodes: [],
+    sheetNodes: [folder, garde],
+  };
+  const show = (sheetId: string) => ({ id: 'f', type: 'show-sheet', sheetId }) as const;
+
+  it('résume avec le titre de la fiche, ou signale une fiche supprimée', () => {
+    expect(summarizeElement(show('garde'), context)).toEqual({
+      key: 'action.summary.sheet',
+      params: { name: 'Garde' },
+      missing: false,
+    });
+    expect(summarizeElement(show('supprimée'), context)).toMatchObject({
+      key: 'action.summary.sheetMissing',
+      missing: true,
+    });
+    // Un dossier n'est pas une fiche.
+    expect(summarizeElement(show('pnj'), context).missing).toBe(true);
+    expect(hasMissingTarget(anAction('s1', { elements: [show('supprimée')] }), context)).toBe(true);
+  });
+
+  it('détail replié : titre, « À choisir » ou « Supprimé »', () => {
+    expect(describeElement(show('garde'), context)).toEqual({ raw: 'Garde', missing: false });
+    expect(describeElement(show(''), context)).toMatchObject({
+      key: 'action.detail.notChosen',
+      missing: true,
+    });
+    expect(describeElement(show('supprimée'), context)).toMatchObject({
+      key: 'action.detail.deleted',
+      missing: true,
     });
   });
 });
