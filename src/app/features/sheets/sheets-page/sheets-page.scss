@@ -1,0 +1,81 @@
+@use 'functions' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.title {
+  overflow: hidden;
+  font-size: font-size(section);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mode {
+  flex-shrink: 0;
+  color: color(accent-text);
+}
+
+.sheets {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.sheets__missing {
+  margin: space(32);
+}
+
+.sheets__tree {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: space(8);
+  width: layout(sidebar-left);
+  padding: space(12) space(8);
+  overflow-y: auto;
+  border-right: 1px solid color(border-subtle);
+  background: color(bg-panel);
+}
+
+.sheets__content {
+  flex: 1;
+  min-width: 0;
+  padding: space(32);
+  overflow-y: auto;
+}
+
+.tree-header {
+  display: flex;
+  align-items: center;
+  gap: space(4);
+  min-height: control-height(sm);
+  padding: 0 space(4) 0 space(8);
+}
+
+.tree-header__title {
+  flex: 1;
+  color: color(text-secondary);
+  font-size: font-size(label);
+  font-weight: font-weight(semibold);
+  letter-spacing: letter-spacing(overline);
+  text-transform: uppercase;
+}
+
+// État vide (Brief §7.2) : visuel de remplacement, message et, à venir, « Nouvelle fiche ».
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: space(16);
+  margin-top: space(64);
+  color: color(text-secondary);
+}
+
+.empty__visual {
+  width: space(160);
+  aspect-ratio: 16 / 10;
+  border-radius: radius(lg);
+}

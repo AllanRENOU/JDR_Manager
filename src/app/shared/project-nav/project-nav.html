@@ -9,6 +9,14 @@
   </a>
   <a
     class="nav__link"
+    [routerLink]="['/projects', projectId(), 'sheets']"
+    routerLinkActive="nav__link--active"
+    ariaCurrentWhenActive="page"
+  >
+    {{ 'sound.navSheets' | transloco }}
+  </a>
+  <a
+    class="nav__link"
     [routerLink]="['/projects', projectId(), 'library']"
     routerLinkActive="nav__link--active"
     ariaCurrentWhenActive="page"

@@ -47,7 +47,7 @@ describe('LibraryPage', () => {
     expect(el.querySelector('app-header a')?.getAttribute('href')).toBe('/projects');
   });
 
-  it('dans un projet : nom du projet, navigation Scènes / Bibliothèque et bouton Présenter (6.1)', async () => {
+  it('dans un projet : nom du projet, navigation Scènes / Fiches / Bibliothèque et bouton Présenter (6.1)', async () => {
     const project = aProject({ name: 'La crypte' });
     await TestBed.inject(DATA_REPOSITORY).saveProject(project);
     const { fixture, el } = await render(project.id);
@@ -56,7 +56,11 @@ describe('LibraryPage', () => {
       expect(el.querySelector('h1')?.textContent).toContain('La crypte');
     });
     const links = [...el.querySelectorAll('app-project-nav a')].map((a) => a.getAttribute('href'));
-    expect(links).toEqual([`/projects/${project.id}/edit`, `/projects/${project.id}/library`]);
+    expect(links).toEqual([
+      `/projects/${project.id}/edit`,
+      `/projects/${project.id}/sheets`,
+      `/projects/${project.id}/library`,
+    ]);
     expect(el.querySelector(`a[href="/projects/${project.id}/play?demo=1"]`)).not.toBeNull();
   });
 

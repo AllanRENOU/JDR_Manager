@@ -32,6 +32,11 @@ export const routes: Routes = [
   },
   { path: 'projects/:projectId/sounds', redirectTo: 'projects/:projectId/library' },
   {
+    path: 'projects/:projectId/sheets',
+    loadComponent: () =>
+      import('./features/sheets/sheets-page/sheets-page').then((m) => m.SheetsPage),
+  },
+  {
     path: 'projects/:projectId/play',
     loadComponent: () =>
       import('./features/presentation/gm-screen/gm-screen-page/gm-screen-page').then(

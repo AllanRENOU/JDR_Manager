@@ -425,6 +425,12 @@
       "help": "Afficher cette aide"
     }
   },
+  "sheet": {
+    "title": "Fiches",
+    "treeLabel": "Arborescence des fiches",
+    "contentLabel": "Fiche ouverte",
+    "empty": "Choisissez une fiche ou créez-en une."
+  },
   "sound": {
     "library": "Bibliothèque",
     "launch": "Lancer un son ou une vidéo",
@@ -437,6 +443,7 @@
     "openGlobalLabel": "Ouvrir la bibliothèque globale (sons et vidéos)",
     "nav": "Navigation du projet",
     "navScenes": "Scènes",
+    "navSheets": "Fiches",
     "navLibrary": "Bibliothèque",
     "projectTree": "Bibliothèque du projet",
     "globalTree": "Bibliothèque globale",

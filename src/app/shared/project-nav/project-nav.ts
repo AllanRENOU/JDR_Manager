@@ -4,7 +4,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Id } from '../../core/models';
 
-/** Navigation du mode Édition d'un projet : Scènes / Sons (Brief §7.1, maquette « Sons »). */
+/** Navigation du mode Édition d'un projet : Scènes / Fiches / Bibliothèque (Brief §7.1, §7.2). */
 @Component({
   selector: 'app-project-nav',
   imports: [RouterLink, RouterLinkActive, TranslocoPipe],

@@ -1,0 +1,64 @@
+@let project = store.project();
+<app-header>
+  <a
+    headerStart
+    appButton="icon"
+    size="header"
+    routerLink="/projects"
+    [attr.aria-label]="'project.backToProjects' | transloco"
+  >
+    <svg lucideArrowLeft aria-hidden="true"></svg>
+  </a>
+  @if (project) {
+    <h1 class="title">{{ project.name }}</h1>
+    <svg
+      lucidePencilRuler
+      class="mode"
+      role="img"
+      [attr.aria-label]="'project.editMode' | transloco"
+    ></svg>
+    <app-project-nav [projectId]="project.id" />
+  }
+  @if (project) {
+    <!-- Démo à partir de la dernière scène ouverte dans l'éditeur : rien n'est lu ni enregistré. -->
+    <a
+      headerEnd
+      appButton
+      size="header"
+      [routerLink]="['/projects', project.id, 'play']"
+      [queryParams]="{ demo: 1 }"
+      [attr.title]="'project.presentDemoHint' | transloco"
+      (click)="unlockAudio()"
+    >
+      <svg lucidePlay aria-hidden="true"></svg>{{ 'project.present' | transloco }}
+    </a>
+  }
+  <app-settings-button headerEnd />
+</app-header>
+
+<main class="sheets">
+  @switch (store.status()) {
+    @case ('missing') {
+      <app-alert class="sheets__missing">
+        {{ 'project.notFound' | transloco }}
+        <a alertAction routerLink="/projects">{{ 'project.backToProjects' | transloco }}</a>
+      </app-alert>
+    }
+    @case ('ready') {
+      <aside class="sheets__tree" [attr.aria-label]="'sheet.treeLabel' | transloco">
+        <div class="tree-header">
+          <span class="tree-header__title">{{ 'sheet.title' | transloco }}</span>
+        </div>
+      </aside>
+
+      <section class="sheets__content" [attr.aria-label]="'sheet.contentLabel' | transloco">
+        <div class="empty">
+          <app-placeholder class="empty__visual">
+            <svg lucideScrollText aria-hidden="true"></svg>
+          </app-placeholder>
+          <p>{{ 'sheet.empty' | transloco }}</p>
+        </div>
+      </section>
+    }
+  }
+</main>
