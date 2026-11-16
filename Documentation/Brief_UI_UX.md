@@ -91,6 +91,7 @@ Chaque type a une couleur d'icône (`-fg`) et une couleur de fond (`-bg`), utili
 | Changer de scène | `--el-scene-fg`, `--el-scene-bg` |
 | Afficher l'action | `--el-action-fg`, `--el-action-bg` |
 | Lancer / arrêter la vidéo (lot 12 ter) | `--el-video-fg`, `--el-video-bg` |
+| Afficher une fiche (lot 15) | `--el-sheet-fg`, `--el-sheet-bg` |
 
 ### 2.7 Dossiers et visuels de remplacement
 
@@ -256,7 +257,9 @@ Hauteurs : **44 px** (standard), 40 px (en-tête), 34–36 px (dans un volet), 4
 
 - Fond derrière : `--bg-backdrop` à 90 % d'opacité (décision d'Allan, retours de test).
 - Fenêtre : fond `--bg-card`, bordure `--border-subtle`, rayon 16–18.
-- Largeurs : 560 px (sélection, confirmation), 620 px (lancement), 900 px (édition d'une action).
+- Largeurs : 560 px (sélection, confirmation), 620 px (lancement, recherche de fiche), 900 px (édition d'une action, fiche en Présentation).
+- **Fiche** (lot 15, PRD FCH-08) : taille `lg` ; en-tête = titre de la fiche (Cinzel) et chemin du dossier en sous-titre (« PNJ › Auberge ») ; corps = texte rendu (`.app-markdown`, Lora comme le fil), qui défile ; pas de pied, fermeture par le bouton fermer ou Échap. Lecture seule. Fiche vide : « Cette fiche est vide. » en `--text-tertiary` italique.
+- **Recherche de fiche** (lot 15, PRD CTL-14) : taille `md` ; champ de recherche en haut (focus à l'ouverture) ; liste des fiches dans l'ordre de l'arborescence, chaque ligne = icône `ScrollText` en `--el-sheet-fg`, titre, chemin en `--text-tertiary` et, pendant une recherche, extrait du texte avec le terme en gras ; flèches haut / bas pour se déplacer, Entrée ou clic pour ouvrir (la recherche se ferme et la fiche s'ouvre). Aucune fiche : « Aucune fiche dans ce projet. » ; aucun résultat : « Aucune fiche ne correspond à « … ». »
 - En-tête : titre Cinzel + sous-titre de contexte + bouton fermer ; pied : action destructive à gauche, Annuler + action principale à droite.
 - Confirmation destructive : bordure `--danger-border`, icône d'alerte dans un cercle `--danger-bg`, bouton « Danger fort ».
 
@@ -266,6 +269,7 @@ Hauteurs : **44 px** (standard), 40 px (en-tête), 34–36 px (dans un volet), 4
 - **Texte** : carte `--bg-card`, rayon 14, marge 22 × 24, Lora 20 px. Markdown interprété (classe `.app-markdown`) : titres en Cinzel `--accent-text`, citation avec filet gauche `--accent` 3 px en `--text-secondary` italique, liens `--accent-text`.
 - **Battlemap** : miniature cliquable (curseur loupe) qui ouvre la battlemap en grand dans une modale.
 - **Vidéo lancée** (lot 12 ter, décision d'Allan du 14/11/2026) : ligne discrète, fond `--el-video-bg`, rayon `lg`, icône `Clapperboard` en `--el-video-fg`, texte `--text-secondary` en taille `small` : « Vidéo lancée : « nom » » (« Vidéo lancée (supprimée du projet depuis) » si elle a été supprimée). Aucun contrôle : ils restent sur la carte « Vidéo en cours » (§6.12).
+- **Fiche** (lot 15, PRD FIL-11) : ligne cliquable (vrai `<button>`), fond `--el-sheet-bg`, rayon `lg`, icône `ScrollText` en `--el-sheet-fg`, texte « Fiche : « titre » » en `--text-secondary` taille `small`, chevron ou icône « ouvrir » à droite ; clic = rouvre la fiche. Fiche supprimée depuis : « Fiche supprimée » aux couleurs Danger, non cliquable.
 - **Clic de l'utilisateur** : fond `--accent-surface`, bordure dorée 2 px ; icône dans un cercle doré, texte Inter 19 px 500, bouton principal « Cliquer pour continuer » **en bas à droite** du bloc. Une fois validé : style neutre, coche turquoise, mention « Validé ».
 - Éléments précédents estompés en haut (opacité 65 %, pleine opacité au survol ou au focus) et pastille « N éléments précédents ».
 - Bouton flottant « Revenir au dernier élément » quand le MJ a remonté le fil.
@@ -324,8 +328,9 @@ Tant qu'aucune image n'est importée, une battlemap ou une vignette de projet es
 | **Édition — scène** | Arborescence à gauche ; textes au centre (texte de scène puis textes d'action, chacun sous le nom de l'action en sous-titre) ; volet droit Actions / Battlemaps / Enchaînement |
 | **Édition — action** | Modale 900 px : nom, déclencheur (contrôle segmenté), éléments dépliables réordonnables, « Ajouter un élément » |
 | **Bibliothèque** (sons et vidéos, lot 12 ter) | Navigation d'en-tête « Scènes / Bibliothèque ». Arborescence « Ce projet » + « Bibliothèque globale » à gauche (dossiers, sons et vidéos, icône haut-parleur ou vidéo ; choisir un élément ouvre son dossier et le met en évidence) ; au-dessus du tableau, filtre Tous / Sons / Vidéos (contrôle segmenté) ; tableau : type (icône), nom, durée, taille, format, utilisation ; bouton **Écouter** pour un son, **Voir** pour une vidéo (fenêtre `lg` avec lecteur `<video controls>`) ; bouton « Importer des sons ou des vidéos » ; calque de dépôt au glisser (formats sons et vidéos) ; confirmation avant d'importer un fichier de plus de 500 Mo (taille, place occupée) ; « Import en cours (n / N) » pendant l'import |
+| **Fiches** (lot 15) | Navigation d'en-tête « Scènes / Fiches / Bibliothèque ». Volet gauche : recherche (titre et texte) puis boutons Nouveau dossier / Nouvelle fiche et arborescence (icône `ScrollText` devant chaque fiche) ; zone centrale (colonne de 760 px max., comme le texte de scène) : chemin du dossier, **titre** (champ sans bordure au repos, Cinzel `h1`), **texte** (`app-field` + `appMarkdownEditor`), puis « Utilisée dans N actions » en `--text-tertiary`. Sans fiche ouverte : visuel de remplacement et « Choisissez une fiche ou créez-en une. » avec le bouton « Nouvelle fiche ». Enregistrement automatique, aucun bouton Enregistrer |
 | **Présentation — lancement** | Modale : dernière scène, choix d'affichage (cartes radio), Recommencer (appui long de 3 s, fond qui se remplit de gauche à droite en `--danger-border`, message sous le bouton si clic simple) / Continuer |
-| **Présentation — MJ (PC)** | En-tête avec scène et « Aller à une scène » ; fil au centre avec bouton flottant « Scène suivante » ; volet droit Battlemap / Actions / Sons |
+| **Présentation — MJ (PC)** | En-tête avec scène, « Aller à une scène » et **« Fiches »** (lot 15, icône `ScrollText`, raccourci F) ; fil au centre avec bouton flottant « Scène suivante » ; volet droit Battlemap / Actions / Sons |
 | **Présentation — MJ (tablette)** | Fil à gauche, volet à onglets à droite, « Scène suivante » en bas, cibles ≥ 48 px |
 | **Fenêtre joueurs** | Fond noir, battlemap seule en plein écran, aucun contrôle. Une vidéo s'affiche par-dessus, en entier (bandes noires), sans contrôle ni transition, puis laisse réapparaître la battlemap |
 
@@ -466,8 +471,11 @@ C'est le **seul endroit** du document où figurent les valeurs des couleurs. Cha
 | `--el-scene-*` | `#E8C377` / `#2E2A1F` | `#A84A14` / `#F6DCC4` |
 | `--el-action-*` | `#C3B1EE` / `#2D2839` | `#6B4AA6` / `#EBE2F6` |
 | `--el-video-*` | `#7FC4E8` / `#1F3140` | `#1F6A8A` / `#D6E9F1` |
+| `--el-sheet-*` | `#A8D5A2` / `#243026` | `#2F6B4F` / `#D5EAE0` |
 
 > `--el-video-*` (lot 12 ter) : valeurs retenues par Allan le 14/11/2026 (bleu ciel, distinct du turquoise des sons et du bleu des textes), posées dans les deux thèmes ; contrôle visuel sur `/dev/themes`. Utilisées par « Lancer la vidéo » / « Arrêter la vidéo » (pastille, carte d'élément, menu « Ajouter un élément ») et la carte « Vidéo en cours ».
+
+> `--el-sheet-*` (lot 15) : **valeurs proposées, à valider par Allan** (vert sauge en Nuit dorée ; vert sapin en Automne, plus bleuté que l'olive des sons). Utilisées par « Afficher une fiche » (pastille, carte d'élément, menu « Ajouter un élément »), le bloc « Fiche » du fil et l'icône des fiches dans l'arborescence.
 
 **Dossiers et visuels de remplacement**
 

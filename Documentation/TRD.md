@@ -99,6 +99,15 @@ Ce document décrit **comment** l'application est construite : choix techniques,
 | TEC-52 | L'état de la partie est **sauvegardé à chaque événement** (élément exécuté, battlemap changée, son lancé / arrêté, clic validé). | M |
 | TEC-53 | Fenêtre joueurs : ouverte avec `window.open` sur une route dédiée, synchronisée avec l'écran du MJ par **`BroadcastChannel`**. | S |
 
+### 1.5 bis Fiches (lot 15)
+
+| ID | Exigence | Priorité |
+|---|---|---|
+| TEC-54 | Les fiches sont rangées comme les scènes : arborescence `SheetNode` (store `sheetNodes`, le titre est le `name` du nœud) et contenu `Sheet` (store `sheets`, même `id` que le nœud, texte Markdown). L'arborescence reste légère ; les textes ne sont lus que pour l'écran Fiches et la Présentation (recherche). Nouvelle version du schéma IndexedDB (§4.2). | M |
+| TEC-55 | Recherche sur le titre **et** le texte : fonction pure `searchSheets(nodes, sheets, query)` (`features/sheets/sheet-search.ts`) qui normalise comme `filterNodes()` (accents, casse) et renvoie les fiches trouvées avec un **extrait** autour de la première occurrence (texte Markdown rendu en texte brut). Utilisée par l'écran Fiches (arborescence filtrée : `filterNodes` sur les identifiants trouvés et leurs dossiers) et par la fenêtre de recherche de la Présentation. | M |
+| TEC-56 | Le moteur n'ouvre pas de fenêtre lui-même : `PresentationEngine` expose `openSheet(sheetId)` et un signal `sheetRequest` (`{ sheetId, seq } \| null`, `seq` incrémenté à chaque demande pour rouvrir la même fiche) ; `GmScreenPage` le suit dans un `effect` et ouvre `SheetDialog` (`Modals.open`, taille `lg`) en **fermant d'abord** la fiche déjà ouverte. Rien de la fenêtre n'est enregistré ; seul le bloc du fil l'est (TEC-52). | M |
+| TEC-57 | Les fiches ne passent **jamais** par le `BroadcastChannel` de la fenêtre joueurs (PRD FCH-08). | M |
+
 ### 1.6 Composants partagés
 
 | ID | Exigence | Priorité |
@@ -172,6 +181,7 @@ src/app/
 ├── features/
 │   ├── projects/              # Liste et gestion des projets
 │   ├── sound-library/         # Bibliothèques de sons (globale + projet)
+│   ├── sheets/                # Fiches du MJ (lot 15) : SheetsPage, SheetsStore, recherche
 │   ├── editor/                # Mode Édition : scènes, battlemaps, actions
 │   └── presentation/
 │       ├── engine/            # PresentationEngine, ActionRunner, état de partie
@@ -189,6 +199,7 @@ public/i18n/fr.json
 | `/projects` | Liste des projets |
 | `/library` | Bibliothèque globale, sons et vidéos (ouverte depuis l'accueil). `/sounds` redirige ici (lot 12 ter) |
 | `/projects/:projectId/library` | Mode Édition — bibliothèque du projet et bibliothèque globale (onglet « Bibliothèque »). `/projects/:projectId/sounds` redirige ici |
+| `/projects/:projectId/sheets` | Mode Édition — fiches du projet (onglet « Fiches », lot 15) |
 | `/settings` | Paramètres (Apparence) |
 | `/projects/:projectId/edit` | Mode Édition |
 | `/projects/:projectId/play` | Mode Présentation — écran du MJ. `?demo=1&scene=<id>` : mode démo (PRS-09), partie en mémoire seulement, à partir de `scene` (sinon la dernière scène ouverte dans l’éditeur) |
@@ -268,6 +279,18 @@ interface LibraryNode extends TreeNode {
   mediaKind?: 'sound' | 'video'; // si kind = 'item' ; absent = 'sound' (données d'avant le lot 12 ter, pas de migration)
 }
 
+/** Nœud de l'arborescence des fiches (lot 15) : dossier ou fiche ; le titre de la fiche est `name` */
+interface SheetNode extends TreeNode {
+  projectId: Id;
+}
+
+/** Contenu d'une fiche (lot 15) */
+interface Sheet {
+  id: Id;                       // = id du SheetNode de type 'item'
+  projectId: Id;
+  text: string;                 // Markdown
+}
+
 interface Media {
   id: Id;
   blob: Blob;
@@ -302,7 +325,8 @@ type ActionElement =
   | { id: Id; type: 'show-action'; actionIds: Id[] }  // actions de la même scène (ACT-12) ; schéma v2 (avant : `actionId`)
   | { id: Id; type: 'hide-action'; actionIds: Id[]; all?: boolean } // actions de la même scène, ou toutes (`all`, `actionIds` vide) (ACT-13)
   | { id: Id; type: 'play-video'; videoId: Id; volume: number }   // id du LibraryNode vidéo ; volume 0–1 (ACT-14)
-  | { id: Id; type: 'stop-video' };                                // vidéo en cours, quelle qu'elle soit (ACT-15)
+  | { id: Id; type: 'stop-video' }                                 // vidéo en cours, quelle qu'elle soit (ACT-15)
+  | { id: Id; type: 'show-sheet'; sheetId: Id };                   // fiche du projet, ouverte dans une fenêtre (ACT-16, lot 15)
 
 /** Partie sauvegardée (une par projet en V1) */
 interface PlaySession {
@@ -326,7 +350,8 @@ type FeedItem =
   | { id: Id; type: 'text'; actionId: Id; elementId: Id }
   | { id: Id; type: 'battlemap'; battlemapId: Id }
   | { id: Id; type: 'user-click'; actionId: Id; elementId: Id; validated: boolean }
-  | { id: Id; type: 'video'; videoId: Id };  // vidéo diffusée : simple mention (lot 12 ter, 14/11/2026)
+  | { id: Id; type: 'video'; videoId: Id }   // vidéo diffusée : simple mention (lot 12 ter, 14/11/2026)
+  | { id: Id; type: 'sheet'; actionId: Id; elementId: Id; sheetId: Id };  // fiche ouverte par une action, cliquable (FIL-11, lot 15)
 ```
 
 Notes :
@@ -335,6 +360,7 @@ Notes :
 - Le paramétrage audio (volume, boucle, fondus) est porté par l'élément `play-sound`, pas par le son (cf. spécifications §3). De même, le volume d'une vidéo est porté par l'élément `play-video`.
 - Le type d'un élément de bibliothèque est dans `LibraryNode.mediaKind`, posé à l'import d'après le type MIME (`resolveMediaType()`) : on le connaît sans lire le `Media`. Un `play-sound` ne peut viser qu'un son, un `play-video` qu'une vidéo (fenêtres de choix filtrées).
 - Aucune vidéo dans `SceneState` (TEC-48).
+- Fiches (lot 15) : le bloc `sheet` du fil garde `actionId` / `elementId` (pas de doublon à la relance, comme un texte) et `sheetId` (titre relu à l'affichage ; fiche supprimée détectée à l'affichage, PRS-07). La fenêtre ouverte n'est pas enregistrée.
 
 ---
 
@@ -369,6 +395,15 @@ export interface DataRepository {
   saveLibraryNodes(nodes: LibraryNode[]): Promise<void>;
   deleteLibraryNode(id: Id): Promise<void>;
   countLibraryUsages(): Promise<Record<Id, number>>; // nb d'actions qui lancent / arrêtent chaque son, ou lancent chaque vidéo
+
+  // Fiches (lot 15)
+  listSheetNodes(projectId: Id): Promise<SheetNode[]>;
+  saveSheetNodes(nodes: SheetNode[]): Promise<void>;
+  deleteSheetNode(id: Id): Promise<void>;      // le nœud, ses descendants et leurs Sheet, en une transaction
+  listSheets(projectId: Id): Promise<Sheet[]>; // tous les textes du projet (recherche, Présentation)
+  getSheet(id: Id): Promise<Sheet | undefined>;
+  saveSheet(sheet: Sheet): Promise<void>;
+  countSheetUsages(projectId: Id): Promise<Record<Id, number>>; // nb d'actions « Afficher une fiche » par fiche
 
   // Médias
   uploadMedia(file: File, details?: { durationMs?: number }): Promise<Id>;
@@ -408,9 +443,12 @@ Les erreurs métier sont des `DataError` (`core/data/data-error.ts`) avec un `co
 | `soundNodes` | `id` | `libraryId`, `mediaId` |
 | `media` | `id` | — |
 | `playSessions` | `projectId` | — |
+| `sheetNodes` (lot 15) | `id` | `projectId` |
+| `sheets` (lot 15) | `id` | `projectId` |
 
 - Les suppressions en cascade (projet → scènes → actions → médias) se font dans **une seule transaction**.
 - Un média n'est supprimé que s'il n'est plus référencé : les index `mediaId` permettent de le vérifier sans parcourir tous les stores.
+- Lot 15 : `DB_VERSION` + 1 (bloc `if (oldVersion < N)` qui crée `sheetNodes` et `sheets`, sans migration de données) ; `deleteProject` supprime aussi les fiches. Supprimer une fiche ne modifie pas les éléments `show-sheet` qui la visent (signalés, PRS-07).
 - Supprimer une scène retire aussi les références vers elle (`Project.firstSceneId`, `Scene.nextSceneIds`) ; supprimer une battlemap vide `Scene.defaultBattlemapId`. Les éléments d'action qui visent un objet supprimé (battlemap, son, scène cible d'un `change-scene`) ne sont **pas** modifiés : ils sont signalés à l'écran, dans l'éditeur comme en Présentation (PRS-07, décision d'Allan).
 - Seuls les fichiers de `core/data` importent `idb` ou utilisent `indexedDB` : règle ESLint (TEC-23).
 
@@ -454,6 +492,7 @@ async run(action: Action, context: ActionContext, signal: AbortSignal): Promise<
       case 'stop-all-sounds': context.stopAllSounds(); break;
       case 'play-video':      context.playVideo(element); break;   // n'attend pas la fin (ACT-14)
       case 'stop-video':      context.stopVideo(); break;
+      case 'show-sheet':      await context.beforeDisplay(signal); context.showSheet(action, element); break; // n'attend pas la fermeture (ACT-16)
       case 'change-scene':
         context.markDone(action);
         return context.canChangeScene(element) ? { kind: 'change-scene', sceneId: element.sceneId } : { kind: 'done' };
@@ -473,6 +512,7 @@ async run(action: Action, context: ActionContext, signal: AbortSignal): Promise<
 - Afficher la battlemap déjà affichée n'ajoute pas de miniature ; la battlemap par défaut d'une scène n'est pas ajoutée au fil.
 - `playVideo` : vidéo supprimée → notification `presentation.errors.missingVideo` ; fenêtre joueurs fermée (`PlayerWindow.open()` faux) → notification `presentation.videoNotShown` ; sinon `PlayerVideo.play({ videoId, mediaId, name, volume })` (le moteur résout le nœud de bibliothèque). Dans tous les cas l'action continue aussitôt. Rien n'est enregistré (TEC-48).
 - Toute **battlemap affichée** (élément `show-battlemap` ou sélecteur, même la battlemap déjà affichée) arrête d'abord la vidéo en cours (PRD VID-09). Le `show-battlemap` renvoyé à la fenêtre joueurs en réponse à un `ping` n'arrête rien.
+- `showSheet` (lot 15) : fiche supprimée → notification `presentation.errors.missingSheet`, rien dans le fil ; sinon ajoute le bloc `sheet` au fil s'il n'existe pas déjà pour cet `elementId` (sinon `focus` revient sur lui), l'enregistre, puis `openSheet(sheetId)` (TEC-56). L'action continue aussitôt. Un clic sur le bloc `sheet` du fil (`Feed`) appelle aussi `engine.openSheet(sheetId)` : la fiche se rouvre, sans rien ajouter au fil ni enregistrer. Comme un texte, l'élément est précédé de la pause d'affichage (`beforeDisplay`, `DISPLAY_GAP_MS`). Fonctionne de même en mode démo (rien d'enregistré).
 - Vidéo en cours → `AudioPlayer.duck(true)` ; fin, arrêt ou fermeture de la fenêtre joueurs → `duck(false)`.
 
 ### 6.3 Changement de scène
@@ -694,3 +734,4 @@ $required-tokens: (bg-app, bg-panel, bg-card, text-primary, accent /* … */);
 | D9 | Thèmes en SCSS : maps → variables CSS + attribut `data-theme` | Variables SCSS seules, feuilles CSS par thème, Material seul, Style Dictionary, Tailwind (cf. §10.6) | Changement à la volée, un fichier par thème, contrôle des jetons à la compilation. |
 | D10 | Vidéos copiées en `Blob` dans IndexedDB, comme les sons (décision d'Allan, 13/11/2026) | Lien vers le fichier du disque (File System Access API), OPFS, taille maximale imposée | Chrome, Edge et Firefox ; projet autonome (NF-11) ; quota large avec stockage persistant. Inconvénient accepté : la vidéo occupe deux fois sa taille sur le PC ; confirmation au-delà de 500 Mo. |
 | D11 | Vidéo lue uniquement dans la fenêtre joueurs, par un `<video>`, commandée par `BroadcastChannel` | Lecture sur l'écran du MJ, vidéo passée dans Web Audio | Choix d'Allan (les joueurs seuls la voient) ; pas de synchronisation d'image entre deux fenêtres ; pas besoin de fondus précis. |
+| D12 | Fiches en deux stores, `sheetNodes` (arborescence) et `sheets` (texte), comme `sceneNodes` / `scenes` (lot 15) | Texte porté par le nœud ; fiches dans les bibliothèques (`LibraryNode`) | Arborescence légère et générique (`app-tree`) ; un enregistrement de texte ne réécrit pas l'arborescence ; fiches propres au projet (décision d'Allan, 16/11/2026), sans bibliothèque globale. |

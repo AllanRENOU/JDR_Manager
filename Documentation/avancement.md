@@ -34,7 +34,8 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
 | 12 bis | Hors ligne et tablette | 8 | 0 | À faire |
 | 13 | Robustesse, performance, accessibilité | 16 | 15 | En cours |
 | 14 | Recette V1 | 6 | 0 | À faire |
-| **Total** | | **236** | **221** | |
+| 15 | Fiches (après la V1) | 12 | 0 | À faire |
+| **Total** | | **248** | **221** | |
 
 ---
 
@@ -767,12 +768,48 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
 - [ ] **14.6** Étiqueter la version `v1.0.0`. [—]
   - Note : —
 
+## Lot 15 — Fiches
+
+> Ajouté le 16/11/2026 (demande d'Allan), prévu **après la V1**. Exigences : PRD §5.10 (FCH-01 à FCH-09), ACT-16, FIL-11, CTL-14 ; TRD §1.5 bis (TEC-54 à TEC-57), §3, §4.1, §4.2, §6.2, D12 ; Brief §2.6, §6.9, §6.10, §7.2, §11.3.
+>
+> ✅ Décisions (Allan, 16/11/2026) : une fiche = un titre + un texte Markdown, **sans image** ; fiches du **projet seulement** (pas de fiches globales) ; onglet « Fiches » entre Scènes et Bibliothèque ; arborescence à gauche et **fiche ouverte au centre**, modifiable, enregistrée automatiquement ; **titre = nom** dans l'arborescence ; recherche sur le **titre et le texte** ; élément « Afficher une fiche » : la fiche s'ouvre dans une **fenêtre** et **l'action continue** ; un bloc « Fiche : « titre » » cliquable est ajouté au fil **seulement si la fiche est ouverte par une action**, sans doublon à la relance ; ouverture à la main par un **bouton « Fiches » dans l'en-tête + raccourci** (F) et une fenêtre de recherche ; fenêtre en **lecture seule** ; fiches **jamais** montrées aux joueurs ; lot fait **après la V1**.
+>
+> ℹ️ Choix proposés, à confirmer en cours de lot : nom dans le code `Sheet` (`SheetNode`, `features/sheets`, `SheetsPage`, `SheetsStore`, `SheetDialog`, `SheetPicker`, élément `show-sheet`, route `/projects/:projectId/sheets`) ; icône Lucide `ScrollText` ; couleurs `--el-sheet-*` (Brief §11.3) ; pause d'affichage (`DISPLAY_GAP_MS`) avant « Afficher une fiche », comme pour un texte ; ouvrir une fiche ferme celle déjà affichée ; « Dupliquer » une fiche (FCH-09, priorité C).
+
+- [ ] **15.1** Modèle et données : `SheetNode`, `Sheet` (`ng g interface`), élément `ShowSheetElement` (`show-sheet`), entrée de fil `SheetFeedItem` ; stores `sheetNodes` et `sheets` (`DB_VERSION` + 1, bloc `upgrade`) ; méthodes `listSheetNodes`, `saveSheetNodes`, `deleteSheetNode` (cascade en une transaction), `listSheets`, `getSheet`, `saveSheet`, `countSheetUsages` ; `deleteProject` supprime les fiches ; fabriques de test. [TEC-54, D12, TRD §3, §4]
+  - Note : —
+- [ ] **15.2** Recherche : fonction pure `searchSheets(nodes, sheets, query)` (titre + texte, accents et casse ignorés, extrait autour de la première occurrence, Markdown rendu en texte brut) et tests. [FCH-06, TEC-55]
+  - Note : —
+- [ ] **15.3** Onglet « Fiches » : route `/projects/:projectId/sheets`, navigation « Scènes / Fiches / Bibliothèque » (`app-project-nav`), `SheetsPage` + `SheetsStore` (`@Injectable()` fourni par l'écran), en-tête (Présenter, paramètres) comme la Bibliothèque. [FCH-02, TRD §2.3]
+  - Note : —
+- [ ] **15.4** Arborescence des fiches : Nouveau dossier / Nouvelle fiche (puis `startRename`), renommer, déplacer (`applyMove`), supprimer avec confirmation et **avertissement** si des actions utilisent la fiche ou le dossier (`deleteMessage`), recherche au-dessus (arbre filtré), dernière fiche ouverte mémorisée (`UiPreferences`). [FCH-03, FCH-06, FCH-07]
+  - Note : —
+- [ ] **15.5** Fiche ouverte au centre : chemin, titre (= nom du nœud, `appCapitalize`, titre vide refusé), texte (`appMarkdownEditor`), enregistrement automatique (`DebouncedTask`, `flush()` au changement de fiche, à la sortie du champ, à la destruction et sur `beforeunload` ; champs liés à une valeur figée à l'ouverture), « Utilisée dans N actions », état vide. [FCH-01, FCH-04, FCH-05, FCH-07]
+  - Note : —
+- [ ] **15.6** Jetons `--el-sheet-*` dans les deux thèmes (valeurs à valider par Allan), ton de pastille, `ELEMENT_TYPE_INFOS` (libellé, icône `ScrollText`), pages `/dev/themes` et `/dev/components`. [Brief §2.6, §11.3]
+  - Note : —
+- [ ] **15.7** Éditeur d'action : élément « Afficher une fiche » (bouton de choix → `Selections.select({ mode: 'single' })` sur l'arborescence des fiches, chemin affiché, « Aucune fiche choisie », « Fiche supprimée » en rouge), résumé (`describeElement`, `summarizeElement`, `hasMissingTarget`), validation (`elementProblem`), ligne en lecture seule dans l'éditeur de scène (SCN-07), duplication de scène. [ACT-16, PRS-07]
+  - Note : —
+- [ ] **15.8** Moteur : `context.showSheet` (pause d'affichage, fiche supprimée → notification `presentation.errors.missingSheet`, bloc `sheet` sans doublon par `elementId` + `focus`, enregistrement), `openSheet(sheetId)` et signal `sheetRequest`, noms et textes des fiches chargés avec le projet, mode démo ; tests (`usePresentation()`). [ACT-16, FIL-11, TEC-56, TEC-52]
+  - Note : —
+- [ ] **15.9** Écran du MJ : fenêtre `SheetDialog` (taille `lg`, lecture seule, Markdown rendu, fiche vide) ouverte par un `effect` sur `sheetRequest` (ferme d'abord la fiche affichée) ; bloc « Fiche : « titre » » du `Feed` : un vrai `<button>` dont le clic **rouvre la fiche** (`engine.openSheet(sheetId)`), y compris après « Continuer » ou le retour sur la scène ; fiche supprimée signalée, bloc non cliquable. [FCH-08, FIL-11, Brief §6.9, §6.10]
+  - Note : —
+- [ ] **15.10** Ouverture à la main : bouton « Fiches » dans l'en-tête de la Présentation, raccourci **F** (`PRESENTATION_SHORTCUTS`, `onShortcut`, `aria-keyshortcuts`), fenêtre `SheetPicker` (recherche titre + texte, extraits, clavier haut / bas / Entrée) ; rien n'est ajouté au fil ; rien n'est envoyé à la fenêtre joueurs. [CTL-14, FCH-08, TEC-57]
+  - Note : —
+- [ ] **15.11** Export / import de projet (si le lot 12 bis est fait) : emporter les fiches (`sheetNodes`, `sheets`) et les relire dans le lecteur hors ligne. [PRJ-04]
+  - Note : —
+- [ ] **15.12** Vérification dans Chromium (deux thèmes) : création et recherche de fiches, enregistrement automatique, élément dans une action, bloc du fil après « Continuer », ouverture à la main (F), fenêtre joueurs inchangée ; mise à jour de `CLAUDE.md`. [FCH-01 à FCH-09]
+  - Note : —
+
+**Critère de fin** : une fiche préparée dans l'onglet Fiches s'ouvre en Présentation par une action (bloc dans le fil, qui la rouvre) et à la main par la recherche (bouton « Fiches » ou touche F), sans jamais apparaître dans la fenêtre joueurs.
+
 ---
 
 ## Points ouverts
 
 | Sujet | Statut | Note |
 |---|---|---|
+| Fiches du MJ (lot 15) | 📝 Spécifié (2026-11-16), à faire après la V1 | ✅ Demande (Allan) : notion de fiche (titre + texte Markdown) dans un onglet « Fiches » inspiré de la Bibliothèque, élément d'action « Afficher une fiche », ouverture manuelle en Présentation, fenêtre avec le contenu mis en forme. Décisions d'Allan : voir l'en-tête du lot 15. Documents mis à jour : PRD (§5.10 FCH-01 à FCH-09, ACT-16, FIL-11, CTL-14, glossaire, §9), TRD (§1.5 bis TEC-54 à TEC-57, §2.2, §2.3, §3, §4.1, §4.2, §6.2, D12), Brief (§2.6, §6.9, §6.10, §7.2, §11.3), spécifications (§3.2), plan (lot 15, jalon J6). ❓ À valider : couleurs `--el-sheet-*` et choix techniques listés dans l'en-tête du lot. |
 | Diffusion de vidéos (lot 12 ter) | 📝 Spécifié (2026-11-13), à faire avant le lot 12 bis | ✅ Demande (Allan) : importer des vidéos comme les sons, page renommée « Bibliothèque », éléments « Lancer la vidéo » / « Arrêter la vidéo », vidéo jouée seulement dans la fenêtre joueurs (ignorée si elle n'est pas ouverte). Décisions d'Allan : voir l'en-tête du lot 12 ter. Documents mis à jour : PRD (§5.2 bis VID-01 à VID-13, ACT-14, ACT-15, CTL-13, risques), TRD (TEC-36, TEC-44 à TEC-49, §3, §4.1, §9.1, D10, D11), Brief (§2.6, §6.12, §7.2), Plan, `specifications.md`. ✅ Validé (Allan, 14/11/2026) : couleurs `--el-video-*` proposées (contrôle visuel sur `/dev/themes`) ; arrêt de la vidéo même quand on réaffiche la battlemap déjà affichée ; renommage complet dans le code (voir l'en-tête du lot). |
 | « Afficher / Masquer l'action » vers plusieurs actions (ACT-12, ACT-13) | ✅ Fait (2026-11-13) | ✅ Demande (Allan) : choisir une liste d'actions. Réalisation : `ShowActionElement` / `HideActionElement` portent `actionIds: Id[]` (au lieu de `actionId`), rangés dans l'ordre des actions de la scène ; **`DB_VERSION` 2**, migration `migrateActionTargets` (`jdr-db.ts`) : `actionId` → `[actionId]`, vide → `[]`. Éditeur : cases à cocher au lieu de boutons radio (désactivées par « Masquer toutes les actions ») ; action visée supprimée : avertissement « Une action choisie a été supprimée. » et bouton « Retirer » qui l'enlève de la liste ; résumé « afficher « X » » pour une action, « afficher N actions » pour plusieurs ; détail replié = noms séparés par des virgules ; avertissement à la suppression d'une action visée par l'une de ces listes ; duplication de scène : toutes les cibles remappées. Présentation : toutes les actions visées sont affichées / masquées en un seul enregistrement ; une action supprimée est ignorée et signalée (les autres sont traitées). TRD §3 et PRD ACT-12 / ACT-13 mis à jour. Tests : `jdr-db` (migration), `element-form`, `action-summary`, `presentation-engine`. ⚠️ Alerte : depuis le shell Bash de Claude, `ng test` échoue (« Vitest failed to find the runner », casse de la lettre de lecteur) ; passe depuis PowerShell. `check:i18n` signale les pages `features/dev` sous Windows (filtre `'/features/dev/'` avec des `/`) et `format:check` les fins de ligne CRLF de la copie de travail : préexistant, non corrigé. ⚠️ À vérifier par Allan dans le navigateur. |
 | Élément « Masquer l'action » (ACT-13) | ✅ Fait (2026-11-13) | ✅ Demande (Allan) : pendant d'« Afficher l'action ». ✅ Décisions (Allan) : l'action masquée s'affiche comme une action masquée au départ (œil barré, lançable) et une action terminée garde son ✓ ; cibles = autres actions « Clic du MJ » de la scène (pas elle-même) ; une action en cours se termine normalement. Réalisation : `HideActionElement` (`hide-action`, icône `EyeOff`, couleur `action`), `SceneState.hiddenActionIds` (facultatif, pas de changement de schéma ni de `DB_VERSION`) ; `hidden` d'une `ManualAction` = terminée, ou dans `hiddenActionIds`, ou masquée au départ sans être affichée ; « Afficher l'action » retire aussi l'action de `hiddenActionIds`. Éditeur : formulaire partagé avec « Afficher l'action » (`ng-template #actionChoice`, aide et erreur propres), résumé, validation, duplication de scène (cible remappée), avertissement à la suppression d'une action visée (« affichée ou masquée par… »). Cible supprimée en Présentation : message `presentation.errors.missingActionToHide`. PRD ACT-13 et TRD §3 mis à jour. Tests : `action-runner`, `presentation-engine`, `element-form`, `action-summary`, `action-editor`, `editor-store`, `pill`. ✅ Demande (Allan) : case « Masquer toutes les actions » (`HideActionElement.all`) ; cochée, les actions du formulaire sont désactivées et le choix précédent est effacé (`actionId: ''`) ; résumé « masquer toutes les actions », jamais signalé comme cible supprimée. En Présentation, toutes les actions « Clic du MJ » de la scène sont ajoutées à `hiddenActionIds`, y compris celle qui contient l'élément ; « Afficher l'action » en réaffiche une. ⚠️ À vérifier par Allan dans le navigateur. |

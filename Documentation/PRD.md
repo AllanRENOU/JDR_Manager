@@ -28,7 +28,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 
 ### Non-objectifs (V1)
 
-- Gestion des joueurs, des fiches de personnage ou des jets de dés.
+- Gestion des joueurs, des fiches de personnage ou des jets de dés. (Les **fiches** du lot 15, §5.10, sont des notes du MJ, pas des fiches de personnage.)
 - Jeu à distance / multi-utilisateurs en temps réel.
 - Battlemaps interactives (pions, brouillard de guerre, grille…).
 - Stockage sur un serveur ou synchronisation entre appareils.
@@ -151,6 +151,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | ACT-13 | Élément **Masquer l'action** (choix d'**une ou plusieurs** autres actions « Clic du MJ » de la même scène, ou case **« Masquer toutes les actions »** qui rend ce choix impossible et masque en Présentation toutes les actions « Clic du MJ » de la scène, y compris celle qui contient l'élément). En Présentation, l'action visée est retirée de la liste comme une action masquée au départ (œil barré, visible avec « Voir toutes les actions », lançable) ; une action terminée garde son état « terminée » ; une action en cours se termine normalement. « Afficher l'action » la rend de nouveau disponible. Une action visée supprimée est signalée (PRS-07). | M |
 | ACT-14 | Élément **Lancer la vidéo** (choix d'une vidéo dans une bibliothèque, comme pour un son ; **volume** de 0 à 100 %, 0 % = muette ; aucune autre option). En Présentation, l'action **n'attend pas** la fin de la vidéo : elle passe tout de suite à l'élément suivant (VID-06 à VID-08). Vidéo supprimée : signalée dans l'éditeur, et en Présentation un message s'affiche et la partie continue (PRS-07). | M |
 | ACT-15 | Élément **Arrêter la vidéo** (aucun paramètre) : arrête la vidéo en cours dans la fenêtre joueurs ; sans effet s'il n'y en a pas. | M |
+| ACT-16 | Élément **Afficher une fiche** (lot 15, §5.10) : choix d'une fiche du projet dans la fenêtre de sélection (sélection unique, arborescence des fiches avec recherche). En Présentation, la fiche s'ouvre dans une fenêtre (FCH-08) et **l'action continue** sans attendre sa fermeture. Fiche supprimée : signalée dans l'éditeur, et en Présentation un message s'affiche et la partie continue (PRS-07). | M |
 
 ### 5.6 Présentation — lancement et persistance
 
@@ -188,6 +189,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | FIL-08 | Les sons et les noms des actions ne sont pas tracés dans le fil. Une vidéo diffusée y est **mentionnée** (« Vidéo lancée : « nom » »), sans contrôle : ceux-ci restent sur la carte « Vidéo en cours » (décision d'Allan, 14/11/2026). | M |
 | FIL-09 | Les textes ne sont pas modifiables en Présentation. | M |
 | FIL-10 | Le Markdown des textes est interprété dans le fil (titres, gras, italique, listes, citations, liens, tableaux) ; un lien s'ouvre dans un nouvel onglet. | S |
+| FIL-11 | Une fiche ouverte **par une action** (ACT-16) ajoute au fil un bloc **« Fiche : « titre » »** ; un clic dessus rouvre la fiche. Le bloc est enregistré avec le fil. Une action relancée (CTL-03) ne le duplique pas : la fiche se rouvre et le fil revient sur le bloc existant. Une fiche ouverte **à la main** (CTL-14) n'ajoute rien au fil. Fiche supprimée depuis : le bloc l'indique et ne s'ouvre plus. (Lot 15.) | M |
 
 ### 5.9 Présentation — contrôles
 
@@ -206,6 +208,23 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | CTL-11 | Sur PC, le panneau de contrôle a trois parties repliables (Battlemap, Actions, Sons), avec un résumé dans chaque en-tête ; le bouton lecture / pause global reste visible dans l'en-tête de Sons. L'état plié / déplié est mémorisé comme préférence d'affichage. | S |
 | CTL-12 | Sur tablette, le panneau de contrôle utilise des onglets (Actions, Cartes, Sons) avec de grandes zones tactiles. | W |
 | CTL-13 | Pendant une vidéo, une carte **« Vidéo en cours »** s'affiche en tête de la partie Sons : nom, temps restant, mention « Sons coupés », boutons **Pause / Reprendre** et **Arrêter** ; en la dépliant, le MJ règle le volume de la vidéo, comme pour un son (non enregistré ; 100 % pour une vidéo lancée à la main, décision d'Allan du 14/11/2026). Elle disparaît à la fin de la vidéo. Le résumé de l'en-tête de Sons signale la vidéo. | M |
+| CTL-14 | Un bouton **« Fiches »** dans l'en-tête de la Présentation (raccourci **F**) ouvre une fenêtre de recherche : liste des fiches du projet (titre, chemin, extrait), filtrée au fil de la saisie sur le **titre et le texte** ; choisir une fiche l'ouvre (FCH-08). (Lot 15.) | M |
+
+### 5.10 Fiches (lot 15)
+
+> Évolution demandée par Allan le 16/11/2026, prévue **après la V1** (lot 15). Une fiche est une note du MJ (PNJ, lieu, objet, règle…) qu'il prépare en Édition et consulte en Présentation. Décisions d'Allan (16/11/2026) reportées ci-dessous.
+
+| ID | Exigence | Priorité |
+|---|---|---|
+| FCH-01 | Une **fiche** a un **titre** et un **texte** mis en page en **Markdown** (même barre d'outils que les textes de scène, SCN-14). Pas d'image. Les fiches appartiennent au **projet** (pas de fiches globales). | M |
+| FCH-02 | Un nouvel onglet **« Fiches »** s'ajoute à la navigation d'en-tête du projet : **Scènes / Fiches / Bibliothèque**. | M |
+| FCH-03 | Les fiches sont organisées en **arborescence** (dossiers et fiches) avec les mêmes interactions que les scènes (SCN-08 à SCN-11, NF-42) : boutons **Nouveau dossier** / **Nouvelle fiche**, menu « ⋯ » et clic droit, glisser-déposer, renommer, supprimer avec confirmation. | M |
+| FCH-04 | Mise en page inspirée de l'écran Bibliothèque : arborescence à gauche ; au centre, la **fiche ouverte** (chemin du dossier, titre, texte), modifiable directement et **enregistrée automatiquement**. Sans fiche ouverte, un message invite à en choisir ou en créer une. La dernière fiche ouverte est rouverte au retour sur l'onglet. | M |
+| FCH-05 | Le **titre est le nom** de la fiche dans l'arborescence : renommer dans l'arborescence ou modifier le titre au centre revient au même. Un titre vide n'est pas enregistré (message). | M |
+| FCH-06 | Une **recherche** au-dessus de l'arborescence filtre les fiches sur leur **titre et leur texte** (sans tenir compte des accents ni de la casse) ; les dossiers des fiches trouvées restent visibles. | M |
+| FCH-07 | Sous le texte, **« Utilisée dans N actions »**. Supprimer une fiche (ou un dossier qui en contient) utilisée par des actions **avertit** du nombre d'actions concernées, comme pour un son (règle d'Allan). | M |
+| FCH-08 | En Présentation, une fiche s'ouvre dans une **fenêtre** (modale) : titre et texte mis en forme, **lecture seule** (comme FIL-09). Ouvrir une autre fiche remplace celle qui est affichée. Les fiches ne sont **jamais** montrées dans la fenêtre joueurs. Une fiche n'est pas rouverte par « Continuer » ni au retour sur une scène (seul le bloc du fil reste, FIL-11). | M |
+| FCH-09 | Le menu d'une fiche propose **Dupliquer**. | C |
 
 ---
 
@@ -294,6 +313,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 - Stockage en ligne / multi-appareils (NF-15)
 - Safari, tablettes, tactile (NF-04)
 - Traduction dans d'autres langues (NF-43)
+- Fiches du MJ (§5.10, lot 15, prévu juste après la V1)
 
 ## 10. Glossaire
 
@@ -307,4 +327,5 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | **Bibliothèque** | Ensemble de sons et de vidéos rangés en dossiers ; il y a une bibliothèque par projet et une bibliothèque globale. |
 | **Vidéo** | Fichier vidéo d'une bibliothèque, diffusé seulement dans la fenêtre joueurs. |
 | **Fil d'actualité** | Zone de l'écran du MJ où s'affichent, dans l'ordre, les textes et battlemaps de la scène. |
+| **Fiche** | Note du MJ (titre + texte Markdown) rangée dans l'arborescence des fiches du projet, consultée en Présentation dans une fenêtre (lot 15). |
 | **Partie sauvegardée** | État de la Présentation d'un projet (scène courante et état de chaque scène). |

@@ -65,6 +65,14 @@ Deux ressources transverses :
 - La vidéo s'arrête au changement de scène, à l'affichage d'une battlemap, au lancement d'une autre vidéo, ou par « Arrêter la vidéo » ; le bouton global lecture / pause la met en pause. Elle n'est pas enregistrée dans la partie.
 - Le MJ voit une carte « Vidéo en cours » (temps restant, pause, arrêt) et peut lancer n'importe quelle vidéo à la main.
 
+### 3.2 Fiches (évolution du 16/11/2026, lot 15, après la V1)
+
+- Une **fiche** est une note du MJ (PNJ, lieu, objet, règle…) : un **titre** et un **texte** en Markdown. Elle appartient au projet.
+- Un onglet **« Fiches »** (Scènes / Fiches / Bibliothèque) montre l'arborescence des fiches à gauche (dossiers, recherche sur le titre et le texte) et la fiche ouverte au centre, modifiable et enregistrée automatiquement. Le titre est le nom dans l'arborescence.
+- Un élément d'action **« Afficher une fiche »** ouvre la fiche dans une fenêtre en Présentation ; l'action continue sans attendre. Un bloc « Fiche : « titre » » reste dans le fil et rouvre la fiche au clic.
+- En Présentation, le MJ ouvre aussi une fiche à la main : bouton **« Fiches »** de l'en-tête (ou touche F), recherche, choix.
+- La fenêtre de fiche est en lecture seule et n'est jamais montrée aux joueurs.
+
 ---
 
 ## 4. Mode Édition
