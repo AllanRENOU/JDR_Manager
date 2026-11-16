@@ -143,6 +143,12 @@
   }
 }
 
+// La barre d'outils Markdown flotte au-dessus du champ au focus : l'espace laissé sous le titre
+// l'accueille sans le recouvrir (le titre et le texte sont alignés à gauche).
+.sheet__text {
+  margin-top: space(32);
+}
+
 .sheet__usage {
   color: color(text-tertiary);
   font-size: font-size(small);

@@ -158,24 +158,29 @@
               >{{ 'scene.unusedMessage' | transloco }}
             </p>
           }
-          <app-field
-            class="scene-text"
-            [label]="'scene.text' | transloco"
-            [hiddenLabel]="true"
-            #textField
-          >
-            <textarea
-              appInput
-              appMarkdownEditor
-              surface="card"
-              rows="8"
-              [id]="textField.controlId"
-              [placeholder]="'scene.textPlaceholder' | transloco"
-              [value]="store.initialSceneText()"
-              (input)="onSceneTextInput($any($event.target).value)"
-              (blur)="onSceneTextBlur()"
-            ></textarea>
-          </app-field>
+          <!-- Un champ par scène (suivi par id) : il repart du texte figé à l'ouverture de la
+               scène, même si deux scènes ont le même texte (sinon [value] ne change pas et la
+               saisie de la scène précédente resterait affichée). -->
+          @for (sceneId of [node.id]; track sceneId) {
+            <app-field
+              class="scene-text"
+              [label]="'scene.text' | transloco"
+              [hiddenLabel]="true"
+              #textField
+            >
+              <textarea
+                appInput
+                appMarkdownEditor
+                surface="card"
+                rows="8"
+                [id]="textField.controlId"
+                [placeholder]="'scene.textPlaceholder' | transloco"
+                [value]="store.initialSceneText()"
+                (input)="onSceneTextInput($any($event.target).value)"
+                (blur)="onSceneTextBlur()"
+              ></textarea>
+            </app-field>
+          }
 
           <!-- Contenu des actions (SCN-07) : le nom de l'action en sous-titre (sauf l'action
                « Texte de scène » créée automatiquement), puis ses textes

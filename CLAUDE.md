@@ -188,6 +188,16 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Le contenu des paramètres (Apparence, Stockage) est dans `SettingsContent`, partagé par la page et par la fenêtre `SettingsDialog`.
 - Depuis les modes Édition et Présentation, les paramètres s'ouvrent dans une **fenêtre** pour ne pas quitter l'écran (scène ouverte, sons, fenêtre joueurs). On utilise `<app-settings-button headerEnd />` (`features/settings/settings-button`) dans l'en-tête ; il est déjà dans l'éditeur, la Présentation et la bibliothèque de sons (décision d'Allan).
 
+## Fiches (lot 15)
+
+- Modèle : `SheetNode` (arborescence, store `sheetNodes`, titre = `name`) et `Sheet` (texte Markdown, store `sheets`, même `id`), propres au projet ; schéma **`DB_VERSION` 3**. Dépôt : `listSheetNodes`, `saveSheetNodes`, `deleteSheetNode` (cascade, éléments `show-sheet` non modifiés : signalés, PRS-07), `listSheets`, `getSheet`, `saveSheet`, `countSheetUsages(projectId)`. Fabriques `aSheetNode()` / `aSheet()`.
+- Recherche : `searchSheets(nodes, sheets, query)` et `filterSheetNodes()` (`features/sheets/sheet-search.ts`) : titre + texte, accents et casse ignorés, extrait `SheetExcerpt` (`before` / `match` / `after`, à mettre en évidence sans `innerHTML`). Texte brut d'un Markdown : `markdownToPlainText()` (`shared/markdown`).
+- Écran « Fiches » `SheetsPage` (`/projects/:projectId/sheets`) + `SheetsStore` (`@Injectable()` fourni par l'écran) : arborescence, recherche, fiche ouverte au centre (titre modifiable, texte `appMarkdownEditor` lié à `initialText`, `editText` / `flush()`, `DebouncedTask`), dernière fiche dans `UiPreferences` (`lastOpenedSheetKey`). La vue de la fiche est dans un `@for … track node.id` : le champ est recréé à chaque changement de fiche (sinon `[value]` identique ne se réapplique pas).
+- Élément `show-sheet` (« Afficher une fiche », ton `sheet`, jetons `--el-sheet-*`, icône `ScrollText`) : `SummaryContext.sheetNodes`, `EditorStore.sheetNodes` / `sheetNameOf()`, ligne `ActionPause` (entrée `targetName` : scène ou fiche).
+- Moteur : `context.showSheet` (pause d'affichage, bloc `SheetFeedItem` sans doublon par `elementId`, enregistré), `engine.openSheet(id)` → signal `sheetRequest` (`{ sheetId, seq }`), `sheetName()` / `sheetText()`, fiches chargées par `load()`. Le moteur n'ouvre pas de fenêtre : `GmScreenPage` suit `sheetRequest` dans un `effect` et ouvre `SheetDialog` (taille `lg`) en fermant la précédente. Bloc du fil = vrai `<button>` qui appelle `engine.openSheet`.
+- Ouverture à la main : bouton « Fiches » de l'en-tête et touche **F** → `SheetPicker` (combobox + listbox, flèches / Entrée), puis `engine.openSheet`. Rien dans le fil, rien envoyé à la fenêtre joueurs (TEC-57). Raccourcis ignorés tant qu'une fiche est ouverte (décision d'Allan).
+- Vérification dans Chrome (Linux) : `playwright-core` installé dans un dossier temporaire, `chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] })` (sans `--no-sandbox`, le lancement bloque) ; attendre que le champ d'une fenêtre ait le focus avant de taper (focus posé juste après l'affichage).
+
 ## Vidéos (lot 12 ter)
 
 - Modèle : une vidéo est un `LibraryNode` (`mediaKind: 'video'`, lu par `mediaKindOf()`), rangée dans les mêmes bibliothèques que les sons. Éléments `play-video` (`videoId`, `volume` 0–1) et `stop-video`. Formats : MP4, WebM (`media-types.ts`). Import : confirmation au-delà de `LARGE_VIDEO_BYTES` (500 Mo, `library-store.ts`). Choix d'une cible : `soundChoiceNodes(…, kinds)` (`'sound'` par défaut, `'video'` ou les deux).
@@ -243,12 +253,12 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - `EditorStore` porte tout l'état de l'éditeur : `sceneNodes` (création `createNode`, `renameNode`, `removeNode`, `moveNode`, `duplicateScene`, `setFirstScene`), scène ouverte (`scene`, `actions` triées par `sortActions`, `battlemaps`, `soundNames`), textes (`sceneText`, `actionTexts`, `editSceneText` / `editActionText` avec une seule temporisation et `flush()`), actions (`reorderAction`), battlemaps (`importBattlemaps`, `setDefaultBattlemap`, `renameBattlemap`, `deleteBattlemap`, `battlemapUsage`), enchaînement (`setNextScenes`).
 - Volet droit : un composant par partie (`ActionsPanel`, `BattlemapsPanel`, `SequencePanel`) qui injecte l'`EditorStore` de l'écran et contient sa propre `app-collapsible-section` (avec `preferenceKey` `editor.*`).
 - Résumé d'une action et cibles supprimées : `summarizeElement` / `hasMissingTarget` (`features/editor/action-summary.ts`). Toute cible supprimée (son, battlemap, scène) est **signalée** en rouge (PRS-07) ; toute suppression d'un objet utilisé par des actions **avertit**.
-- Champs à enregistrement automatique : lier `[value]` à une valeur **figée à l'ouverture** (`initialSceneText`, `initialTexts`), jamais à la valeur enregistrée.
+- Champs à enregistrement automatique : lier `[value]` à une valeur **figée à l'ouverture** (`initialSceneText`, `initialTexts`), jamais à la valeur enregistrée. Recréer le champ quand l'objet ouvert change (`@for (id of [node.id]; track id)`) : sinon, si les deux valeurs figées sont égales (ex. deux scènes vides), `[value]` ne se réapplique pas et la saisie précédente reste affichée.
 - Budget du bundle initial : 650 ko (relevé de 600 ko au lot 12 ter, décision d'Allan ; les icônes Lucide utilisées partout sont regroupées dans le bundle principal).
 
 ## Bibliothèques de sons (lot 6)
 
-- Écran « Bibliothèque » `LibraryPage` (`features/library`) sur `/projects/:projectId/library` (projet + globale) et `/library` (globale seule) ; les anciennes routes `/sounds` et `/projects/:projectId/sounds` redirigent (lot 12 ter). Navigation Scènes / Bibliothèque : `app-project-nav` (`shared/project-nav`) dans l'en-tête.
+- Écran « Bibliothèque » `LibraryPage` (`features/library`) sur `/projects/:projectId/library` (projet + globale) et `/library` (globale seule) ; les anciennes routes `/sounds` et `/projects/:projectId/sounds` redirigent (lot 12 ter). Navigation Scènes / Fiches / Bibliothèque : `app-project-nav` (`shared/project-nav`) dans l'en-tête.
 - État : `LibraryStore` (`features/library`), même modèle que `EditorStore`. Les arborescences montrent dossiers et sons (`store.trees()`) ; choisir un son (`store.select()`) ouvre son dossier et le met en évidence (`store.selectedSoundId()`). Le dossier ouvert est `store.opened()` (`folderId: null` = racine). `store.rows()` (`LibraryRow`, avec `kind` son / vidéo) = éléments du dossier ouvert, ou résultats de `store.query()`, filtrés par `store.kindFilter()` (Tous / Sons / Vidéos ; choisir dans l'arborescence un élément masqué par le filtre le retire). Une vidéo se prévisualise dans `VideoPreviewDialog` (`features/library/video-preview-dialog`, bouton « Voir »).
 - Import : `store.importFiles(files)` (bouton et `appFileDrop`) lit la durée avec `MediaDuration` (`core/media`) puis `uploadMedia(file, { durationMs })` ; une erreur de quota est renvoyée dans `failure`, pas levée.
 - Nom d'un son du tableau : `SoundName` (`features/library/sound-name`) ; clic = renommer, le champ se pose par-dessus le nom masqué (la ligne et la colonne ne bougent pas). L'écran garde `editingId` et enregistre.
@@ -287,7 +297,7 @@ src/app/
     selection-dialog/
     file-drop/
   features/
-    projects/  settings/  library/  editor/  presentation/{gm-screen,player-screen,engine,audio}
+    projects/  settings/  library/  sheets/  editor/  presentation/{gm-screen,player-screen,engine,audio}
     dev/            pages de démonstration temporaires
   app.config.ts  app.routes.ts (routes paresseuses)  app.html
 src/styles/         jetons, fonctions, moteur de thèmes, thèmes, styles globaux des directives

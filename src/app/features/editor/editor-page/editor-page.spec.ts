@@ -91,6 +91,39 @@ describe('EditorPage', () => {
     });
   });
 
+  it('change de scène : le texte de scène repart de celui de la nouvelle scène, même s’il est identique', async () => {
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    const project = aProject();
+    const tavern = aSceneNode(project.id, { name: 'Taverne', order: 0 });
+    const forest = aSceneNode(project.id, { name: 'Forêt', order: 1 });
+    await repository.saveProject({ ...project, firstSceneId: tavern.id });
+    await repository.saveSceneNodes([tavern, forest]);
+    // Deux scènes sans texte : la valeur initiale du champ est la même ('').
+    await repository.saveScene(aScene(project.id, tavern.id));
+    await repository.saveScene(aScene(project.id, forest.id));
+    const el = await render(project.id);
+    const sceneText = () => el.querySelector('.scene-text textarea') as HTMLTextAreaElement;
+    await vi.waitFor(() => expect(sceneText()).not.toBeNull());
+
+    sceneText().value = 'Saisie dans la taverne';
+    sceneText().dispatchEvent(new Event('input'));
+    [...el.querySelectorAll<HTMLElement>('.tree__row')]
+      .find((r) => r.textContent?.includes('Forêt'))!
+      .click();
+
+    await vi.waitFor(() =>
+      expect((el.querySelector('.scene-title') as HTMLInputElement).value).toBe('Forêt'),
+    );
+    expect(sceneText().value).toBe('');
+    // La saisie de la taverne a été enregistrée dans sa scène, pas dans la forêt.
+    await vi.waitFor(async () =>
+      expect((await repository.listActions(tavern.id))[0]?.elements[0]).toMatchObject({
+        text: 'Saisie dans la taverne',
+      }),
+    );
+    expect(await repository.listActions(forest.id)).toEqual([]);
+  });
+
   it('organise l’écran : arborescence, textes au centre, volet droit en trois parties (7.1.1)', async () => {
     const project = aProject();
     await TestBed.inject(DATA_REPOSITORY).saveProject(project);
