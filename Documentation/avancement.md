@@ -35,9 +35,10 @@ Suivi du [plan d'implémentation](./Plan_implementation.md). Chaque lot est déc
 | 12 ter | Vidéos (fait avant le 12 bis) | 13 | 13 | Terminé | [lot-12ter-videos.md](./avancement/lot-12ter-videos.md) |
 | 13 | Robustesse, performance, accessibilité | 16 | 15 | En cours | [lot-13-robustesse.md](./avancement/lot-13-robustesse.md) |
 | 15 | Fiches (fait avant le 12 bis) | 11 | 11 | Terminé | [lot-15-fiches.md](./avancement/lot-15-fiches.md) |
-| 12 bis | Hors ligne et tablette (fait après le 15) | 8 | 0 | À faire | [lot-12bis-hors-ligne-tablette.md](./avancement/lot-12bis-hors-ligne-tablette.md) |
+| 16 | Export / import de projet (fait avant le 12 bis) | 7 | 0 | À faire | [lot-16-export-import-projet.md](./avancement/lot-16-export-import-projet.md) |
+| 12 bis | Hors ligne et tablette (fait après le 16) | 6 | 0 | À faire | [lot-12bis-hors-ligne-tablette.md](./avancement/lot-12bis-hors-ligne-tablette.md) |
 | 14 | Recette V1 | 6 | 0 | À faire | [lot-14-recette-v1.md](./avancement/lot-14-recette-v1.md) |
-| **Total** | | **247** | **232** | | |
+| **Total** | | **252** | **232** | | |
 
 ---
 
@@ -107,9 +108,13 @@ Robustesse, performance, accessibilité : quota, mesures de performance, clavier
 
 Fiches du MJ (titre + texte Markdown) : onglet « Fiches », élément « Afficher une fiche », ouverture en Présentation (fil, bouton « Fiches », touche F). Intégré à la V1, fait avant le lot 12 bis. — **Terminé** · [détail](./avancement/lot-15-fiches.md)
 
+### Lot 16 — Export / import de projet
+
+Export d'un projet en `.zip` (JSON + fichiers son, vidéo et image, avec `@zip.js/zip.js`) depuis l'accueil, vidéos de plus de 500 Mo décochées par défaut ; import qui conserve les identifiants (sauvegarde / restauration, transfert vers la tablette) ; vidéos sans fichier complétées depuis la Bibliothèque. Sorti du lot 12 bis, fait avant lui. — **À faire** · [détail](./avancement/lot-16-export-import-projet.md)
+
 ### Lot 12 bis — Hors ligne et tablette
 
-Hors ligne et tablette Android : lancement depuis un fichier HTML, export / import de projet (fiches comprises), mise en page tablette, lecteur `.zip`. Fait après le lot 15. — **À faire** · [détail](./avancement/lot-12bis-hors-ligne-tablette.md)
+Hors ligne et tablette Android : lancement depuis un fichier HTML, mise en page tablette, lecteur `.zip` (fiches comprises). Le transfert du projet utilise l'export / import du lot 16. Fait après le lot 16. — **À faire** · [détail](./avancement/lot-12bis-hors-ligne-tablette.md)
 
 ### Lot 14 — Recette V1
 
@@ -133,5 +138,5 @@ Recette V1 : scénario réel, séance de 4 heures, reprise, corrections, étique
 | Pause entre les éléments affichés en Présentation | ✅ Fait (2026-11-10) | ✅ Décision (Allan) : 0,5 s entre la fin de l'affichage d'un élément et le suivant, ✅ portée à **1 s** (Allan, 2026-11-10), sauf pour les éléments de son. ℹ️ Concernés : « Afficher un texte », « Afficher une battlemap », « Clic de l'utilisateur » ; non concernés : sons, « Attendre », « Changer de scène » (un son placé entre deux textes part avec le premier). L'écart vaut pour toute la scène, y compris d'une action d'ouverture à la suivante et entre actions lancées en parallèle (créneaux réservés) ; aucun délai si l'affichage précédent date de plus de 1 s (après un clic ou une attente). Le sélecteur de battlemap du MJ n'est pas retardé. Réalisation : `ActionContext.beforeDisplay()` appelé par `ActionRunner`, implémenté par `PresentationEngine` ; jeton `DISPLAY_GAP_MS` (1 s, 0 dans les tests via `usePresentation()`). |
 | Fondu d'apparition des éléments du fil en Présentation | ✅ Fait (2026-11-10) | ✅ Décision (Allan) : fondu de 0,5 s, ✅ porté à **1 s** (Allan, 2026-11-10), à l'apparition de chaque élément du fil (texte, battlemap, clic, attente en cours). Animation CSS `feed-item-in` sur `.item` (`feed.scss`), nouveau jeton commun `duration(appear)` = 1 s (`_tokens.scss`, Brief §8). ℹ️ Les éléments déjà présents quand on ouvre ou reprend une scène apparaissent aussi en fondu ; désactivé avec « mouvements réduits ». Les éléments estompés finissent le fondu à leur opacité estompée. |
 | Compte à rebours de l'élément « Attendre » en Présentation (ACT-10) | ✅ Fait (2026-11-09) | ✅ Décision (Allan) : pendant l'attente, une ligne en bas du fil affiche le temps restant (« 0:07 », arrondi à la seconde supérieure) ; ✅ Décision (Allan) : pas de barre de progression, c'est le **fond de la ligne** qui se remplit de gauche à droite (teinte `accent-tint-strong` sur `bg-card`, variable CSS `--wait-progress`) ; elle **disparaît** à la fin de l'attente et n'est **pas enregistrée** dans la partie (une attente interrompue par un changement de scène disparaît aussi). ℹ️ Info : `ActionContext.wait(element, signal)` remplace l'appel direct à `delay` dans `ActionRunner` ; le moteur expose `waits` (`PendingWait` : `endsAt`, `durationMs`) ; composant `FeedWait` (`gm-screen/feed-wait`, `role="timer"`). ⚠️ À vérifier par Allan dans le navigateur, deux thèmes. |
-| Export / import de projet (12b.2, 12b.3) | ✅ Décisions (Allan, 16/11/2026) | Zip = JSON + fichiers, bibliothèque `@zip.js/zip.js` ; vidéos de plus de 500 Mo décochées par défaut ; identifiants conservés à l'import (média existant non réimporté, autres objets écrasés, rien de local supprimé, confirmation si le projet existe) ; tous les sons et vidéos dans la bibliothèque du projet ; vidéo absente du zip : alerte dans la Bibliothèque et import du fichier plus tard sous le même identifiant ; parties sauvegardées non exportées. « Dupliquer un projet » : idée d'évolution après la V1. Détail : en-tête et notes 12b.2 / 12b.3 du lot. |
+| Export / import de projet (lot 16) | ✅ Décisions (Allan, 16/11/2026) | Zip = JSON + fichiers, bibliothèque `@zip.js/zip.js` ; vidéos de plus de 500 Mo décochées par défaut ; identifiants conservés à l'import (média existant non réimporté, autres objets écrasés, rien de local supprimé, confirmation si le projet existe) ; tous les sons et vidéos dans la bibliothèque du projet ; vidéo absente du zip : alerte dans la Bibliothèque et import du fichier plus tard sous le même identifiant ; parties sauvegardées non exportées. « Dupliquer un projet » : idée d'évolution après la V1. ✅ Décision (Allan, 16/11/2026) : sorti du lot 12 bis dans un **lot 16**, fait avant le 12 bis. Détail : en-tête et notes du lot 16. |
 | Lancement hors ligne depuis un fichier HTML | ❓ Conception à valider (12b.1) | Vérifié : le build actuel ouvert en `file://` ne démarre pas (modules JavaScript bloqués par le navigateur, traductions chargées par requête). |

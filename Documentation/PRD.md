@@ -69,7 +69,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | PRJ-02 | La suppression d'un projet demande une confirmation. | M |
 | PRJ-03 | Un projet peut être ouvert en mode **Édition** ou en mode **Présentation**. | M |
 | PRJ-04 | Export d'un projet en `.zip` autonome (HTML + toutes les ressources, y compris les sons de la bibliothèque globale utilisés), lisible hors ligne sur une tablette. En V1 (lot 12 bis, décision d'Allan : Présentation sur tablette Android). | M |
-| PRJ-05 | Sauvegarde / restauration d'un projet (`.zip` : un fichier JSON avec toutes les données + chaque fichier son, vidéo et image). À l'import, les identifiants sont conservés : un média déjà présent n'est pas réimporté, les autres objets de même identifiant sont écrasés ; tous les sons et vidéos vont dans la bibliothèque du projet ; tout le contenu du zip est importé (rien de local n'est supprimé), avec confirmation si le projet existe déjà ; les parties sauvegardées ne sont pas exportées (décisions d'Allan, 16/11/2026, lot 12 bis). En V1 : c'est aussi le moyen de transférer un projet du PC vers la tablette. | M |
+| PRJ-05 | Sauvegarde / restauration d'un projet (`.zip` : un fichier JSON avec toutes les données + chaque fichier son, vidéo et image). À l'import, les identifiants sont conservés : un média déjà présent n'est pas réimporté, les autres objets de même identifiant sont écrasés ; tous les sons et vidéos vont dans la bibliothèque du projet ; tout le contenu du zip est importé (rien de local n'est supprimé), avec confirmation si le projet existe déjà ; les parties sauvegardées ne sont pas exportées (décisions d'Allan, 16/11/2026, lot 16). En V1 : c'est aussi le moyen de transférer un projet du PC vers la tablette. | M |
 
 ### 5.2 Bibliothèques (sons et vidéos)
 
@@ -288,7 +288,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 
 | Type | Description | Mitigation |
 |---|---|---|
-| Risque | **Perte de données** : vider les données du navigateur efface tous les projets. | Demande de stockage persistant (NF-12, TRD TEC-26) ; sauvegarde / restauration de projet en V1 (PRJ-05, lot 12 bis). |
+| Risque | **Perte de données** : vider les données du navigateur efface tous les projets. | Demande de stockage persistant (NF-12, TRD TEC-26) ; sauvegarde / restauration de projet en V1 (PRJ-05, lot 16). |
 | Risque | **Quota de stockage** atteint avec de nombreux sons ou grandes images. | Affichage de la place utilisée (NF-14) ; message clair en cas d'échec d'import. |
 | Risque | **Poids des vidéos** : une vidéo est copiée dans le navigateur (deux fois sa taille sur le PC) et alourdit l'export. | Copie dans IndexedDB conservée (décision d'Allan, 13/11/2026 ; quota large : environ 60 % du disque sur Chrome / Edge, 50 % sur Firefox avec stockage persistant) ; confirmation au-delà de 500 Mo (VID-03) ; vidéos comptées à part dans Paramètres › Stockage (NF-14) ; case « Inclure les vidéos » à l'export (VID-13). |
 | Risque | **Lecture automatique** : la fenêtre joueurs n'a reçu aucun clic, le navigateur peut y refuser une vidéo avec son. | Prototype en début de lot 12 ter ; repli : vidéo muette et notification au MJ (VID-12). |

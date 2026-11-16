@@ -30,7 +30,7 @@ Ce document découpe la V1 en **lots** ordonnés. Chaque lot liste ses tâches, 
 | **J2 — Tranche verticale** | Créer un projet, une scène avec texte, la présenter | 4 |
 | **J3 — Édition complète** | Projets, sons, scènes, battlemaps, actions | 5 à 8 |
 | **J4 — Présentation complète** | Moteur, écran du MJ, fenêtre joueurs, reprise de partie | 9 à 12 |
-| **J5 — V1** | Robustesse, accessibilité, fiches du MJ, hors ligne et tablette, recette sur un vrai scénario | 13, 15, 12 bis et 14 |
+| **J5 — V1** | Robustesse, accessibilité, fiches du MJ, export / import de projet, hors ligne et tablette, recette sur un vrai scénario | 13, 15, 16, 12 bis et 14 |
 
 ---
 
@@ -178,7 +178,7 @@ Ce document découpe la V1 en **lots** ordonnés. Chaque lot liste ses tâches, 
 
 ### Lot 12 ter — Vidéos · M
 
-> Ajouté le 13/11/2026 (demande d'Allan). Fait **avant le lot 12 bis**, pour que l'export de projet (12b.2) prévoie dès le départ la case « Inclure les vidéos ».
+> Ajouté le 13/11/2026 (demande d'Allan). Fait **avant le lot 12 bis**, pour que l'export de projet (lot 16) prévoie dès le départ la case « Inclure les vidéos ».
 
 | Tâche | Réf. |
 |---|---|
@@ -212,6 +212,20 @@ Ce document découpe la V1 en **lots** ordonnés. Chaque lot liste ses tâches, 
 
 **Fin du lot** : une fiche préparée dans l'onglet Fiches s'ouvre en Présentation par une action (bloc dans le fil) et à la main par la recherche, sans jamais apparaître dans la fenêtre joueurs.
 
+### Lot 16 — Export / import de projet · M
+
+> Ajouté le 16/11/2026 (décision d'Allan) : sorti du lot 12 bis, **intégré à la V1**, fait avant le lot 12 bis (transfert vers la tablette, lecteur `.zip`). Exigences : PRD PRJ-05, VID-13, PRS-07 ; TRD §12. Décisions d'Allan : voir l'en-tête du [lot 16](./avancement/lot-16-export-import-projet.md).
+
+| Tâche | Réf. |
+|---|---|
+| Données : contenu d'un média, import d'un média sous son identifiant, médias absents | PRJ-05, TEC-21 à TEC-26 |
+| Format d'export (JSON versionné + fichiers), zip en flux avec `@zip.js/zip.js` | PRJ-05 |
+| « Exporter le projet » : case « Inclure les vidéos », vidéos de plus de 500 Mo décochées par défaut, poids affiché | PRJ-05, VID-13 |
+| « Importer un projet » : identifiants conservés, médias déjà présents non réimportés, confirmation si le projet existe, sons et vidéos dans la bibliothèque du projet | PRJ-05 |
+| Vidéos sans fichier : alerte et import du fichier dans la Bibliothèque, signalement dans l'éditeur et en Présentation | VID-13, PRS-07 |
+
+**Fin du lot** : un projet exporté est réimporté à l'identique dans un navigateur vierge, et sur le navigateur d'origine sans dupliquer les médias.
+
 ### Lot 14 — Recette V1 · S
 
 | Tâche | Réf. |
@@ -229,13 +243,14 @@ Ce document découpe la V1 en **lots** ordonnés. Chaque lot liste ses tâches, 
 ```
 Lot 0 ──► Lot 1 ──► Lot 3 ──┬──► Lot 5
    │                        ├──► Lot 6 ──┐
-   └────► Lot 2 ──► Lot 4 ──┴──► Lot 7 ──┴──► Lot 8 ──► Lot 9 ──► Lot 10 ──► Lot 11 ──► Lot 12 ──► Lot 13 ──► Lot 15 ──► Lot 12 bis ──► Lot 14
+   └────► Lot 2 ──► Lot 4 ──┴──► Lot 7 ──┴──► Lot 8 ──► Lot 9 ──► Lot 10 ──► Lot 11 ──► Lot 12 ──► Lot 13 ──► Lot 15 ──► Lot 16 ──► Lot 12 bis ──► Lot 14
 ```
 
 - Les lots 1 et 2 peuvent avancer en parallèle après le lot 0.
 - Le lot 9 (moteur) peut commencer dès le lot 4, en parallèle des lots 5 à 8, avec des données de test.
 - Le lot 6 (sons) doit précéder le lot 8, qui a besoin du sélecteur de son.
-- Le lot 15 (fiches) fait partie de la V1 et précède le lot 12 bis (décision d'Allan) : l'export / import de projet et le lecteur hors ligne du 12 bis emportent donc les fiches dès le départ.
+- Le lot 15 (fiches) fait partie de la V1 et précède le lot 12 bis (décision d'Allan) : l'export / import de projet (lot 16) et le lecteur hors ligne du 12 bis emportent donc les fiches dès le départ.
+- Le lot 16 (export / import de projet) précède le lot 12 bis (décision d'Allan) : le transfert vers la tablette passe par l'import, et le lecteur `.zip` lit le format d'export.
 
 ---
 
