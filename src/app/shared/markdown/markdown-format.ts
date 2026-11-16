@@ -1,4 +1,4 @@
-import { Marked } from 'marked';
+import { Marked, Token } from 'marked';
 
 /** Mises en forme proposées par la barre d'outils Markdown. */
 export type MarkdownFormat =
@@ -144,6 +144,50 @@ const markdown = new Marked({
 export function renderMarkdown(text: string | null | undefined): string {
   return text ? (markdown.parse(text) as string) : '';
 }
+
+/**
+ * Texte brut d'un texte Markdown, sans marqueurs (recherche, extraits) : blocs séparés par un
+ * espace, espaces consécutifs réduits à un seul. Les balises HTML saisies sont ignorées.
+ */
+export function markdownToPlainText(text: string | null | undefined): string {
+  if (!text) {
+    return '';
+  }
+  return plainText(markdown.lexer(text)).replace(/\s+/g, ' ').trim();
+}
+
+/** Texte des jetons de `marked`, en descendant dans les jetons imbriqués (listes, tableaux…). */
+function plainText(tokens: readonly Token[]): string {
+  return tokens.map(tokenText).join('');
+}
+
+function tokenText(token: Token): string {
+  switch (token.type) {
+    case 'space':
+    case 'br':
+    case 'hr':
+      return ' ';
+    case 'html':
+      return ' ';
+    case 'list':
+      return token.items.map((item: Token) => tokenText(item)).join(' ') + ' ';
+    case 'table':
+      return (
+        [token.header, ...token.rows]
+          .flat()
+          .map((cell: { tokens: Token[] }) => plainText(cell.tokens))
+          .join(' ') + ' '
+      );
+  }
+  const block = BLOCK_TYPES.has(token.type) ? ' ' : '';
+  if ('tokens' in token && token.tokens) {
+    return plainText(token.tokens) + block;
+  }
+  return ('text' in token && typeof token.text === 'string' ? token.text : '') + block;
+}
+
+/** Jetons de bloc : suivis d'un espace pour ne pas coller deux paragraphes. */
+const BLOCK_TYPES = new Set(['paragraph', 'heading', 'blockquote', 'code']);
 
 function escapeAttribute(value: string): string {
   return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');

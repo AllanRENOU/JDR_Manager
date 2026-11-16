@@ -1,4 +1,10 @@
-import { applyMarkdownFormat, renderMarkdown, TextEdit, TextSelection } from './markdown-format';
+import {
+  applyMarkdownFormat,
+  markdownToPlainText,
+  renderMarkdown,
+  TextEdit,
+  TextSelection,
+} from './markdown-format';
 
 /** Applique l'édition et renvoie le texte final avec la sélection marquée par [ ]. */
 function result(selection: TextSelection, edit: TextEdit): string {
@@ -64,5 +70,30 @@ describe('renderMarkdown', () => {
   it('renvoie une chaîne vide sans texte', () => {
     expect(renderMarkdown(null)).toBe('');
     expect(renderMarkdown('')).toBe('');
+  });
+});
+
+describe('markdownToPlainText', () => {
+  it('retire les marqueurs et garde le texte des mots mis en forme', () => {
+    expect(markdownToPlainText('Le **garde** du _pont_ et `code`, mot**gras**')).toBe(
+      'Le garde du pont et code, motgras',
+    );
+  });
+
+  it('sépare les blocs (titres, paragraphes, listes, citations) par un espace', () => {
+    expect(
+      markdownToPlainText('## Taverne\n\nUn aubergiste\nbourru.\n\n- bière\n- pain\n\n> Bienvenue'),
+    ).toBe('Taverne Un aubergiste bourru. bière pain Bienvenue');
+  });
+
+  it('garde le libellé d’un lien et ignore le HTML saisi', () => {
+    expect(markdownToPlainText('Voir [la carte](https://exemple.fr) <b>ici</b>')).toBe(
+      'Voir la carte ici',
+    );
+  });
+
+  it('renvoie une chaîne vide pour un texte vide', () => {
+    expect(markdownToPlainText('')).toBe('');
+    expect(markdownToPlainText(null)).toBe('');
   });
 });
