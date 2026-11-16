@@ -12,6 +12,7 @@ import {
   anAction,
 } from '../../../../testing/data-builders';
 import { useFakeAudio } from '../../../../testing/fake-audio';
+import { seedVideo } from '../../../../testing/presentation-harness';
 import { useTestRepository } from '../../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
@@ -916,14 +917,7 @@ describe('PresentationEngine', () => {
 
     async function seedVideos(actions: Action[] = []) {
       await seed([film, ...actions]);
-      await repository().saveLibraryNodes([
-        aSoundNode('global', {
-          id: 'intro',
-          name: 'Intro',
-          mediaId: 'm-intro',
-          mediaKind: 'video',
-        }),
-      ]);
+      await seedVideo();
       await startAt('A');
       await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
     }
@@ -973,6 +967,33 @@ describe('PresentationEngine', () => {
       expect(feedTexts()).toContain('Après le film.');
       // Vidéo non diffusée : pas de mention dans le fil.
       expect(feedTexts().some((t) => t?.startsWith('[vidéo'))).toBe(false);
+      expect(posted).toEqual([]);
+      expect(engine.video()).toBeNull();
+      expect(ducked()).toBe(false);
+    });
+
+    it('vidéo sans fichier (exportée sans son fichier) : message avec son nom, rien n’est lancé, l’action continue (VID-13)', async () => {
+      await seed([film]);
+      // Nœud créé par l'import d'un projet, sans média enregistré.
+      await repository().saveLibraryNodes([
+        aSoundNode('global', {
+          id: 'intro',
+          name: 'Intro',
+          mediaId: 'm-absent',
+          mediaKind: 'video',
+        }),
+      ]);
+      await startAt('A');
+      await vi.waitFor(() => expect(engine.sounds()).toHaveLength(1));
+
+      await engine.runAction('film');
+      const message =
+        'Le fichier de la vidéo « Intro » n’a pas été importé : elle n’est pas lancée. Importez-le depuis la Bibliothèque.';
+      expect(errors()).toEqual([message]);
+      expect(feedTexts()).toContain('Après le film.');
+      expect(feedTexts().some((t) => t?.startsWith('[vidéo'))).toBe(false);
+      engine.playLibraryVideo('intro');
+      expect(errors()).toEqual([message, message]);
       expect(posted).toEqual([]);
       expect(engine.video()).toBeNull();
       expect(ducked()).toBe(false);

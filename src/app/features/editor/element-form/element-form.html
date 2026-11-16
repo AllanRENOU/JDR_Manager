@@ -272,7 +272,7 @@
   @let notChosenKey = isVideo ? 'action.form.videoNotChosen' : 'action.form.notChosen';
   <button
     class="choice"
-    [class.choice--missing]="sound === false || !!choiceError()"
+    [class.choice--missing]="sound === false || !!choiceError() || videoWithoutFile()"
     [attr.aria-invalid]="choiceError() ? true : null"
     type="button"
     (click)="chooseSound()"
@@ -290,6 +290,8 @@
   </button>
   @if (choiceError()) {
     <p class="error">{{ choiceError() | transloco }}</p>
+  } @else if (videoWithoutFile()) {
+    <p class="error">{{ 'action.form.videoNoFile' | transloco }}</p>
   }
 </ng-template>
 

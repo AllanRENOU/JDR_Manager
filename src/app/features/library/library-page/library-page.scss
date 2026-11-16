@@ -204,6 +204,15 @@
 
 .sound__missing {
   color: color(danger-text);
+
+  svg {
+    margin-right: space(4);
+    vertical-align: middle;
+  }
+}
+
+.sound__import-file {
+  margin-left: space(8);
 }
 
 .file-input {

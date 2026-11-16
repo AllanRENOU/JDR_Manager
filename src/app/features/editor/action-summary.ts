@@ -20,6 +20,11 @@ export interface SummaryContext {
   actions?: readonly Action[];
   /** Arborescence des fiches du projet (« Afficher une fiche », lot 15). */
   sheetNodes?: readonly SheetNode[];
+  /**
+   * Sons et vidéos dont le fichier n'est pas importé (vidéo exportée sans son fichier, VID-13), par
+   * id de `LibraryNode` : « Lancer la vidéo » est signalé comme une cible supprimée (PRS-07).
+   */
+  withoutFileIds?: ReadonlySet<Id>;
 }
 
 /** Partie de résumé d'un élément : clé de traduction et paramètres ; `missing` = cible supprimée (PRS-07). */
@@ -47,9 +52,12 @@ export function summarizeElement(element: ActionElement, context: SummaryContext
       return { key: 'action.summary.stopAll', params: {}, missing: false };
     case 'play-video': {
       const name = sound(element.videoId);
-      return name
-        ? { key: 'action.summary.playVideo', params: { name }, missing: false }
-        : { key: 'action.summary.playVideoMissing', params: {}, missing: true };
+      if (!name) {
+        return { key: 'action.summary.playVideoMissing', params: {}, missing: true };
+      }
+      return context.withoutFileIds?.has(element.videoId)
+        ? { key: 'action.summary.playVideoNoFile', params: { name }, missing: true }
+        : { key: 'action.summary.playVideo', params: { name }, missing: false };
     }
     case 'stop-video':
       return { key: 'action.summary.stopVideo', params: {}, missing: false };
@@ -121,8 +129,12 @@ export function describeElement(element: ActionElement, context: SummaryContext)
     case 'play-sound':
     case 'stop-sound':
       return target(element.soundId, context.soundNames[element.soundId]);
-    case 'play-video':
-      return target(element.videoId, context.soundNames[element.videoId]);
+    case 'play-video': {
+      const name = context.soundNames[element.videoId];
+      return name && context.withoutFileIds?.has(element.videoId)
+        ? { key: 'action.detail.noFile', params: { name }, missing: true }
+        : target(element.videoId, name);
+    }
     case 'show-battlemap':
       return target(
         element.battlemapId,

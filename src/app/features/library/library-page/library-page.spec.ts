@@ -169,7 +169,7 @@ describe('LibraryPage', () => {
     );
     expect(cells).toEqual([
       ['', 'Son', 'Foule', '12:40', '1 o', 'MP3', '2 actions', ''],
-      ['', 'Son', 'Perdu', 'Fichier introuvable', 'Non utilisé', ''],
+      ['', 'Son', 'Perdu', 'Fichier à importer Importer le fichier', 'Non utilisé', ''],
     ]);
   });
 
@@ -504,6 +504,61 @@ describe('LibraryPage', () => {
       [...el.querySelectorAll('tbody tr')].map((tr) =>
         [...tr.querySelectorAll('td')].slice(1, 3).map((td) => td.textContent?.trim()),
       );
+
+    it('vidéo sans fichier : alerte, « Importer le fichier » sur la ligne, fichier enregistré sous son identifiant (VID-13)', async () => {
+      const repository = TestBed.inject(DATA_REPOSITORY);
+      const folder = aSoundNode(GLOBAL_LIBRARY, { id: 'films', kind: 'folder', name: 'Films' });
+      const intro = aSoundNode(GLOBAL_LIBRARY, {
+        id: 'intro',
+        name: 'Intro',
+        parentId: 'films',
+        mediaId: 'm-intro',
+        mediaKind: 'video',
+      });
+      await repository.saveLibraryNodes([folder, intro]);
+      const { fixture, el } = await render();
+      const alert = await vi.waitFor(async () => {
+        await fixture.whenStable();
+        const found = el.querySelector('app-missing-files-alert app-alert');
+        expect(found).not.toBeNull();
+        return found!;
+      });
+      expect(alert.textContent).toContain('1 élément n’a pas de fichier');
+
+      // Le lien ouvre le dossier de la vidéo et la met en évidence.
+      [...alert.querySelectorAll('button')].find((b) => b.textContent?.includes('Intro'))!.click();
+      await fixture.whenStable();
+      const row = el.querySelector('tr[data-sound-id="intro"]') as HTMLElement;
+      expect(row.classList).toContain('sound--selected');
+      expect(row.querySelector('.sound__missing')?.textContent).toContain('Fichier à importer');
+      const importButton = row.querySelector<HTMLButtonElement>('.sound__import-file')!;
+      expect(importButton.getAttribute('aria-label')).toBe('Importer le fichier de « Intro »');
+
+      const input = el.querySelectorAll<HTMLInputElement>('input[type="file"]')[1];
+      const pick = vi.spyOn(input, 'click').mockImplementation(() => undefined);
+      importButton.click();
+      expect(pick).toHaveBeenCalled();
+      expect(input.multiple).toBe(false);
+      expect(input.accept).toContain('.mp4');
+      expect(input.accept).not.toContain('.mp3');
+      Object.defineProperty(input, 'files', {
+        configurable: true,
+        value: [new File(['vidéo'], 'intro.mp4', { type: 'video/mp4' })],
+      });
+      input.dispatchEvent(new Event('change'));
+
+      await vi.waitFor(async () => {
+        await fixture.whenStable();
+        expect(el.querySelector('app-missing-files-alert app-alert')).toBeNull();
+      });
+      expect(row.querySelector('.sound__missing')).toBeNull();
+      expect((await repository.getMediaInfo(['m-intro']))[0]?.fileName).toBe('intro.mp4');
+      expect(
+        TestBed.inject(Notifications)
+          .notifications()
+          .map((n) => n.message),
+      ).toContain('Fichier de « Intro » importé : les actions qui le lancent le liront.');
+    });
 
     it('distingue sons et vidéos et filtre Tous / Sons / Vidéos', async () => {
       const { fixture, el } = await renderWithVideo();

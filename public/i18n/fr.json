@@ -171,6 +171,7 @@
       "stopAll": "arrêter tous les sons",
       "playVideo": "vidéo « {{ name }} »",
       "playVideoMissing": "vidéo supprimée",
+      "playVideoNoFile": "vidéo « {{ name }} » sans fichier",
       "stopVideo": "arrêter la vidéo",
       "battlemap": "battlemap « {{ name }} »",
       "battlemapMissing": "battlemap supprimée",
@@ -208,7 +209,8 @@
       "notChosen": "À choisir",
       "deleted": "Supprimé",
       "seconds": "{{ count }} s",
-      "allActions": "Toutes les actions"
+      "allActions": "Toutes les actions",
+      "noFile": "{{ name }} (fichier à importer)"
     },
     "editor": {
       "editTitle": "Modifier l’action",
@@ -266,6 +268,7 @@
       "video": "Vidéo",
       "videoNotChosen": "Aucune vidéo choisie",
       "videoMissing": "Vidéo supprimée",
+      "videoNoFile": "Le fichier de cette vidéo n’a pas été importé : importez-le depuis la Bibliothèque. En attendant, elle n’est pas lancée.",
       "chooseVideoTitle": "Choisir une vidéo",
       "videoVolumeHelp": "0 % : vidéo muette.",
       "playVideoHelp": "La vidéo passe dans la fenêtre joueurs, par-dessus la battlemap ; l’action continue sans attendre sa fin. Les sons en cours sont coupés pendant la vidéo.",
@@ -343,6 +346,7 @@
     "errors": {
       "missingSound": "Un son a été supprimé du projet : il n’est pas lancé.",
       "missingVideo": "Une vidéo a été supprimée du projet : elle n’est pas lancée.",
+      "missingVideoFile": "Le fichier de la vidéo « {{ name }} » n’a pas été importé : elle n’est pas lancée. Importez-le depuis la Bibliothèque.",
       "videoUnreadable": "La vidéo n’a pas pu être lue dans la fenêtre joueurs.",
       "missingScene": "La scène cible de « Changer de scène » a été supprimée : la scène ne change pas.",
       "missingAction": "Une action à afficher a été supprimée : elle est ignorée.",
@@ -525,6 +529,20 @@
       "video": "Aucune vidéo dans ce dossier."
     },
     "missingFile": "Fichier introuvable",
+    "withoutFile": {
+      "alert": {
+        "one": "{{ count }} élément n’a pas de fichier : importez-le pour pouvoir le lancer.",
+        "other": "{{ count }} éléments n’ont pas de fichier : importez-les pour pouvoir les lancer."
+      },
+      "row": "Fichier à importer",
+      "import": "Importer le fichier",
+      "importAction": "Importer le fichier de « {{ name }} »",
+      "imported": "Fichier de « {{ name }} » importé : les actions qui le lancent le liront.",
+      "wrongKind": {
+        "video": "Choisissez un fichier vidéo ({{ formats }}).",
+        "sound": "Choisissez un fichier son ({{ formats }})."
+      }
+    },
     "tableLabel": "Contenu de « {{ folder }} »",
     "search": "Rechercher un son ou une vidéo",
     "searchResults": "Résultats pour « {{ query }} »",

@@ -167,7 +167,20 @@
           [accept]="accept"
           (change)="onFilesChosen(fileInput)"
         />
+        <input
+          #missingInput
+          class="file-input"
+          type="file"
+          tabindex="-1"
+          aria-hidden="true"
+          (change)="onMissingFileChosen(missingInput)"
+        />
       </div>
+
+      <app-missing-files-alert
+        [nodes]="store.withoutFile()"
+        (selected)="store.select($event.libraryId, $event.id)"
+      />
 
       @if (store.rows().length === 0) {
         <p class="content__empty">
@@ -270,7 +283,27 @@
                   <td class="sound__meta">{{ formatFileSize(media.size) }}</td>
                   <td class="sound__meta">{{ formatLabel(media.mimeType) }}</td>
                 } @else {
-                  <td class="sound__missing" colspan="3">{{ 'sound.missingFile' | transloco }}</td>
+                  <td class="sound__missing" colspan="3">
+                    <svg lucideTriangleAlert [size]="16" aria-hidden="true"></svg>
+                    @if (row.node.mediaId) {
+                      {{ 'sound.withoutFile.row' | transloco }}
+                      <button
+                        appButton="secondary"
+                        size="sm"
+                        type="button"
+                        class="sound__import-file"
+                        [attr.aria-label]="
+                          'sound.withoutFile.importAction' | transloco: { name: row.node.name }
+                        "
+                        (click)="chooseMissingFile(row.node, missingInput)"
+                      >
+                        <svg lucideUpload aria-hidden="true"></svg
+                        >{{ 'sound.withoutFile.import' | transloco }}
+                      </button>
+                    } @else {
+                      {{ 'sound.missingFile' | transloco }}
+                    }
+                  </td>
                 }
                 <td class="sound__meta" [class.sound__unused]="row.usages === 0">
                   @if (row.usages === 0) {

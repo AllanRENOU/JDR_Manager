@@ -86,6 +86,26 @@ describe('summarizeElement', () => {
     expect(describeElement({ id: 's', type: 'stop-video' }, context)).toEqual({ missing: false });
   });
 
+  it('« Lancer la vidéo » d’une vidéo sans fichier : signalé, avec le nom (VID-13, PRS-07)', () => {
+    const playVideo = { id: 'v', type: 'play-video', videoId: 'intro', volume: 1 } as const;
+    const withoutFile: SummaryContext = { ...context, withoutFileIds: new Set(['intro']) };
+    expect(summarizeElement(playVideo, withoutFile)).toEqual({
+      key: 'action.summary.playVideoNoFile',
+      params: { name: 'Intro' },
+      missing: true,
+    });
+    expect(describeElement(playVideo, withoutFile)).toEqual({
+      key: 'action.detail.noFile',
+      params: { name: 'Intro' },
+      missing: true,
+    });
+    expect(hasMissingTarget(anAction('s1', { elements: [playVideo] }), withoutFile)).toBe(true);
+    // Un son sans fichier ne change pas « Lancer le son » (seules les vidéos sont exportées sans fichier).
+    expect(
+      summarizeElement(play('rain'), { ...context, withoutFileIds: new Set(['rain']) }),
+    ).toEqual({ key: 'action.summary.play', params: { name: 'Pluie' }, missing: false });
+  });
+
   it('« Afficher l’action » : nom de l’action visée, ou action supprimée (ACT-12, PRS-07)', () => {
     const withActions: SummaryContext = {
       ...context,

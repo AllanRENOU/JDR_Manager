@@ -1,0 +1,13 @@
+@let missing = nodes();
+@if (missing.length > 0) {
+  <app-alert class="missing">
+    {{
+      pluralKey('sound.withoutFile.alert', missing.length) | transloco: { count: missing.length }
+    }}
+    @for (node of missing; track node.id) {
+      <button class="missing__link" type="button" (click)="selected.emit(node)">
+        {{ node.name }}
+      </button>
+    }
+  </app-alert>
+}

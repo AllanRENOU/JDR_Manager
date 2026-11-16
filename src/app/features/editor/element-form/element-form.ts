@@ -294,6 +294,12 @@ export class ElementForm {
     return soundPath(id, this.context().soundNodes ?? [], this.libraryNames()) ?? false;
   });
 
+  /** Vidéo choisie dont le fichier n'est pas importé (VID-13) : signalée, sans bloquer (PRS-07). */
+  protected readonly videoWithoutFile = computed(() => {
+    const element = this.element();
+    return element.type === 'play-video' && !!this.context().withoutFileIds?.has(element.videoId);
+  });
+
   /** Chemin de la scène cible ; `null` : pas choisie ; `false` : supprimée. */
   protected readonly sceneLabel = computed<string | null | false>(() => {
     const element = this.element();

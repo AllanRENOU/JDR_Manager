@@ -71,6 +71,7 @@ export class ActionsPanel {
     sceneNodes: this.store.sceneNodes(),
     sheetNodes: this.store.sheetNodes(),
     actions: this.store.actions(),
+    withoutFileIds: this.store.withoutFileIds(),
   }));
 
   /** Ouvre l'éditeur d'action (8.1.1) ; `null` crée une nouvelle action. */

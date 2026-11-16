@@ -124,6 +124,8 @@ export class PresentationEngine {
   readonly sceneNodes = signal<readonly SceneNode[]>([]);
   /** Sons des deux bibliothèques (projet puis globale), pour les lancer et les nommer. */
   readonly soundNodes = signal<readonly LibraryNode[]>([]);
+  /** Médias référencés mais sans fichier (vidéo exportée sans son fichier, VID-13). */
+  private missingMediaIds: ReadonlySet<Id> = new Set();
   /** Partie sauvegardée proposée à la reprise (statut `choose`). */
   readonly savedSession = signal<PlaySession | null>(null);
   /** Arborescence des fiches du projet (recherche, titres) ; jamais envoyée aux joueurs. */
@@ -246,14 +248,17 @@ export class PresentationEngine {
       this.status.set('missing');
       return;
     }
-    const [nodes, projectSounds, globalSounds, saved, sheetNodes, sheets] = await Promise.all([
-      this.repository.listSceneNodes(projectId),
-      this.repository.listLibraryNodes(projectId),
-      this.repository.listLibraryNodes('global'),
-      this.store.findSaved(projectId),
-      this.repository.listSheetNodes(projectId),
-      this.repository.listSheets(projectId),
-    ]);
+    const [nodes, projectSounds, globalSounds, saved, sheetNodes, sheets, missingMedia] =
+      await Promise.all([
+        this.repository.listSceneNodes(projectId),
+        this.repository.listLibraryNodes(projectId),
+        this.repository.listLibraryNodes('global'),
+        this.store.findSaved(projectId),
+        this.repository.listSheetNodes(projectId),
+        this.repository.listSheets(projectId),
+        this.repository.listMissingMedia(),
+      ]);
+    this.missingMediaIds = new Set(missingMedia);
     this.project.set(project);
     this.sceneNodes.set(nodes);
     this.sheetNodes.set(sheetNodes);
@@ -815,13 +820,19 @@ export class PresentationEngine {
 
   /**
    * Lance une vidéo dans la fenêtre joueurs (TRD §6.2) et l'indique dans le fil ; vidéo supprimée
-   * → message d'erreur ; fenêtre joueurs fermée → notification discrète (VID-07), rien dans le fil.
-   * La partie continue dans tous les cas.
+   * ou sans fichier (VID-13) → message d'erreur ; fenêtre joueurs fermée → notification discrète
+   * (VID-07), rien dans le fil. La partie continue dans tous les cas.
    */
   private playVideo(videoId: Id, volume: number): void {
     const node = this.soundNodes().find((n) => n.id === videoId && n.kind === 'item');
     if (!node?.mediaId) {
       this.notifications.error(this.transloco.translate('presentation.errors.missingVideo'));
+      return;
+    }
+    if (this.missingMediaIds.has(node.mediaId)) {
+      this.notifications.error(
+        this.transloco.translate('presentation.errors.missingVideoFile', { name: node.name }),
+      );
       return;
     }
     if (!this.playerVideo.play({ videoId, mediaId: node.mediaId, name: node.name, volume })) {

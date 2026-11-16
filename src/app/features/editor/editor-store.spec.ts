@@ -7,11 +7,13 @@ import {
   aScene,
   aSceneNode,
   aSheetNode,
+  aSoundNode,
 } from '../../../testing/data-builders';
 import { useNodeBlob } from '../../../testing/node-blob';
 import { useTestRepository } from '../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../testing/transloco-testing';
 import { DATA_REPOSITORY } from '../../core/data/data-repository';
+import { GLOBAL_LIBRARY } from '../../core/models';
 import { lastEditedSceneKey } from '../../core/preferences/last-edited-scene';
 import { UiPreferences } from '../../core/preferences/ui-preferences';
 import { EditorStore } from './editor-store';
@@ -66,6 +68,18 @@ describe('EditorStore', () => {
     await store.load(project.id, 'inconnue');
     expect(store.selectedSceneId()).toBe(a.id);
     expect(preferences.get(lastEditedSceneKey(project.id), null)).toBe(a.id);
+  });
+
+  it('repère les sons et vidéos dont le fichier n’est pas importé (VID-13)', async () => {
+    const project = aProject();
+    await repository().saveProject(project);
+    await repository().saveLibraryNodes([
+      aSoundNode(project.id, { id: 'intro', mediaId: 'm-absent', mediaKind: 'video' }),
+      aSoundNode(GLOBAL_LIBRARY, { id: 'pluie', mediaId: 'm-absent-2' }),
+      aSoundNode(project.id, { id: 'dossier', kind: 'folder' }),
+    ]);
+    await store.load(project.id);
+    expect([...store.withoutFileIds()].sort()).toEqual(['intro', 'pluie']);
   });
 
   describe('création de la première scène (4.3)', () => {

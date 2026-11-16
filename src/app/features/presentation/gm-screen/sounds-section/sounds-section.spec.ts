@@ -3,11 +3,10 @@ import { TestBed } from '@angular/core/testing';
 
 import {
   seedPresentation,
+  seedVideo,
   startPresentation,
   usePresentation,
 } from '../../../../../testing/presentation-harness';
-import { aSoundNode } from '../../../../../testing/data-builders';
-import { DATA_REPOSITORY } from '../../../../core/data/data-repository';
 import { AudioPlayer } from '../../audio/audio-player';
 import { PlayerMessage } from '../../player-screen/player-channel';
 import { PlayerVideo } from '../player-video';
@@ -63,15 +62,7 @@ describe('SoundsSection', () => {
 
   it('vidéo lancée à la main : carte en tête, résumé, sons estompés et coupés (CTL-13, Brief §6.12)', async () => {
     await seedPresentation();
-    await TestBed.inject(DATA_REPOSITORY).saveLibraryNodes([
-      aSoundNode('global', {
-        id: 'intro',
-        name: 'Intro',
-        mediaId: 'm-intro',
-        mediaKind: 'video',
-        order: 5,
-      }),
-    ]);
+    await seedVideo({ order: 5 });
     const posted: PlayerMessage[] = [];
     TestBed.inject(PlayerVideo).attach({ post: (m) => posted.push(m), open: signal(true) });
     const engine = await startPresentation();
@@ -123,15 +114,7 @@ describe('SoundsSection', () => {
 
   it('seule une vidéo passe : le bouton global est affiché et la met en pause (VID-10)', async () => {
     await seedPresentation([]);
-    await TestBed.inject(DATA_REPOSITORY).saveLibraryNodes([
-      aSoundNode('global', {
-        id: 'intro',
-        name: 'Intro',
-        mediaId: 'm-intro',
-        mediaKind: 'video',
-        order: 5,
-      }),
-    ]);
+    await seedVideo({ order: 5 });
     TestBed.inject(PlayerVideo).attach({ post: () => undefined, open: signal(true) });
     const engine = await startPresentation();
     for (const sound of engine.sounds()) {

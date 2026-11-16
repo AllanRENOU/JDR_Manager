@@ -136,6 +136,17 @@ export class EditorStore {
   readonly sheetNodes = signal<readonly SheetNode[]>([]);
   /** Nœuds des bibliothèques de sons (projet puis globale), pour choisir et nommer les sons. */
   readonly soundNodes = signal<readonly LibraryNode[]>([]);
+  /** Médias référencés mais sans fichier (vidéo exportée sans son fichier, VID-13). */
+  private readonly missingMediaIds = signal<ReadonlySet<Id>>(new Set());
+  /** Sons et vidéos dont le fichier n'est pas importé, par id de `LibraryNode` (signalés, PRS-07). */
+  readonly withoutFileIds = computed<ReadonlySet<Id>>(() => {
+    const missing = this.missingMediaIds();
+    return new Set(
+      this.soundNodes()
+        .filter((n) => n.kind === 'item' && n.mediaId && missing.has(n.mediaId))
+        .map((n) => n.id),
+    );
+  });
   /** Noms des sons (bibliothèque du projet et globale), pour résumer les actions. */
   readonly soundNames = computed<Readonly<Record<Id, string>>>(() =>
     Object.fromEntries(
@@ -234,16 +245,18 @@ export class EditorStore {
       this.status.set('missing');
       return;
     }
-    const [nodes, projectSounds, globalSounds, sheetNodes] = await Promise.all([
+    const [nodes, projectSounds, globalSounds, sheetNodes, missingMedia] = await Promise.all([
       this.repository.listSceneNodes(projectId),
       this.repository.listLibraryNodes(projectId),
       this.repository.listLibraryNodes(GLOBAL_LIBRARY),
       this.repository.listSheetNodes(projectId),
+      this.repository.listMissingMedia(),
     ]);
     this.project.set(project);
     this.sceneNodes.set(nodes);
     this.sheetNodes.set(sheetNodes);
     this.soundNodes.set([...projectSounds, ...globalSounds]);
+    this.missingMediaIds.set(new Set(missingMedia));
     await this.refreshSceneLinks();
     const firstItem = nodes.find((n) => n.kind === 'item');
     const requested = nodes.some((n) => n.id === sceneId && n.kind === 'item');

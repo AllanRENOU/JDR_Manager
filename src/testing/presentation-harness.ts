@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 
 import { DATA_REPOSITORY } from '../app/core/data/data-repository';
 import { provideFrenchLocale } from '../app/core/i18n/locale';
-import { Action } from '../app/core/models';
+import { Action, LibraryNode } from '../app/core/models';
 import { ActionRunner } from '../app/features/presentation/engine/action-runner';
 import { PlaySessionStore } from '../app/features/presentation/engine/play-session-store';
 import { PlayerVideo } from '../app/features/presentation/gm-screen/player-video';
@@ -105,6 +105,27 @@ export async function seedPresentation(actions: Action[] = []): Promise<void> {
   ]) {
     await repository.saveAction(action);
   }
+}
+
+/**
+ * Vidéo « Intro » de la bibliothèque globale (`intro`, média `m-intro`) **avec son fichier** : sans
+ * média enregistré, le moteur la traite comme une vidéo sans fichier (VID-13). Le contenu n'est pas
+ * lu (le faux `MediaUrls` de `useFakeAudio()` fournit l'URL).
+ */
+export async function seedVideo(overrides: Partial<LibraryNode> = {}): Promise<void> {
+  const repository = TestBed.inject(DATA_REPOSITORY);
+  const node = aSoundNode('global', {
+    id: 'intro',
+    name: 'Intro',
+    mediaId: 'm-intro',
+    mediaKind: 'video',
+    ...overrides,
+  });
+  await repository.importMedia(
+    node.mediaId!,
+    new File(['vidéo'], 'intro.mp4', { type: 'video/mp4' }),
+  );
+  await repository.saveLibraryNodes([node]);
 }
 
 /** Démarre la partie sur la scène A (sans fenêtre de lancement) et attend son ambiance. */

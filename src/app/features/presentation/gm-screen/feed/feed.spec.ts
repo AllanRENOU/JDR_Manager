@@ -3,10 +3,11 @@ import { TestBed } from '@angular/core/testing';
 
 import {
   seedPresentation,
+  seedVideo,
   startPresentation,
   usePresentation,
 } from '../../../../../testing/presentation-harness';
-import { aSheetNode, aSoundNode, anAction } from '../../../../../testing/data-builders';
+import { aSheetNode, anAction } from '../../../../../testing/data-builders';
 import { DATA_REPOSITORY } from '../../../../core/data/data-repository';
 import { PlayerVideo } from '../player-video';
 import { Feed } from './feed';
@@ -69,9 +70,7 @@ describe('Feed', () => {
         ],
       }),
     ]);
-    await TestBed.inject(DATA_REPOSITORY).saveLibraryNodes([
-      aSoundNode('global', { id: 'intro', name: 'Intro', mediaId: 'm-intro', mediaKind: 'video' }),
-    ]);
+    await seedVideo();
     TestBed.inject(PlayerVideo).attach({ post: () => undefined, open: signal(true) });
     const engine = await startPresentation();
     const { fixture, el } = await render();

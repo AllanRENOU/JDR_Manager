@@ -22,6 +22,7 @@ import {
   LucidePlay,
   LucideSearch,
   LucideTrash2,
+  LucideTriangleAlert,
   LucideUpload,
 } from '@lucide/angular';
 
@@ -51,6 +52,7 @@ import { formatDuration } from '../../../shared/util/duration';
 import { formatFileSize } from '../../../shared/util/file-size';
 import { AudioPlayer } from '../../presentation/audio/audio-player';
 import { ListenButton } from '../listen-button/listen-button';
+import { MissingFilesAlert } from '../missing-files-alert/missing-files-alert';
 import { LibraryKindFilter, LibraryRow, LibraryStore } from '../library-store';
 import { SoundPreview } from '../sound-preview';
 import { VideoPreviewData, VideoPreviewDialog } from '../video-preview-dialog/video-preview-dialog';
@@ -85,6 +87,7 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
     Button,
     FileDrop,
     ListenButton,
+    MissingFilesAlert,
     SegmentedControl,
     FileDropOverlay,
     ProjectNav,
@@ -101,6 +104,7 @@ import { SettingsButton } from '../../settings/settings-button/settings-button';
     LucidePlay,
     LucideSearch,
     LucideTrash2,
+    LucideTriangleAlert,
     LucideUpload,
   ],
   providers: [LibraryStore, SoundPreview],
@@ -190,6 +194,45 @@ export class LibraryPage {
     // Permet de choisir à nouveau les mêmes fichiers.
     input.value = '';
     void this.importFiles(files);
+  }
+
+  /** Élément dont on importe le fichier manquant (entre le clic et le choix du fichier). */
+  private missingFileNode: LibraryNode | null = null;
+
+  /** « Importer le fichier » d'un son ou d'une vidéo sans fichier (VID-13) : ouvre le choix du fichier. */
+  protected chooseMissingFile(node: LibraryNode, input: HTMLInputElement): void {
+    this.missingFileNode = node;
+    input.accept = acceptAttribute(mediaKindOf(node));
+    input.click();
+  }
+
+  /** Fichier choisi pour un élément sans fichier : enregistré sous l'identifiant de média prévu. */
+  protected async onMissingFileChosen(input: HTMLInputElement): Promise<void> {
+    const file = input.files?.[0];
+    input.value = '';
+    const node = this.missingFileNode;
+    this.missingFileNode = null;
+    if (!file || !node) {
+      return;
+    }
+    const t = (key: string, params?: Record<string, unknown>) =>
+      this.transloco.translate(key, params);
+    try {
+      if ((await this.confirmLargeFiles([file])).length === 0) {
+        return;
+      }
+      const result = await this.store.importMissingFile(node, file);
+      if (result === 'wrong-kind') {
+        const kind = mediaKindOf(node);
+        this.notifications.error(
+          t(`sound.withoutFile.wrongKind.${kind}`, { formats: FORMAT_LABELS[kind].join(', ') }),
+        );
+        return;
+      }
+      this.notifications.info(t('sound.withoutFile.imported', { name: node.name }));
+    } catch (error) {
+      this.notifications.fromError(error);
+    }
   }
 
   /** Importe dans le dossier ouvert et rend compte du résultat. */

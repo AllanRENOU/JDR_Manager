@@ -192,6 +192,19 @@ describe('ElementForm', () => {
     expect(choiceButton(el).textContent).toContain('Vidéo supprimée');
   });
 
+  it('Lancer la vidéo : vidéo sans fichier signalée, sans bloquer l’enregistrement (VID-13, PRS-07)', () => {
+    const element: ActionElement = { id: 'e1', type: 'play-video', videoId: 'vid1', volume: 1 };
+    const { fixture, el } = render(element);
+    expect(el.textContent).not.toContain('n’a pas été importé');
+    fixture.componentRef.setInput('context', { ...context, withoutFileIds: new Set(['vid1']) });
+    TestBed.tick();
+    expect(choiceButton(el).classList).toContain('choice--missing');
+    expect(el.querySelector('.error')?.textContent).toContain(
+      'Le fichier de cette vidéo n’a pas été importé',
+    );
+    expect(fixture.componentInstance.invalid()).toBe(false);
+  });
+
   it('Arrêter la vidéo : texte explicatif seul (ACT-15)', () => {
     const { el } = render({ id: 'e1', type: 'stop-video' });
     expect(el.textContent).toContain('Arrête la vidéo en cours dans la fenêtre joueurs');

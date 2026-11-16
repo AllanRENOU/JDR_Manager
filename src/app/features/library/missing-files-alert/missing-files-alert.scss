@@ -1,0 +1,18 @@
+@use 'functions' as *;
+
+.missing {
+  display: block;
+  margin-bottom: space(16);
+}
+
+// Liens vers chaque élément sans fichier, sous forme de texte souligné.
+.missing__link {
+  margin-left: space(8);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

@@ -207,6 +207,59 @@ describe('LibraryStore', () => {
     expect(store.importing()).toBe(false);
   });
 
+  describe('éléments sans fichier (VID-13)', () => {
+    async function loadWithoutFile() {
+      await repository().importMedia('m-taverne', new File(['son'], 'taverne.mp3'));
+      await repository().saveLibraryNodes([
+        aSoundNode('p1', { id: 'taverne', name: 'Taverne', mediaId: 'm-taverne' }),
+        aSoundNode('p1', { id: 'intro', name: 'Intro', mediaId: 'm-intro', mediaKind: 'video' }),
+        aSoundNode('global', { id: 'orage', name: 'Orage', mediaId: 'm-orage' }),
+      ]);
+      await store.load('p1');
+    }
+
+    it('liste les sons et vidéos sans fichier de toutes les bibliothèques affichées', async () => {
+      await loadWithoutFile();
+      expect(names(store.withoutFile())).toEqual(['Intro', 'Orage']);
+      expect(store.rows().find((r) => r.node.id === 'intro')?.media).toBeNull();
+    });
+
+    it('importe le fichier sous l’identifiant de média prévu, avec sa durée', async () => {
+      await loadWithoutFile();
+      const intro = store.nodesOf('p1').find((n) => n.id === 'intro')!;
+      const result = await store.importMissingFile(
+        intro,
+        new File(['vidéo'], 'intro.mp4', { type: 'video/mp4' }),
+      );
+      expect(result).toBe('imported');
+      expect(names(store.withoutFile())).toEqual(['Orage']);
+      expect(store.rows().find((r) => r.node.id === 'intro')?.media).toMatchObject({
+        id: 'm-intro',
+        mimeType: 'video/mp4',
+        durationMs: 90_000,
+      });
+      // Le nœud n'a pas changé : les actions qui le lancent liront ce fichier.
+      expect((await repository().listLibraryNodes('p1')).find((n) => n.id === 'intro')).toEqual(
+        intro,
+      );
+    });
+
+    it('refuse un fichier d’une autre nature ou d’un format refusé, sans rien enregistrer', async () => {
+      await loadWithoutFile();
+      const intro = store.nodesOf('p1').find((n) => n.id === 'intro')!;
+      expect(
+        await store.importMissingFile(
+          intro,
+          new File(['son'], 'pluie.mp3', { type: 'audio/mpeg' }),
+        ),
+      ).toBe('wrong-kind');
+      expect(
+        await store.importMissingFile(intro, new File(['x'], 'notes.txt', { type: 'text/plain' })),
+      ).toBe('wrong-kind');
+      expect(await repository().getMediaInfo(['m-intro'])).toEqual([]);
+    });
+  });
+
   it('importe aussi les vidéos, avec leur nature, et donne l’avancement (VID-01, TEC-36)', async () => {
     await store.load('p1');
     const progress: unknown[] = [];

@@ -90,6 +90,17 @@ export class LibraryStore {
   /** Nombre d'actions qui utilisent chaque son, par id de son. */
   private readonly usages = signal<Readonly<Record<Id, number>>>({});
 
+  /**
+   * Sons et vidéos dont le fichier est absent (ex. vidéo exportée sans son fichier, VID-13), toutes
+   * bibliothèques affichées confondues : alerte en haut de l'écran.
+   */
+  readonly withoutFile = computed(() => {
+    const infos = this.mediaInfo();
+    return this.libraries().flatMap((libraryId) =>
+      this.nodesOf(libraryId).filter((n) => n.kind === 'item' && n.mediaId && !infos[n.mediaId]),
+    );
+  });
+
   /** Texte recherché ; non vide, le tableau montre les sons de toutes les bibliothèques affichées. */
   readonly query = signal('');
   readonly searching = computed(() => normalizeSearch(this.query()).length > 0);
@@ -304,6 +315,28 @@ export class LibraryStore {
       }
     }
     return failure === undefined ? { imported, rejected } : { imported, rejected, failure };
+  }
+
+  /**
+   * Importe le fichier d'un son ou d'une vidéo qui n'en a pas (VID-13), **sous son identifiant de
+   * média** : les actions qui le lancent liront ce fichier sans modification.
+   * @returns `wrong-kind` si le fichier n'est pas de la bonne nature (vidéo attendue, son reçu…)
+   *   ou d'un format refusé ; rien n'est alors enregistré.
+   * @throws DataError (quota…).
+   */
+  async importMissingFile(node: LibraryNode, file: File): Promise<'imported' | 'wrong-kind'> {
+    const mediaId = node.mediaId;
+    if (!mediaId || resolveMediaType(file)?.kind !== mediaKindOf(node)) {
+      return 'wrong-kind';
+    }
+    const durationMs = (await this.durations.read(file)) ?? undefined;
+    // `false` : le fichier a déjà été importé entre-temps (autre onglet) ; on relit ses infos.
+    await this.repository.importMedia(mediaId, file, { durationMs });
+    const [info] = await this.repository.getMediaInfo([mediaId]);
+    if (info) {
+      this.mediaInfo.update((infos) => ({ ...infos, [mediaId]: info }));
+    }
+    return 'imported';
   }
 
   async rename(libraryId: LibraryId, id: Id, name: string): Promise<void> {
