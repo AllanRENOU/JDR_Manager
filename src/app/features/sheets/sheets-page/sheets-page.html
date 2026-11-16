@@ -46,18 +46,88 @@
     }
     @case ('ready') {
       <aside class="sheets__tree" [attr.aria-label]="'sheet.treeLabel' | transloco">
+        <label class="search">
+          <svg lucideSearch class="search__icon" [size]="16" aria-hidden="true"></svg>
+          <input
+            appInput
+            class="search__input"
+            type="search"
+            [attr.aria-label]="'sheet.search' | transloco"
+            [placeholder]="'sheet.search' | transloco"
+            [value]="store.query()"
+            (input)="store.query.set($any($event.target).value)"
+            (keydown.escape)="store.query.set('')"
+          />
+        </label>
         <div class="tree-header">
           <span class="tree-header__title">{{ 'sheet.title' | transloco }}</span>
+          <button
+            appButton="icon"
+            size="sm"
+            type="button"
+            [attr.aria-label]="'sheet.newFolderAction' | transloco"
+            [attr.title]="'sheet.newFolderAction' | transloco"
+            (click)="createFromHeader('folder')"
+          >
+            <svg lucideFolderPlus aria-hidden="true"></svg>
+          </button>
+          <button
+            appButton="icon"
+            size="sm"
+            type="button"
+            [attr.aria-label]="'sheet.newSheet' | transloco"
+            [attr.title]="'sheet.newSheet' | transloco"
+            (click)="createFromHeader('item')"
+          >
+            <svg lucidePlus aria-hidden="true"></svg>
+          </button>
         </div>
+        @if (store.hasNodes()) {
+          @if (store.visibleNodes().length > 0) {
+            <app-tree
+              #tree
+              [nodes]="store.visibleNodes()"
+              [labels]="treeLabels"
+              [deleteMessage]="deleteMessage"
+              [ariaLabel]="'sheet.treeLabel' | transloco"
+              [selectedId]="store.selectedId()"
+              (selectedIdChange)="store.open($event)"
+              [collapsedIds]="visibleCollapsed()"
+              (collapsedIdsChange)="onCollapsedChange($event)"
+              (create)="create($event)"
+              (rename)="rename($event)"
+              (remove)="remove($event)"
+              (move)="move($event)"
+            >
+              <ng-template #item let-node>
+                <span class="sheet-item">
+                  <svg lucideScrollText aria-hidden="true"></svg>
+                  <span class="sheet-item__name">{{ node.name }}</span>
+                </span>
+              </ng-template>
+            </app-tree>
+          } @else {
+            <p class="no-result" role="status">
+              {{ 'sheet.noResult' | transloco: { query: store.query().trim() } }}
+            </p>
+          }
+        }
       </aside>
 
       <section class="sheets__content" [attr.aria-label]="'sheet.contentLabel' | transloco">
-        <div class="empty">
-          <app-placeholder class="empty__visual">
-            <svg lucideScrollText aria-hidden="true"></svg>
-          </app-placeholder>
-          <p>{{ 'sheet.empty' | transloco }}</p>
-        </div>
+        @if (store.selectedNode(); as node) {
+          <h2 class="sheet-title">{{ node.name }}</h2>
+        } @else {
+          <div class="empty">
+            <app-placeholder class="empty__visual">
+              <svg lucideScrollText aria-hidden="true"></svg>
+            </app-placeholder>
+            <p>{{ 'sheet.empty' | transloco }}</p>
+            <button appButton type="button" (click)="createFromHeader('item')">
+              <svg lucidePlus aria-hidden="true"></svg>{{ 'sheet.newSheet' | transloco }}
+            </button>
+          </div>
+        }
       </section>
     }
   }

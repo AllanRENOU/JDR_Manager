@@ -429,7 +429,21 @@
     "title": "Fiches",
     "treeLabel": "Arborescence des fiches",
     "contentLabel": "Fiche ouverte",
-    "empty": "Choisissez une fiche ou créez-en une."
+    "empty": "Choisissez une fiche ou créez-en une.",
+    "search": "Rechercher dans les fiches",
+    "noResult": "Aucune fiche ne correspond à « {{ query }} ».",
+    "newSheet": "Nouvelle fiche",
+    "newSheetName": "Nouvelle fiche",
+    "newFolderAction": "Nouveau dossier",
+    "deleteMessage": "La fiche « {{ name }} » sera supprimée. Cette action est irréversible.",
+    "deleteUsed": {
+      "one": "Cette fiche est affichée par {{ count }} action « Afficher une fiche », qui la signalera comme supprimée. Cette action est irréversible.",
+      "other": "Cette fiche est affichée par {{ count }} actions « Afficher une fiche », qui la signaleront comme supprimée. Cette action est irréversible."
+    },
+    "deleteFolderUsed": {
+      "one": "Le dossier et tout son contenu seront supprimés. Ses fiches sont affichées par {{ count }} action « Afficher une fiche », qui les signalera comme supprimées. Cette action est irréversible.",
+      "other": "Le dossier et tout son contenu seront supprimés. Ses fiches sont affichées par {{ count }} actions « Afficher une fiche », qui les signaleront comme supprimées. Cette action est irréversible."
+    }
   },
   "sound": {
     "library": "Bibliothèque",

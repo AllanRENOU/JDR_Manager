@@ -64,6 +64,47 @@
   text-transform: uppercase;
 }
 
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search__icon {
+  position: absolute;
+  left: space(12);
+  color: color(text-secondary);
+  pointer-events: none;
+}
+
+.search__input {
+  width: 100%;
+  padding-left: space(40);
+}
+
+.sheet-item {
+  display: flex;
+  align-items: center;
+  gap: space(8);
+  min-width: 0;
+}
+
+.sheet-item__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.no-result {
+  padding: 0 space(8);
+  color: color(text-secondary);
+}
+
+// Titre provisoire : champ de titre, texte et enregistrement automatique en 15.5.
+.sheet-title {
+  font-family: font-family(title);
+}
+
 // État vide (Brief §7.2) : visuel de remplacement, message et, à venir, « Nouvelle fiche ».
 .empty {
   display: flex;
