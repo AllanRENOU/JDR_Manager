@@ -15,6 +15,10 @@ import {
   CreateProjectDialog,
   ProjectNameDialogData,
 } from '../create-project-dialog/create-project-dialog';
+import type {
+  ExportProjectDialogData,
+  ExportProjectDialogResult,
+} from '../../project-transfer/export-project-dialog/export-project-dialog';
 import { ProjectCard } from '../project-card/project-card';
 import { loadProjectSummary } from '../project-summary';
 
@@ -91,6 +95,26 @@ export class ProjectsPage {
       this.notifications.fromError(error);
       return false;
     }
+  }
+
+  /**
+   * Ouvre la fenêtre « Exporter le projet » (PRJ-05) ; la fenêtre écrit le `.zip`. Elle est chargée
+   * à la demande : la bibliothèque zip n'alourdit pas l'accueil.
+   */
+  async exportProject(project: Project): Promise<boolean> {
+    const { ExportProjectDialog } =
+      await import('../../project-transfer/export-project-dialog/export-project-dialog');
+    const ref = this.modals.open<ExportProjectDialogResult, ExportProjectDialogData>(
+      ExportProjectDialog,
+      { data: { project }, size: 'md', closable: false },
+    );
+    const exported = (await firstValueFrom(ref.closed)) === true;
+    if (exported) {
+      this.notifications.info(
+        this.transloco.translate('transfer.export.done', { name: project.name }),
+      );
+    }
+    return exported;
   }
 
   /** Supprime le projet et tout son contenu après confirmation (PRJ-02, NF-31). */

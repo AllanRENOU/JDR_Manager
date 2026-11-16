@@ -57,6 +57,7 @@
             [summary]="summary"
             [alt]="$index % 2 === 1"
             (rename)="renameProject(summary.project)"
+            (exportProject)="exportProject(summary.project)"
             (remove)="deleteProject(summary.project)"
           />
         </li>

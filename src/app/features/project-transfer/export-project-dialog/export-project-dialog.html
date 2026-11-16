@@ -1,0 +1,93 @@
+<app-modal
+  [title]="'transfer.export.title' | transloco"
+  [subtitle]="project.name"
+  [hideClose]="exporting()"
+>
+  <p class="export__intro">{{ 'transfer.export.intro' | transloco }}</p>
+
+  @if (collected.error()) {
+    <app-alert>{{ 'transfer.export.loadError' | transloco }}</app-alert>
+  } @else if (!collected.hasValue()) {
+    <p class="export__status" role="status">{{ 'transfer.export.loading' | transloco }}</p>
+  } @else if (progressText(); as text) {
+    <div class="export__progress" role="status">
+      <p class="export__status">{{ 'transfer.export.writing' | transloco }}</p>
+      <span
+        class="progress"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="percent()"
+        [attr.aria-label]="'transfer.export.progressLabel' | transloco"
+      >
+        <span class="progress__bar" [style.width.%]="percent()"></span>
+      </span>
+      <p class="export__hint">{{ 'transfer.export.progress' | transloco: text }}</p>
+    </div>
+  } @else {
+    @if (videoCount() > 0) {
+      <div class="export__option">
+        <label class="app-check">
+          <input
+            type="checkbox"
+            [checked]="options().includeVideos"
+            (change)="setIncludeVideos($any($event.target).checked)"
+          />
+          {{ 'transfer.export.includeVideos' | transloco }}
+        </label>
+        <p class="export__hint">
+          {{
+            pluralKey('transfer.export.videos', videoCount())
+              | transloco: { count: videoCount(), size: videoSize() }
+          }}
+        </p>
+      </div>
+      @if (largeVideoCount() > 0) {
+        <div class="export__option">
+          <label class="app-check">
+            <input
+              type="checkbox"
+              [checked]="options().includeLargeVideos"
+              [disabled]="!options().includeVideos"
+              (change)="setIncludeLargeVideos($any($event.target).checked)"
+            />
+            {{ 'transfer.export.includeLargeVideos' | transloco }}
+          </label>
+          <p class="export__hint">
+            {{
+              pluralKey('transfer.export.largeVideos', largeVideoCount())
+                | transloco: { count: largeVideoCount(), size: largeVideoSize() }
+            }}
+          </p>
+        </div>
+      }
+      @if (excludedCount() > 0) {
+        <p class="export__hint">
+          {{
+            pluralKey('transfer.export.excluded', excludedCount())
+              | transloco: { count: excludedCount() }
+          }}
+        </p>
+      }
+    }
+    <p class="export__size">{{ 'transfer.export.size' | transloco: { size: size() } }}</p>
+    @if (inMemoryWarning()) {
+      <app-alert>{{ 'transfer.export.inMemoryWarning' | transloco }}</app-alert>
+    }
+  }
+
+  <button modalFooterEnd appButton="secondary" type="button" (click)="cancel()">
+    {{ 'common.actions.cancel' | transloco }}
+  </button>
+  @if (!exporting()) {
+    <button
+      modalFooterEnd
+      appButton
+      type="button"
+      [disabled]="!collected.hasValue()"
+      (click)="export()"
+    >
+      {{ 'transfer.export.submit' | transloco }}
+    </button>
+  }
+</app-modal>

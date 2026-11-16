@@ -3,7 +3,13 @@ import { DatePipe } from '@angular/common';
 import { Component, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { LucideEllipsis, LucidePencil, LucidePlay, LucideTrash2 } from '@lucide/angular';
+import {
+  LucideDownload,
+  LucideEllipsis,
+  LucidePencil,
+  LucidePlay,
+  LucideTrash2,
+} from '@lucide/angular';
 
 import { pluralKey } from '../../../core/i18n/plural';
 import { MediaUrls } from '../../../core/media/media-urls';
@@ -27,6 +33,7 @@ import { ProjectSummary } from '../project-summary';
     RouterLink,
     DatePipe,
     TranslocoPipe,
+    LucideDownload,
     LucideEllipsis,
     LucidePencil,
     LucidePlay,
@@ -42,6 +49,8 @@ export class ProjectCard {
 
   /** Menu « ⋯ » › Renommer. */
   readonly rename = output<void>();
+  /** Menu « ⋯ » › Exporter (la page ouvre la fenêtre d'export, PRJ-05). */
+  readonly exportProject = output<void>();
   /** Menu « ⋯ » › Supprimer (la confirmation est demandée par la page). */
   readonly remove = output<void>();
 

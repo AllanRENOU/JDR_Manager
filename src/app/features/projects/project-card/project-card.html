@@ -57,6 +57,9 @@
     <button appMenuItem (triggered)="rename.emit()">
       <svg lucidePencil aria-hidden="true"></svg>{{ 'common.actions.rename' | transloco }}
     </button>
+    <button appMenuItem (triggered)="exportProject.emit()">
+      <svg lucideDownload aria-hidden="true"></svg>{{ 'project.export' | transloco }}
+    </button>
     <div class="app-menu-separator" role="separator"></div>
     <button appMenuItem tone="danger" (triggered)="remove.emit()">
       <svg lucideTrash2 aria-hidden="true"></svg>{{ 'common.actions.delete' | transloco }}

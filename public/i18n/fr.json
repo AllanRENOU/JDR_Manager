@@ -587,7 +587,36 @@
     "quote": "Citation"
   },
   "transfer": {
-    "fileType": "Projet JDR Manager (zip)"
+    "fileType": "Projet JDR Manager (zip)",
+    "export": {
+      "title": "Exporter le projet",
+      "intro": "Le projet est enregistré dans un fichier .zip : scènes, actions, fiches, battlemaps, sons et vidéos, y compris ceux de la bibliothèque globale qu’il utilise. La partie en cours n’est pas exportée.",
+      "loading": "Préparation de l’export…",
+      "loadError": "Impossible de préparer l’export de ce projet.",
+      "includeVideos": "Inclure les vidéos",
+      "videos": {
+        "one": "{{ count }} vidéo · {{ size }}",
+        "other": "{{ count }} vidéos · {{ size }}"
+      },
+      "includeLargeVideos": "Inclure aussi les vidéos de plus de 500 Mo",
+      "largeVideos": {
+        "one": "{{ count }} vidéo de plus de 500 Mo · {{ size }}",
+        "other": "{{ count }} vidéos de plus de 500 Mo · {{ size }}"
+      },
+      "excluded": {
+        "one": "{{ count }} vidéo sera exportée sans son fichier : vous pourrez l’importer plus tard depuis la Bibliothèque.",
+        "other": "{{ count }} vidéos seront exportées sans leur fichier : vous pourrez les importer plus tard depuis la Bibliothèque."
+      },
+      "size": "Poids de l’export : {{ size }}",
+      "inMemoryWarning": "Ce navigateur prépare le fichier en mémoire : au-delà de 2 Go, l’export peut échouer. Utilisez Chrome ou Edge, ou n’incluez pas les vidéos.",
+      "submit": "Exporter",
+      "writing": "Export en cours…",
+      "progressLabel": "Avancement de l’export",
+      "progress": "{{ written }} sur {{ total }}",
+      "done": "Projet « {{ name }} » exporté.",
+      "cancelled": "Export annulé.",
+      "failed": "L’export a échoué. Vérifiez la place libre sur le disque, puis réessayez."
+    }
   },
   "error": {
     "generic": "Une erreur est survenue.",

@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 
 import { aPlaySession, aProject, aSceneNode } from '../../../../testing/data-builders';
+import { useNodeBlob } from '../../../../testing/node-blob';
+import { stubObjectUrls } from '../../../../testing/object-url';
 import { useTestRepository } from '../../../../testing/test-repository';
 import { getTranslocoTestingModule } from '../../../../testing/transloco-testing';
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
@@ -136,6 +138,56 @@ describe('ProjectsPage (4.1)', () => {
     const saved = await TestBed.inject(DATA_REPOSITORY).getProject(project.id);
     expect(saved?.name).toBe('La crypte oubliée');
     expect(saved?.updatedAt).not.toBe(project.updatedAt);
+  });
+
+  describe('export (16.4)', () => {
+    useNodeBlob();
+    const objectUrls = stubObjectUrls();
+
+    it('exporte un projet depuis le menu « ⋯ » de sa carte', async () => {
+      const click = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined);
+      const project = aProject({ name: 'La crypte' });
+      await TestBed.inject(DATA_REPOSITORY).saveProject(project);
+      const { el } = await render();
+
+      (el.querySelector('.card__more') as HTMLButtonElement).click();
+      TestBed.tick();
+      [...document.querySelectorAll<HTMLButtonElement>('.app-menu button')]
+        .find((b) => b.textContent?.includes('Exporter'))!
+        .click();
+      TestBed.tick();
+
+      // Fenêtre chargée à la demande (import dynamique).
+      const dialog = await vi.waitFor(() => {
+        TestBed.tick();
+        const found = document.querySelector<HTMLElement>('app-export-project-dialog');
+        expect(found).not.toBeNull();
+        return found!;
+      });
+      expect(dialog.textContent).toContain('Exporter le projet');
+      const submit = () =>
+        [...dialog.querySelectorAll<HTMLButtonElement>('.modal__footer button')].find((b) =>
+          b.textContent?.includes('Exporter'),
+        );
+      await vi.waitFor(() => {
+        TestBed.tick();
+        expect(submit()?.disabled).toBe(false);
+      });
+      submit()!.click();
+
+      await vi.waitFor(() =>
+        expect(
+          TestBed.inject(Notifications)
+            .notifications()
+            .map((n) => n.message),
+        ).toContain('Projet « La crypte » exporté.'),
+      );
+      expect(click).toHaveBeenCalled();
+      expect(objectUrls.createObjectURL.mock.calls[0][0].type).toBe('application/zip');
+      click.mockRestore();
+    });
   });
 
   it('ne modifie rien si le renommage est annulé ou garde le même nom', async () => {

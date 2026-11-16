@@ -1,0 +1,49 @@
+@use 'functions' as *;
+
+.export__intro {
+  margin: 0 0 space(16);
+  color: color(text-secondary);
+}
+
+.export__option {
+  margin-bottom: space(8);
+}
+
+.export__hint {
+  margin: 0;
+  padding-left: space(24);
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+.export__progress .export__hint {
+  padding-left: 0;
+}
+
+.export__size {
+  margin: space(16) 0 0;
+  color: color(text-primary);
+  font-weight: font-weight(semibold);
+}
+
+.export__status {
+  margin: 0 0 space(8);
+  color: color(text-secondary);
+}
+
+.progress {
+  display: block;
+  width: 100%;
+  height: space(4);
+  margin-bottom: space(8);
+  border-radius: radius(pill);
+  background: color(border-default);
+}
+
+.progress__bar {
+  display: block;
+  height: 100%;
+  border-radius: radius(pill);
+  background: color(accent);
+  transition: transition(width);
+}
