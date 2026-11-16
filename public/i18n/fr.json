@@ -586,6 +586,9 @@
     "numberedList": "Liste numérotée",
     "quote": "Citation"
   },
+  "transfer": {
+    "fileType": "Projet JDR Manager (zip)"
+  },
   "error": {
     "generic": "Une erreur est survenue.",
     "storageUnavailable": "Le stockage du navigateur est indisponible.",
