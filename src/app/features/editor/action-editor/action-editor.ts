@@ -12,7 +12,7 @@ import {
   viewChildren,
 } from '@angular/core';
 import { FormField, disabled, form, maxLength, validate } from '@angular/forms/signals';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { LucideDynamicIcon, LucidePlus, LucideTrash2 } from '@lucide/angular';
 
 import { pluralKey } from '../../../core/i18n/plural';
@@ -117,12 +117,19 @@ export class ActionEditor {
     disabled(path.trigger, () => this.isSceneText);
   });
 
-  protected readonly triggerOptions = computed<SegmentedOption<Trigger>[]>(() =>
-    (['scene-open', 'manual'] as const).map((value) => ({
-      value,
-      label: this.transloco.translate(`action.triggerOptions.${value}`),
-    })),
-  );
+  /** Libellés du déclencheur, mis à jour à l'arrivée des traductions (`translateSignal`). */
+  private readonly triggerLabels = translateSignal([
+    'action.triggerOptions.scene-open',
+    'action.triggerOptions.manual',
+  ]);
+
+  protected readonly triggerOptions = computed<SegmentedOption<Trigger>[]>(() => {
+    const [sceneOpen, manual] = this.triggerLabels();
+    return [
+      { value: 'scene-open', label: sceneOpen },
+      { value: 'manual', label: manual },
+    ];
+  });
 
   /** Message d'erreur du nom, affiché une fois le champ quitté ou à l'enregistrement. */
   protected readonly nameError = computed(() => {

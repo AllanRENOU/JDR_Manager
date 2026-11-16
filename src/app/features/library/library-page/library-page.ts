@@ -10,7 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import {
   LucideArrowLeft,
   LucideEye,
@@ -131,13 +131,25 @@ export class LibraryPage {
   protected readonly libraryKinds: readonly MediaKind[] = ['sound', 'video'];
   protected readonly accept = this.libraryKinds.map(acceptAttribute).join(',');
 
+  /**
+   * Libellés du filtre. `translateSignal` et non `translate()` : à l'ouverture directe de l'écran,
+   * les traductions ne sont pas encore chargées et le libellé doit se mettre à jour à leur arrivée.
+   */
+  private readonly kindLabels = translateSignal([
+    'sound.filter.all',
+    'sound.filter.sound',
+    'sound.filter.video',
+  ]);
+
   /** Filtre Tous / Sons / Vidéos au-dessus du tableau (VID-02). */
-  protected readonly kindOptions = computed<SegmentedOption<LibraryKindFilter>[]>(() =>
-    (['all', 'sound', 'video'] as const).map((value) => ({
-      value,
-      label: this.transloco.translate(`sound.filter.${value}`),
-    })),
-  );
+  protected readonly kindOptions = computed<SegmentedOption<LibraryKindFilter>[]>(() => {
+    const [all, sound, video] = this.kindLabels();
+    return [
+      { value: 'all', label: all },
+      { value: 'sound', label: sound },
+      { value: 'video', label: video },
+    ];
+  });
 
   /** Destination d'un dépôt de fichiers : le dossier ouvert, avec son chemin (SON-06). */
   protected readonly destination = computed(() => {

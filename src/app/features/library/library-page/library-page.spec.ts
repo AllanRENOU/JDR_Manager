@@ -1,5 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { Translation, TranslocoLoader, provideTransloco } from '@jsverse/transloco';
+import { Observable, map, timer } from 'rxjs';
+
+import fr from '../../../../../public/i18n/fr.json';
 
 import { aProject, aSoundNode, anAction } from '../../../../testing/data-builders';
 import { useNodeBlob } from '../../../../testing/node-blob';
@@ -637,5 +641,43 @@ describe('LibraryPage', () => {
       expect(listen.getAttribute('aria-pressed')).toBe('false');
       expect(el.querySelector('[role="progressbar"]')).toBeNull();
     });
+  });
+});
+
+/** Chargeur de traductions asynchrone, comme la requête HTTP de l'application. */
+class DelayedLoader implements TranslocoLoader {
+  getTranslation(): Observable<Translation> {
+    return timer(20).pipe(map(() => fr));
+  }
+}
+
+describe('LibraryPage : adresse ouverte directement', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        // Traductions pas encore chargées à l'ouverture de l'écran, comme au premier chargement.
+        provideTransloco({
+          config: { availableLangs: ['fr'], defaultLang: 'fr' },
+          loader: DelayedLoader,
+        }),
+        provideRouter([]),
+        ...useTestRepository(),
+        { provide: MediaDuration, useValue: { read: () => Promise.resolve(null) } },
+      ],
+    });
+  });
+
+  it('traduit le filtre Tous / Sons / Vidéos une fois les traductions chargées', async () => {
+    const fixture = TestBed.createComponent(LibraryPage);
+    const el = fixture.nativeElement as HTMLElement;
+    const labels = () =>
+      [...el.querySelectorAll<HTMLElement>('.kind-filter [role="radio"]')].map((r) =>
+        r.textContent?.trim(),
+      );
+    await vi.waitFor(async () => {
+      await fixture.whenStable();
+      expect(el.querySelector('h1')?.textContent).toContain('Bibliothèque globale');
+    });
+    expect(labels()).toEqual(['Tous', 'Sons', 'Vidéos']);
   });
 });

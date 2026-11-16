@@ -332,6 +332,7 @@ public/i18n/fr.json
 
 - **Classes CSS d'un écran et éléments enfants** : un sélecteur d'un composant (ex. `.play`) s'applique aussi à l'élément hôte d'un composant enfant qui porte la même classe. Nommer les classes de façon spécifique (`.stage`, `.app-header--play`).
 - **Projection dans un emplacement** (`headerEnd`…) : un `@if` qui contient plusieurs nœuds empêche la projection dans l'emplacement nommé (erreur NG8011). Mettre l'élément projeté dans son propre `@if`.
+- **Texte traduit dans un `computed` ou un champ** : `transloco.translate()` n'est pas réactif ; évalué avant l'arrivée des traductions (adresse ouverte directement), il garde la clé. Utiliser `translateSignal('cle')` ou `translateSignal([...])` (champ de classe). Dans un test, `getTranslocoTestingModule()` charge les traductions de façon synchrone et ne montre pas ce défaut : voir le `DelayedLoader` de `library-page.spec.ts`.
 
 - `ng add @jsverse/transloco` échoue sur l'option `--ssr` : utiliser `ng g @jsverse/transloco:ng-add --langs=fr --ssr=false`.
 - Directive : un alias d'entrée doit être `préfixeDuSélecteur + NomDeLaPropriété` (`appFileDropKinds` pour `kinds`), sinon ESLint refuse (`no-input-rename`).

@@ -111,17 +111,21 @@
   font-style: italic;
 }
 
+// Titre à sa largeur naturelle ; filtre, recherche et import passent à la ligne s'il manque de place.
 .content__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: space(14);
 }
 
 .content__title {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: space(4);
-  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .content__path {

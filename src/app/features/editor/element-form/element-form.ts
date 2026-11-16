@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormField, form, max, min, validate } from '@angular/forms/signals';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { LucideTriangleAlert } from '@lucide/angular';
 
 import { ActionElement, Id } from '../../../core/models';
@@ -280,10 +280,12 @@ export class ElementForm {
     });
   }
 
-  private readonly libraryNames = computed(() => ({
-    project: this.transloco.translate('sound.project'),
-    global: this.transloco.translate('sound.global'),
-  }));
+  /** Noms des deux bibliothèques, mis à jour à l'arrivée des traductions (`translateSignal`). */
+  private readonly libraryLabels = translateSignal(['sound.project', 'sound.global']);
+  private readonly libraryNames = computed(() => {
+    const [project, global] = this.libraryLabels();
+    return { project, global };
+  });
 
   /** Emplacement du son ou de la vidéo choisi ; `null` : pas choisi ; `false` : supprimé. */
   protected readonly soundLabel = computed<string | null | false>(() => {
