@@ -20,7 +20,7 @@ import {
  *
  * C'est le seul point d'entrée vers le stockage : V1 = IndexedDB, plus tard une API.
  * Toutes les méthodes sont asynchrones (TEC-24). Les médias sont exposés sous forme d'URL,
- * jamais de `Blob` (TEC-32).
+ * jamais de `Blob` (TEC-32), sauf pour l'export d'un projet (`getMediaBlob`, lot 16).
  */
 export interface DataRepository {
   // ── Projets ────────────────────────────────────────────────────────────
@@ -119,6 +119,39 @@ export interface DataRepository {
   getStorageUsage(): Promise<StorageUsage>;
   /** Supprime le média, seulement s'il n'est plus référencé par une battlemap ou un son. */
   deleteMedia(id: Id): Promise<void>;
+  /**
+   * Contenu d'un média, pour l'export d'un projet (lot 16). Réservé à l'export : un composant
+   * passe par `MediaUrls` (TEC-32).
+   * @throws DataError `media-not-found`.
+   */
+  getMediaBlob(id: Id): Promise<Blob>;
+  /**
+   * Copie le fichier dans le stockage **sous l'identifiant donné** (import d'un projet, fichier
+   * d'une vidéo importée sans fichier, lot 16). Un média déjà présent n'est pas remplacé : un média
+   * ne change jamais après son import.
+   * @returns `true` si le fichier a été enregistré, `false` si le média existait déjà.
+   * @throws DataError `unsupported-media-type` (format refusé, TEC-34) ou `quota-exceeded`.
+   */
+  importMedia(id: Id, file: File, details?: MediaDetails): Promise<boolean>;
+  /**
+   * Médias référencés par une battlemap ou un élément de bibliothèque, mais absents du stockage
+   * (vidéo exportée sans son fichier, VID-13), tous projets confondus.
+   */
+  listMissingMedia(): Promise<Id[]>;
+
+  // ── Import d'un projet (lot 16, PRJ-05) ────────────────────────────────
+  /**
+   * Écrit les objets d'un projet **avec leurs identifiants**, en une transaction : un objet de
+   * même `id` est remplacé, les objets locaux absents de `data` sont conservés, la partie
+   * sauvegardée n'est pas touchée. Les médias s'importent avant, avec `importMedia`.
+   *
+   * Bibliothèque : un nœud dont l'`id` existe déjà dans **une autre** bibliothèque (ex. resté dans
+   * la bibliothèque globale du navigateur d'origine) est conservé tel quel et n'est pas écrit ; un
+   * nœud dont le parent n'est ni dans `data`, ni dans sa bibliothèque, est rattaché à la racine.
+   *
+   * Les données doivent avoir été validées avant (format d'export, 16.2).
+   */
+  importProjectData(data: ProjectData): Promise<void>;
 
   // ── Partie sauvegardée ─────────────────────────────────────────────────
   getPlaySession(projectId: Id): Promise<PlaySession | undefined>;
@@ -144,6 +177,19 @@ export interface SceneLink {
   actionId: Id;
   sceneId: Id;
   targetIds: Id[];
+}
+
+/** Objets d'un projet, hors médias et partie sauvegardée (export / import, lot 16). */
+export interface ProjectData {
+  project: Project;
+  sceneNodes: SceneNode[];
+  scenes: Scene[];
+  battlemaps: Battlemap[];
+  actions: Action[];
+  sheetNodes: SheetNode[];
+  sheets: Sheet[];
+  /** Nœuds de bibliothèque (dossiers, sons, vidéos), écrits avec leur `libraryId`. */
+  libraryNodes: LibraryNode[];
 }
 
 /** Informations lues sur le fichier avant l'import. */

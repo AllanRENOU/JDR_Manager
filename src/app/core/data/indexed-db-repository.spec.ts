@@ -19,6 +19,7 @@ import { useNodeBlob } from '../../../testing/node-blob';
 import { stubObjectUrls } from '../../../testing/object-url';
 import { GLOBAL_LIBRARY, mediaKindOf } from '../models';
 import { isDataError } from './data-error';
+import { ProjectData } from './data-repository';
 import { JdrDb, openJdrDb } from './jdr-db';
 import { INDEXED_DB_NAME, IndexedDbRepository } from './indexed-db-repository';
 
@@ -580,6 +581,198 @@ describe('IndexedDbRepository', () => {
 
     it('ignore la suppression d’un média inconnu', async () => {
       await expect(repository.deleteMedia('inconnu')).resolves.toBeUndefined();
+    });
+
+    it('renvoie le contenu d’un média, ou une erreur media-not-found (export, lot 16)', async () => {
+      const id = await repository.uploadMedia(
+        new File(['image'], 'carte.png', { type: 'image/png' }),
+      );
+      const blob = await repository.getMediaBlob(id);
+      expect(blob.type).toBe('image/png');
+      expect(await blob.text()).toBe('image');
+      await expect(repository.getMediaBlob('inconnu')).rejects.toSatisfy((e: unknown) =>
+        isDataError(e, 'media-not-found'),
+      );
+    });
+
+    it('importe un média sous l’identifiant donné, avec sa durée', async () => {
+      const imported = await repository.importMedia(
+        'video-1',
+        new File(['vidéo'], 'intro.mp4', { type: '' }),
+        { durationMs: 90_000 },
+      );
+      expect(imported).toBe(true);
+      expect(await raw.get('media', 'video-1')).toMatchObject({
+        id: 'video-1',
+        mimeType: 'video/mp4',
+        fileName: 'intro.mp4',
+        durationMs: 90_000,
+      });
+    });
+
+    it('ne réimporte pas un média déjà présent (un média ne change jamais)', async () => {
+      await repository.importMedia('m1', new File(['avant'], 'a.png', { type: 'image/png' }));
+      const imported = await repository.importMedia(
+        'm1',
+        new File(['après'], 'b.png', { type: 'image/png' }),
+      );
+      expect(imported).toBe(false);
+      expect(await (await repository.getMediaBlob('m1')).text()).toBe('avant');
+      expect((await raw.get('media', 'm1'))?.fileName).toBe('a.png');
+    });
+
+    it('n’écrit qu’une fois un média importé deux fois en même temps', async () => {
+      const file = new File(['image'], 'a.png', { type: 'image/png' });
+      const results = await Promise.all([
+        repository.importMedia('m1', file),
+        repository.importMedia('m1', file),
+      ]);
+      expect(results.sort()).toEqual([false, true]);
+      expect(await raw.count('media')).toBe(1);
+    });
+
+    it('refuse à l’import un format non pris en charge, sans rien enregistrer', async () => {
+      const upload = repository.importMedia(
+        'm1',
+        new File(['x'], 'notes.txt', { type: 'text/plain' }),
+      );
+      await expect(upload).rejects.toSatisfy((e: unknown) =>
+        isDataError(e, 'unsupported-media-type'),
+      );
+      expect(await raw.count('media')).toBe(0);
+    });
+
+    it('signale un quota dépassé à l’import d’un média', async () => {
+      const quota = new DOMException('Quota dépassé', 'QuotaExceededError');
+      const spy = vi.spyOn(IDBObjectStore.prototype, 'add').mockImplementation(() => {
+        throw quota;
+      });
+      const upload = repository.importMedia(
+        'm1',
+        new File(['image'], 'carte.png', { type: 'image/png' }),
+      );
+      await expect(upload).rejects.toSatisfy((e: unknown) => isDataError(e, 'quota-exceeded'));
+      spy.mockRestore();
+      expect(await raw.count('media')).toBe(0);
+    });
+
+    it('liste les médias référencés mais absents (battlemaps, sons et vidéos)', async () => {
+      const present = aMedia();
+      await raw.put('media', present);
+      await repository.saveBattlemap(aBattlemap('s1', present.id));
+      await repository.saveBattlemap(aBattlemap('s1', 'image-absente'));
+      await repository.saveLibraryNodes([
+        aSoundNode('p1', { mediaId: 'video-absente', mediaKind: 'video' }),
+        aSoundNode(GLOBAL_LIBRARY, { mediaId: present.id }),
+        aSoundNode('p1', { kind: 'folder', name: 'Dossier' }),
+      ]);
+      expect((await repository.listMissingMedia()).sort()).toEqual([
+        'image-absente',
+        'video-absente',
+      ]);
+    });
+  });
+
+  describe('import d’un projet (lot 16)', () => {
+    /** Projet complet, tous les objets avec des identifiants fixes. */
+    function projectData(): ProjectData {
+      const project = aProject({ id: 'p1', name: 'La crypte', firstSceneId: 's1' });
+      return {
+        project,
+        sceneNodes: [aSceneNode('p1', { id: 's1' })],
+        scenes: [aScene('p1', 's1')],
+        battlemaps: [aBattlemap('s1', 'm-image', { id: 'b1' })],
+        actions: [anAction('s1', { id: 'a1' })],
+        sheetNodes: [aSheetNode('p1', { id: 'f1' })],
+        sheets: [aSheet('p1', 'f1', { text: 'Le gardien' })],
+        libraryNodes: [
+          aSoundNode('p1', { id: 'dossier', kind: 'folder', name: 'Ambiances' }),
+          aSoundNode('p1', { id: 'son', parentId: 'dossier', mediaId: 'm-son' }),
+        ],
+      };
+    }
+
+    it('écrit tous les objets avec leurs identifiants', async () => {
+      const data = projectData();
+      await repository.importProjectData(data);
+
+      expect(await repository.getProject('p1')).toEqual(data.project);
+      expect(await repository.listSceneNodes('p1')).toEqual(data.sceneNodes);
+      expect(await repository.listScenes('p1')).toEqual(data.scenes);
+      expect(await repository.listBattlemaps('s1')).toEqual(data.battlemaps);
+      expect(await repository.listActions('s1')).toEqual(data.actions);
+      expect(await repository.listSheetNodes('p1')).toEqual(data.sheetNodes);
+      expect(await repository.listSheets('p1')).toEqual(data.sheets);
+      expect(await repository.listLibraryNodes('p1')).toEqual(data.libraryNodes);
+    });
+
+    it('remplace les objets de même identifiant et conserve les objets locaux absents', async () => {
+      await repository.importProjectData(projectData());
+      const local = aSceneNode('p1', { id: 's-local', name: 'Ajoutée sur ce PC' });
+      await repository.saveSceneNodes([local]);
+      await repository.savePlaySession(aPlaySession('p1', 's1'));
+
+      const data = projectData();
+      data.project.name = 'La crypte (v2)';
+      data.sheets[0].text = 'Le gardien dort';
+      await repository.importProjectData(data);
+
+      expect((await repository.getProject('p1'))?.name).toBe('La crypte (v2)');
+      expect((await repository.getSheet('f1'))?.text).toBe('Le gardien dort');
+      expect((await repository.listSceneNodes('p1')).map((n) => n.id).sort()).toEqual([
+        's-local',
+        's1',
+      ]);
+      expect(await repository.getPlaySession('p1')).toBeDefined();
+    });
+
+    it('laisse dans sa bibliothèque un nœud qui existe déjà ailleurs (bibliothèque globale)', async () => {
+      const global = aSoundNode(GLOBAL_LIBRARY, { id: 'pluie', name: 'Pluie', mediaId: 'm-pluie' });
+      await repository.saveLibraryNodes([global]);
+
+      const data = projectData();
+      data.libraryNodes.push({ ...global, libraryId: 'p1', name: 'Pluie (copie)' });
+      await repository.importProjectData(data);
+
+      expect(await repository.listLibraryNodes(GLOBAL_LIBRARY)).toEqual([global]);
+      expect((await repository.listLibraryNodes('p1')).map((n) => n.id)).not.toContain('pluie');
+    });
+
+    it('rattache à la racine un nœud dont le dossier est resté dans une autre bibliothèque', async () => {
+      const folder = aSoundNode(GLOBAL_LIBRARY, { id: 'g-dossier', kind: 'folder' });
+      await repository.saveLibraryNodes([folder]);
+
+      const data = projectData();
+      data.libraryNodes.push(
+        { ...folder, libraryId: 'p1' },
+        aSoundNode('p1', { id: 'orage', parentId: 'g-dossier', mediaId: 'm-orage' }),
+        aSoundNode('p1', { id: 'perdu', parentId: 'inconnu', mediaId: 'm-perdu' }),
+      );
+      await repository.importProjectData(data);
+
+      const nodes = await repository.listLibraryNodes('p1');
+      expect(nodes.find((n) => n.id === 'orage')?.parentId).toBeNull();
+      expect(nodes.find((n) => n.id === 'perdu')?.parentId).toBeNull();
+      expect(nodes.find((n) => n.id === 'son')?.parentId).toBe('dossier');
+    });
+
+    it('n’écrit rien si une écriture échoue (une seule transaction)', async () => {
+      const failure = new DOMException('Échec', 'UnknownError');
+      const original = IDBObjectStore.prototype.put;
+      const spy = vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementation(function (
+        this: IDBObjectStore,
+        ...args
+      ) {
+        if (this.name === 'sheets') {
+          throw failure;
+        }
+        return original.apply(this, args);
+      });
+
+      await expect(repository.importProjectData(projectData())).rejects.toBe(failure);
+      spy.mockRestore();
+      expect(await repository.getProject('p1')).toBeUndefined();
+      expect(await repository.listSceneNodes('p1')).toEqual([]);
     });
   });
 

@@ -1,4 +1,5 @@
 import { InjectionToken, Service, inject } from '@angular/core';
+import { IDBPTransaction } from 'idb';
 
 import {
   Action,
@@ -18,8 +19,14 @@ import {
 } from '../models';
 import { resolveMediaType } from '../media/media-types';
 import { DataError, isQuotaExceededError } from './data-error';
-import { DataRepository, MediaDetails, SceneLink, StorageUsage } from './data-repository';
-import { DB_NAME, JdrDb, openJdrDb } from './jdr-db';
+import {
+  DataRepository,
+  MediaDetails,
+  ProjectData,
+  SceneLink,
+  StorageUsage,
+} from './data-repository';
+import { DB_NAME, JdrDb, JdrDbSchema, JdrStoreName, openJdrDb } from './jdr-db';
 import { ALL_STORES, collectSubtree, deleteScenes, deleteUnusedMedia } from './jdr-db-cascade';
 
 /** Nom de la base ; remplacé dans les tests pour isoler chaque test. */
@@ -354,32 +361,77 @@ export class IndexedDbRepository implements DataRepository {
   // ── Médias ─────────────────────────────────────────────────────────────
 
   async uploadMedia(file: File, details: MediaDetails = {}): Promise<Id> {
-    const type = resolveMediaType(file);
-    if (!type) {
-      throw new DataError('unsupported-media-type', `Format non pris en charge : ${file.name}`);
-    }
-    // Copie en Blob natif (TEC-30) : le média ne dépend plus du fichier d'origine.
-    const blob = new Blob([file], { type: type.mimeType });
-    const media: Media = {
-      id: newId(),
-      blob,
-      mimeType: type.mimeType,
-      size: blob.size,
-      fileName: file.name,
-      ...(details.durationMs !== undefined && { durationMs: details.durationMs }),
-    };
-    try {
+    const media = toMedia(newId(), file, details);
+    await withQuotaError(file.name, async () => {
       await (await this.db()).add('media', media);
-    } catch (error) {
-      // Échec propre (TRD §5) : rien n'est enregistré, l'écran affiche `error.data.quota-exceeded`.
-      if (isQuotaExceededError(error)) {
-        throw new DataError('quota-exceeded', `Espace de stockage insuffisant pour ${file.name}`, {
-          cause: error,
-        });
+    });
+    return media.id;
+  }
+
+  async importMedia(id: Id, file: File, details: MediaDetails = {}): Promise<boolean> {
+    const media = toMedia(id, file, details);
+    return withQuotaError(file.name, async () => {
+      // Lecture et écriture dans la même transaction : deux imports simultanés du même média
+      // ne peuvent pas l'écrire deux fois.
+      const tx = (await this.db()).transaction('media', 'readwrite');
+      if ((await tx.store.getKey(id)) !== undefined) {
+        await tx.done;
+        return false;
       }
+      await Promise.all([tx.store.add(media), tx.done]);
+      return true;
+    });
+  }
+
+  async getMediaBlob(id: Id): Promise<Blob> {
+    const media = await (await this.db()).get('media', id);
+    if (!media) {
+      throw new DataError('media-not-found', `Média introuvable : ${id}`);
+    }
+    return media.blob;
+  }
+
+  async listMissingMedia(): Promise<Id[]> {
+    const tx = (await this.db()).transaction(['battlemaps', 'soundNodes', 'media']);
+    // Curseurs sur les index `mediaId` : seules les clés sont lues (un dossier n'y figure pas).
+    const referenced = new Set<Id>();
+    let battlemaps = await tx.objectStore('battlemaps').index('mediaId').openKeyCursor();
+    while (battlemaps) {
+      referenced.add(battlemaps.key);
+      battlemaps = await battlemaps.continue();
+    }
+    let nodes = await tx.objectStore('soundNodes').index('mediaId').openKeyCursor();
+    while (nodes) {
+      referenced.add(nodes.key);
+      nodes = await nodes.continue();
+    }
+    const missing: Id[] = [];
+    for (const id of referenced) {
+      if ((await tx.objectStore('media').getKey(id)) === undefined) {
+        missing.push(id);
+      }
+    }
+    await tx.done;
+    return missing;
+  }
+
+  // ── Import d'un projet (lot 16) ────────────────────────────────────────
+
+  async importProjectData(data: ProjectData): Promise<void> {
+    const tx = (await this.db()).transaction([...IMPORT_STORES], 'readwrite');
+    try {
+      await writeProjectData(tx, data);
+    } catch (error) {
+      // Sans annulation explicite, IndexedDB validerait les écritures déjà faites.
+      try {
+        tx.abort();
+      } catch {
+        // Transaction déjà annulée par l'erreur.
+      }
+      await tx.done.catch(() => undefined);
       throw error;
     }
-    return media.id;
+    await tx.done;
   }
 
   async getMediaInfo(ids: readonly Id[]): Promise<MediaInfo[]> {
@@ -418,6 +470,106 @@ export class IndexedDbRepository implements DataRepository {
 
   async deletePlaySession(projectId: Id): Promise<void> {
     await (await this.db()).delete('playSessions', projectId);
+  }
+}
+
+/** Stores écrits par l'import d'un projet (tous sauf `media` et `playSessions`). */
+const IMPORT_STORES = [
+  'projects',
+  'sceneNodes',
+  'scenes',
+  'battlemaps',
+  'actions',
+  'soundNodes',
+  'sheetNodes',
+  'sheets',
+] as const satisfies readonly JdrStoreName[];
+
+type ImportTransaction = IDBPTransaction<
+  JdrDbSchema,
+  (typeof IMPORT_STORES)[number][],
+  'readwrite'
+>;
+
+/** Écrit les objets d'un projet dans la transaction d'import (voir `importProjectData`). */
+async function writeProjectData(tx: ImportTransaction, data: ProjectData): Promise<void> {
+  await tx.objectStore('projects').put(data.project);
+  for (const node of data.sceneNodes) {
+    await tx.objectStore('sceneNodes').put(node);
+  }
+  for (const scene of data.scenes) {
+    await tx.objectStore('scenes').put(scene);
+  }
+  for (const battlemap of data.battlemaps) {
+    await tx.objectStore('battlemaps').put(battlemap);
+  }
+  for (const action of data.actions) {
+    await tx.objectStore('actions').put(action);
+  }
+  for (const node of data.sheetNodes) {
+    await tx.objectStore('sheetNodes').put(node);
+  }
+  for (const sheet of data.sheets) {
+    await tx.objectStore('sheets').put(sheet);
+  }
+
+  // Bibliothèque : un nœud qui existe déjà dans une autre bibliothèque n'est pas déplacé.
+  const library = tx.objectStore('soundNodes');
+  const written: LibraryNode[] = [];
+  for (const node of data.libraryNodes) {
+    const existing = await library.get(node.id);
+    if (!existing || existing.libraryId === node.libraryId) {
+      written.push(node);
+    }
+  }
+  const writtenIds = new Map(written.map((n) => [n.id, n.libraryId]));
+  for (const node of written) {
+    let parentId = node.parentId;
+    if (parentId !== null) {
+      const parentLibrary = writtenIds.get(parentId) ?? (await library.get(parentId))?.libraryId;
+      if (parentLibrary !== node.libraryId) {
+        parentId = null;
+      }
+    }
+    await library.put(parentId === node.parentId ? node : { ...node, parentId });
+  }
+}
+
+/**
+ * Prépare le média d'un fichier accepté : copie en Blob natif (TEC-30), le média ne dépend plus
+ * du fichier d'origine.
+ * @throws DataError `unsupported-media-type`.
+ */
+function toMedia(id: Id, file: File, details: MediaDetails): Media {
+  const type = resolveMediaType(file);
+  if (!type) {
+    throw new DataError('unsupported-media-type', `Format non pris en charge : ${file.name}`);
+  }
+  const blob = new Blob([file], { type: type.mimeType });
+  return {
+    id,
+    blob,
+    mimeType: type.mimeType,
+    size: blob.size,
+    fileName: file.name,
+    ...(details.durationMs !== undefined && { durationMs: details.durationMs }),
+  };
+}
+
+/**
+ * Exécute une écriture de média ; un dépassement de quota devient une `DataError`
+ * `quota-exceeded` (échec propre, TRD §5 : rien n'est enregistré).
+ */
+async function withQuotaError<T>(fileName: string, write: () => Promise<T>): Promise<T> {
+  try {
+    return await write();
+  } catch (error) {
+    if (isQuotaExceededError(error)) {
+      throw new DataError('quota-exceeded', `Espace de stockage insuffisant pour ${fileName}`, {
+        cause: error,
+      });
+    }
+    throw error;
   }
 }
 

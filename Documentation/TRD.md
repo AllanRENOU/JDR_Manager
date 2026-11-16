@@ -395,6 +395,10 @@ export interface DataRepository {
   getMediaInfo(ids: Id[]): Promise<Omit<Media, 'blob'>[]>;   // infos sans le contenu (tableau des sons)
   getMediaUrl(mediaId: Id): Promise<string>;   // blob: en V1, https: avec l'API
   deleteMedia(id: Id): Promise<void>;
+  getMediaBlob(id: Id): Promise<Blob>;   // contenu d'un média, réservé à l'export (lot 16)
+  importMedia(id: Id, file: File, details?: MediaDetails): Promise<boolean>;   // sous l'id donné ; false si déjà présent (non remplacé)
+  listMissingMedia(): Promise<Id[]>;   // médias référencés (battlemap, bibliothèque) sans fichier (VID-13)
+  importProjectData(data: ProjectData): Promise<void>;   // objets d'un projet avec leurs id, une transaction (PRJ-05, lot 16)
   getStorageUsage(): Promise<StorageUsage>;   // { images, sounds, videos } : { count, bytes } (Paramètres › Stockage, NF-14)
 
   // Partie sauvegardée

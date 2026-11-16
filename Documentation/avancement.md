@@ -35,10 +35,10 @@ Suivi du [plan d'implémentation](./Plan_implementation.md). Chaque lot est déc
 | 12 ter | Vidéos (fait avant le 12 bis) | 13 | 13 | Terminé | [lot-12ter-videos.md](./avancement/lot-12ter-videos.md) |
 | 13 | Robustesse, performance, accessibilité | 16 | 15 | En cours | [lot-13-robustesse.md](./avancement/lot-13-robustesse.md) |
 | 15 | Fiches (fait avant le 12 bis) | 11 | 11 | Terminé | [lot-15-fiches.md](./avancement/lot-15-fiches.md) |
-| 16 | Export / import de projet (fait avant le 12 bis) | 7 | 0 | À faire | [lot-16-export-import-projet.md](./avancement/lot-16-export-import-projet.md) |
+| 16 | Export / import de projet (fait avant le 12 bis) | 7 | 1 | En cours | [lot-16-export-import-projet.md](./avancement/lot-16-export-import-projet.md) |
 | 12 bis | Hors ligne et tablette (fait après le 16) | 6 | 0 | À faire | [lot-12bis-hors-ligne-tablette.md](./avancement/lot-12bis-hors-ligne-tablette.md) |
 | 14 | Recette V1 | 6 | 0 | À faire | [lot-14-recette-v1.md](./avancement/lot-14-recette-v1.md) |
-| **Total** | | **252** | **232** | | |
+| **Total** | | **252** | **233** | | |
 
 ---
 

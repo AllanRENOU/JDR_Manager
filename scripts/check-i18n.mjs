@@ -18,7 +18,10 @@ const files = (dir) =>
     const path = join(dir, name);
     return statSync(path).isDirectory() ? files(path) : [path];
   });
-const sources = files(appDir).filter((f) => !f.includes('/features/dev/') && !f.endsWith('.spec.ts'));
+// Séparateurs normalisés : sous Windows, les chemins utilisent « \ ».
+const sources = files(appDir).filter(
+  (f) => !f.replaceAll('\\', '/').includes('/features/dev/') && !f.endsWith('.spec.ts'),
+);
 const problems = [];
 /** Textes admis : nom du produit. */
 const ALLOWED = new Set(['JDR Manager']);
@@ -28,7 +31,9 @@ function blankControlFlow(text) {
   let out = '';
   let i = 0;
   while (i < text.length) {
-    const match = /^@(if|else if|else|for|switch|case|default|empty|defer|let)\b/.exec(text.slice(i));
+    const match = /^@(if|else if|else|for|switch|case|default|empty|defer|let)\b/.exec(
+      text.slice(i),
+    );
     if (!match) {
       out += text[i++];
       continue;
@@ -72,7 +77,9 @@ for (const file of sources.filter((f) => f.endsWith('.html'))) {
       report(file, lineOf(blanked, match.index), `texte en dur : « ${text.slice(0, 60)} »`);
     }
   }
-  for (const match of html.matchAll(/\s(aria-label|title|placeholder|alt)="([^"]*[A-Za-zÀ-ÿ][^"]*)"/g)) {
+  for (const match of html.matchAll(
+    /\s(aria-label|title|placeholder|alt)="([^"]*[A-Za-zÀ-ÿ][^"]*)"/g,
+  )) {
     report(file, lineOf(html, match.index), `attribut ${match[1]} en dur : « ${match[2]} »`);
   }
 }
@@ -87,7 +94,10 @@ for (const file of sources.filter((f) => f.endsWith('.ts'))) {
     const text = match[2];
     const line = lineOf(code, match.index);
     const before = code.slice(Math.max(0, match.index - 40), match.index);
-    if (/^[a-z][\w-]*(\.[\w-]+)+$/.test(text) && /translate|labelKey|Key|key|label|message|: $/.test(before)) {
+    if (
+      /^[a-z][\w-]*(\.[\w-]+)+$/.test(text) &&
+      /translate|labelKey|Key|key|label|message|: $/.test(before)
+    ) {
       // Clé de traduction : doit exister (les clés plurielles se terminent par .one / .other).
       if (!keyExists(text) && !keyExists(`${text}.one`)) {
         report(file, line, `clé de traduction absente de fr.json : ${text}`);
