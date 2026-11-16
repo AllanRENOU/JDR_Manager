@@ -14,6 +14,8 @@ import {
   Scene,
   SceneNode,
   SceneState,
+  Sheet,
+  SheetNode,
   LibraryNode,
   UserClickElement,
   WaitElement,
@@ -73,6 +75,15 @@ export interface FeedFocus {
  * Élément « Attendre » en cours : affiché en bas du fil avec le temps restant, puis retiré.
  * N'est pas enregistré dans la partie (décision d'Allan).
  */
+/**
+ * Demande d'ouverture d'une fiche (TEC-56) : l'écran la suit et ouvre la fenêtre. `seq` change à
+ * chaque demande, pour rouvrir la même fiche.
+ */
+export interface SheetRequest {
+  sheetId: Id;
+  seq: number;
+}
+
 export interface PendingWait {
   id: Id;
   /** Fin de l'attente (`Date.now()`, ms). */
@@ -115,6 +126,13 @@ export class PresentationEngine {
   readonly soundNodes = signal<readonly LibraryNode[]>([]);
   /** Partie sauvegardée proposée à la reprise (statut `choose`). */
   readonly savedSession = signal<PlaySession | null>(null);
+  /** Arborescence des fiches du projet (recherche, titres) ; jamais envoyée aux joueurs. */
+  readonly sheetNodes = signal<readonly SheetNode[]>([]);
+  /** Textes des fiches du projet, par id de nœud. */
+  readonly sheets = signal<Readonly<Record<Id, Sheet>>>({});
+  /** Dernière fiche demandée (action, bloc du fil ou recherche) ; rien n'est enregistré. */
+  readonly sheetRequest = signal<SheetRequest | null>(null);
+  private sheetSeq = 0;
 
   readonly scene = signal<Scene | null>(null);
   readonly sceneNode = signal<SceneNode | null>(null);
@@ -222,19 +240,24 @@ export class PresentationEngine {
     this.stop();
     this.status.set('loading');
     this.savedSession.set(null);
+    this.sheetRequest.set(null);
     const project = await this.repository.getProject(projectId);
     if (!project) {
       this.status.set('missing');
       return;
     }
-    const [nodes, projectSounds, globalSounds, saved] = await Promise.all([
+    const [nodes, projectSounds, globalSounds, saved, sheetNodes, sheets] = await Promise.all([
       this.repository.listSceneNodes(projectId),
       this.repository.listLibraryNodes(projectId),
       this.repository.listLibraryNodes('global'),
       this.store.findSaved(projectId),
+      this.repository.listSheetNodes(projectId),
+      this.repository.listSheets(projectId),
     ]);
     this.project.set(project);
     this.sceneNodes.set(nodes);
+    this.sheetNodes.set(sheetNodes);
+    this.sheets.set(Object.fromEntries(sheets.map((s) => [s.id, s])));
     this.soundNodes.set([...projectSounds, ...globalSounds]);
     if (!this.firstSceneId()) {
       this.status.set('no-scene');
@@ -466,6 +489,31 @@ export class PresentationEngine {
     return this.sceneNodes().find((n) => n.id === element.sceneId)?.name ?? '';
   }
 
+  /** Titre d'une fiche du projet ; `null` si elle a été supprimée (PRS-07). */
+  sheetName(sheetId: Id): string | null {
+    return this.sheetNodes().find((n) => n.id === sheetId && n.kind === 'item')?.name ?? null;
+  }
+
+  /** Texte Markdown d'une fiche (vide si elle n'a pas encore de texte). */
+  sheetText(sheetId: Id): string {
+    return this.sheets()[sheetId]?.text ?? '';
+  }
+
+  /**
+   * Demande l'ouverture d'une fiche (élément « Afficher une fiche », bloc du fil, recherche) :
+   * l'écran ouvre la fenêtre (TEC-56). Rien n'est ajouté au fil ni enregistré. Fiche supprimée :
+   * message, rien ne s'ouvre (PRS-07).
+   * @returns `false` si la fiche n'existe plus.
+   */
+  openSheet(sheetId: Id): boolean {
+    if (this.sheetName(sheetId) === null) {
+      this.notifications.error(this.transloco.translate('presentation.errors.missingSheet'));
+      return false;
+    }
+    this.sheetRequest.set({ sheetId, seq: ++this.sheetSeq });
+    return true;
+  }
+
   /** Nom de la vidéo d'un bloc « Vidéo lancée » ; `null` si elle a été supprimée depuis. */
   videoName(videoId: Id): string | null {
     return this.soundNodes().find((n) => n.id === videoId && n.kind === 'item')?.name ?? null;
@@ -538,6 +586,8 @@ export class PresentationEngine {
       stopAllSounds: () => this.audio.stopAll(),
       playVideo: (element) => this.playVideo(element.videoId, element.volume),
       stopVideo: () => this.playerVideo.stop(),
+      showSheet: (action, element) =>
+        this.showSheet(sceneId, action.id, element.id, element.sheetId),
       waitForUserClick: (action, element, signal) =>
         this.waitForUserClick(sceneId, action, element, signal),
       wait: (element, signal) => this.wait(element, signal),
@@ -697,6 +747,26 @@ export class PresentationEngine {
     }
     this.store.updateScene(sceneId, (state) => ({ ...state, currentBattlemapId: battlemapId }));
     this.addFeedItem(sceneId, { id: newId(), type: 'battlemap', battlemapId });
+  }
+
+  /**
+   * « Afficher une fiche » (ACT-16, FIL-11) : bloc du fil (un seul par élément ; à la relance, le
+   * fil revient sur lui), puis ouverture de la fenêtre. Fiche supprimée : message seulement.
+   */
+  private showSheet(sceneId: Id, actionId: Id, elementId: Id, sheetId: Id): void {
+    if (this.sheetName(sheetId) === null) {
+      this.notifications.error(this.transloco.translate('presentation.errors.missingSheet'));
+      return;
+    }
+    const existing = this.store
+      .sceneState(sceneId)
+      ?.feed.find((item) => item.type === 'sheet' && item.elementId === elementId);
+    if (existing) {
+      this.show(existing.id);
+    } else {
+      this.addFeedItem(sceneId, { id: newId(), type: 'sheet', actionId, elementId, sheetId });
+    }
+    this.openSheet(sheetId);
   }
 
   private addFeedItem(sceneId: Id, item: FeedItem): void {

@@ -25,6 +25,7 @@ describe('ActionRunner', () => {
       stopVideo: () => log.push('arrêter-vidéo'),
       showAction: (e) => log.push(`afficher:${e.actionIds.join()}`),
       hideAction: (e) => log.push(`masquer:${e.actionIds.join()}`),
+      showSheet: (_a, e) => log.push(`fiche:${e.sheetId}`),
       waitForUserClick: (_a, e, signal) =>
         new Promise<void>((resolve, reject) => {
           log.push(e.type === 'change-scene' ? `aller:${e.sceneId}` : `clic:${e.text}`);
@@ -65,6 +66,7 @@ describe('ActionRunner', () => {
         { id: 'w', type: 'stop-video' },
         { id: 'g', type: 'show-action', actionIds: ['fuite'] },
         { id: 'h', type: 'hide-action', actionIds: ['garde'] },
+        { id: 's', type: 'show-sheet', sheetId: 'aubergiste' },
         { id: 'f', type: 'add-text', text: 'Deux' },
       ]),
       context,
@@ -81,6 +83,7 @@ describe('ActionRunner', () => {
       'arrêter-vidéo',
       'afficher:fuite',
       'masquer:garde',
+      'fiche:aubergiste',
       'texte:Deux',
       'effectuée:Bagarre',
     ]);
@@ -95,6 +98,7 @@ describe('ActionRunner', () => {
         { id: 'c', type: 'stop-sound', soundId: 'pluie' },
         { id: 'd', type: 'stop-all-sounds' },
         { id: 'v', type: 'play-video', videoId: 'intro', volume: 1 },
+        { id: 's', type: 'show-sheet', sheetId: 'aubergiste' },
         { id: 'e', type: 'wait', seconds: 0 },
         { id: 'f', type: 'user-click', text: 'Clic' },
         { id: 'g', type: 'change-scene', sceneId: 's2' },
@@ -115,6 +119,8 @@ describe('ActionRunner', () => {
       'arrêter:pluie',
       'arrêter-tout',
       'vidéo:intro',
+      'pause',
+      'fiche:aubergiste',
       'pause',
       'clic:Clic',
       'scène:s2',

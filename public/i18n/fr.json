@@ -336,7 +336,8 @@
       "videoUnreadable": "La vidéo n’a pas pu être lue dans la fenêtre joueurs.",
       "missingScene": "La scène cible de « Changer de scène » a été supprimée : la scène ne change pas.",
       "missingAction": "Une action à afficher a été supprimée : elle est ignorée.",
-      "missingActionToHide": "Une action à masquer a été supprimée : elle est ignorée."
+      "missingActionToHide": "Une action à masquer a été supprimée : elle est ignorée.",
+      "missingSheet": "Une fiche a été supprimée du projet : elle ne s’ouvre pas."
     },
     "launch": {
       "savedTitle": "Une partie est en cours",

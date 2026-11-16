@@ -11,6 +11,7 @@ import {
   PlayVideoElement,
   ShowActionElement,
   ShowBattlemapElement,
+  ShowSheetElement,
   StopSoundElement,
   UserClickElement,
   WaitElement,
@@ -45,6 +46,12 @@ export interface ActionContext {
   playVideo(element: PlayVideoElement): void;
   /** Arrête la vidéo en cours, s'il y en a une (VID-09). */
   stopVideo(): void;
+  /**
+   * Ouvre la fiche dans une fenêtre de l'écran du MJ, sans attendre sa fermeture, et ajoute au fil
+   * un bloc qui la rouvre (pas de doublon à la relance) ; fiche supprimée : signalé, rien dans le
+   * fil (ACT-16, FIL-11).
+   */
+  showSheet(action: Action, element: ShowSheetElement): void;
   /**
    * Affiche le bloc « Clic de l'utilisateur » ; la promesse est résolue au clic sur « Continuer »
    * et rejetée si le signal est annulé (ACT-11, FIL-05). Pour un « Changer de scène », le bloc
@@ -88,7 +95,7 @@ export type RunOutcome = { kind: 'done' } | { kind: 'change-scene'; sceneId: Id 
  * entre deux éléments, pendant une attente ou un clic en attente ; la promesse est alors rejetée
  * et l'action n'est pas marquée comme effectuée.
  *
- * Les éléments affichés (texte, battlemap, clic de l'utilisateur, changer de scène) attendent
+ * Les éléments affichés (texte, battlemap, fiche, clic de l'utilisateur, changer de scène) attendent
  * `context.beforeDisplay()` ; les éléments de son, de vidéo et « Attendre », non.
  *
  * « Changer de scène » ne change pas de scène tout de suite : comme un clic de l'utilisateur, il
@@ -145,6 +152,9 @@ export class ActionRunner {
         case 'hide-action':
           context.hideAction(element);
           break;
+        case 'show-sheet':
+          context.showSheet(action, element);
+          break;
         case 'wait':
           await context.wait(element, signal);
           break;
@@ -165,5 +175,6 @@ export class ActionRunner {
 const DISPLAYED: ReadonlySet<ActionElement['type']> = new Set([
   'add-text',
   'show-battlemap',
+  'show-sheet',
   'user-click',
 ]);

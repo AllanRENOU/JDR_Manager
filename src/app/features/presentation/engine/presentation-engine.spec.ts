@@ -6,6 +6,8 @@ import {
   aProject,
   aScene,
   aSceneNode,
+  aSheet,
+  aSheetNode,
   aSoundNode,
   anAction,
 } from '../../../../testing/data-builders';
@@ -60,7 +62,9 @@ describe('PresentationEngine', () => {
           ? `[${item.battlemapId}]`
           : item.type === 'video'
             ? `[vidéo:${item.videoId}]`
-            : engine.textOf(item),
+            : item.type === 'sheet'
+              ? `[fiche:${item.sheetId}]`
+              : engine.textOf(item),
       );
   const text = (id: string, value: string): ActionElement => ({
     id,
@@ -1088,6 +1092,130 @@ describe('PresentationEngine', () => {
       await engine.load('p1');
       await engine.continueSession();
       await vi.waitFor(() => expect(engine.scene()?.id).toBe('A'));
+    });
+  });
+
+  describe('fiches (ACT-16, FIL-11, TEC-56)', () => {
+    const showSheet = (id: string, sheetId: string): ActionElement => ({
+      id,
+      type: 'show-sheet',
+      sheetId,
+    });
+    const accueil = anAction('A', {
+      id: 'accueil',
+      name: 'Accueil',
+      elements: [showSheet('e-f', 'aubergiste'), text('t-f', 'Il vous sourit.')],
+    });
+
+    async function seedSheets(actions: Action[] = []) {
+      await seed([accueil, ...actions]);
+      await repository().saveSheetNodes([
+        aSheetNode('p1', { id: 'pnj', kind: 'folder', name: 'PNJ' }),
+        aSheetNode('p1', { id: 'aubergiste', name: 'Aubergiste', parentId: 'pnj' }),
+      ]);
+      await repository().saveSheet(aSheet('p1', 'aubergiste', { text: '**Bourru** mais juste.' }));
+      await startAt('A');
+    }
+
+    it('charge les fiches avec le projet : titres et textes', async () => {
+      await seedSheets();
+      expect(
+        engine
+          .sheetNodes()
+          .map((n) => n.id)
+          .sort(),
+      ).toEqual(['aubergiste', 'pnj']);
+      expect(engine.sheetName('aubergiste')).toBe('Aubergiste');
+      expect(engine.sheetName('pnj')).toBeNull();
+      expect(engine.sheetText('aubergiste')).toBe('**Bourru** mais juste.');
+      expect(engine.sheetText('inconnue')).toBe('');
+      expect(engine.sheetRequest()).toBeNull();
+    });
+
+    it('ouvre la fiche sans attendre, ajoute un bloc au fil (montré) et l’enregistre', async () => {
+      await seedSheets();
+      await engine.runAction('accueil');
+
+      expect(engine.sheetRequest()).toMatchObject({ sheetId: 'aubergiste' });
+      // L'action a continué : le texte suivant est affiché.
+      expect(feedTexts()).toEqual(['Odeur de bière.', '[fiche:aubergiste]', 'Il vous sourit.']);
+      const block = engine.feed()[1];
+      expect(block).toMatchObject({ type: 'sheet', actionId: 'accueil', elementId: 'e-f' });
+      expect(engine.focus()?.itemId).toBe(block.id);
+      const saved = (await savedSession())!.scenes['A'];
+      expect(saved.feed.filter((item) => item.type === 'sheet')).toHaveLength(1);
+    });
+
+    it('relance : pas de second bloc, le fil revient dessus et la fiche se rouvre', async () => {
+      await seedSheets();
+      await engine.runAction('accueil');
+      const first = engine.sheetRequest()!;
+      const blockId = engine.feed()[1].id;
+      engine.showBattlemap('b2');
+
+      await engine.runAction('accueil');
+
+      expect(feedTexts()).toEqual([
+        'Odeur de bière.',
+        '[fiche:aubergiste]',
+        'Il vous sourit.',
+        '[b2]',
+      ]);
+      expect(engine.focus()?.itemId).toBe(blockId);
+      expect(engine.sheetRequest()?.seq).toBeGreaterThan(first.seq);
+    });
+
+    it('openSheet() rouvre une fiche sans rien ajouter au fil ni enregistrer', async () => {
+      await seedSheets();
+      const before = (await savedSession())!.scenes['A'].feed.length;
+      expect(engine.openSheet('aubergiste')).toBe(true);
+      const first = engine.sheetRequest()!;
+      expect(engine.openSheet('aubergiste')).toBe(true);
+      expect(engine.sheetRequest()).toEqual({ sheetId: 'aubergiste', seq: first.seq + 1 });
+      expect((await savedSession())!.scenes['A'].feed).toHaveLength(before);
+    });
+
+    it('fiche supprimée : message, rien dans le fil ni ouvert, l’action continue (PRS-07)', async () => {
+      await seedSheets([
+        anAction('A', {
+          id: 'perdue',
+          name: 'Perdue',
+          elements: [showSheet('e-p', 'supprimee'), text('t-p', 'Suite.')],
+        }),
+      ]);
+      await engine.runAction('perdue');
+
+      expect(errors()).toContain('Une fiche a été supprimée du projet : elle ne s’ouvre pas.');
+      expect(engine.sheetRequest()).toBeNull();
+      expect(feedTexts()).toEqual(['Odeur de bière.', 'Suite.']);
+      expect(engine.openSheet('supprimee')).toBe(false);
+    });
+
+    it('le bloc reste après un retour sur la scène, sans rouvrir la fiche (FCH-08)', async () => {
+      await seedSheets();
+      await engine.runAction('accueil');
+      const request = engine.sheetRequest();
+      await engine.openScene('B');
+      await engine.openScene('A');
+      expect(feedTexts()).toContain('[fiche:aubergiste]');
+      expect(engine.sheetRequest()).toEqual(request);
+    });
+
+    it('fonctionne en mode démo, sans rien enregistrer', async () => {
+      await seed([accueil]);
+      await repository().saveSheetNodes([
+        aSheetNode('p1', { id: 'aubergiste', name: 'Aubergiste' }),
+      ]);
+      const save = vi.spyOn(repository(), 'savePlaySession');
+      await engine.startDemo('p1', 'A');
+      await vi.waitFor(() => expect(engine.scene()?.id).toBe('A'));
+
+      await engine.runAction('accueil');
+
+      expect(engine.sheetRequest()).toMatchObject({ sheetId: 'aubergiste' });
+      expect(feedTexts()).toContain('[fiche:aubergiste]');
+      await store().flush();
+      expect(save).not.toHaveBeenCalled();
     });
   });
 
