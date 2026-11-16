@@ -205,7 +205,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 
 ### 5.10 Fiches (lot 15)
 
-> Évolution demandée par Allan le 16/11/2026, prévue **après la V1** (lot 15). Une fiche est une note du MJ (PNJ, lieu, objet, règle…) qu'il prépare en Édition et consulte en Présentation. Décisions d'Allan (16/11/2026) reportées ci-dessous.
+> Évolution demandée par Allan le 16/11/2026, intégrée à la **V1** (lot 15, décision d'Allan du 16/11/2026, à faire avant la recette). Une fiche est une note du MJ (PNJ, lieu, objet, règle…) qu'il prépare en Édition et consulte en Présentation. Décisions d'Allan (16/11/2026) reportées ci-dessous.
 
 | ID | Exigence | Priorité |
 |---|---|---|
@@ -306,7 +306,6 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 - Stockage en ligne / multi-appareils (NF-15)
 - Safari, tablettes, tactile (NF-04)
 - Traduction dans d'autres langues (NF-43)
-- Fiches du MJ (§5.10, lot 15, prévu juste après la V1)
 
 ## 10. Glossaire
 

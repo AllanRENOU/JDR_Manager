@@ -30,8 +30,7 @@ Ce document découpe la V1 en **lots** ordonnés. Chaque lot liste ses tâches, 
 | **J2 — Tranche verticale** | Créer un projet, une scène avec texte, la présenter | 4 |
 | **J3 — Édition complète** | Projets, sons, scènes, battlemaps, actions | 5 à 8 |
 | **J4 — Présentation complète** | Moteur, écran du MJ, fenêtre joueurs, reprise de partie | 9 à 12 |
-| **J5 — V1** | Robustesse, accessibilité, recette sur un vrai scénario | 13 et 14 |
-| **J6 — Fiches** | Fiches du MJ : onglet, élément d'action, ouverture en Présentation | 15 |
+| **J5 — V1** | Robustesse, accessibilité, fiches du MJ, hors ligne et tablette, recette sur un vrai scénario | 13, 15, 12 bis et 14 |
 
 ---
 
@@ -200,6 +199,19 @@ Ce document découpe la V1 en **lots** ordonnés. Chaque lot liste ses tâches, 
 | Compatibilité Chrome, Edge, Firefox | NF-02, TEC-90 |
 | Raccourcis clavier en Présentation (si le temps le permet) | NF-32 |
 
+### Lot 15 — Fiches · M
+
+> Ajouté le 16/11/2026 (demande d'Allan) et **intégré à la V1** (décision d'Allan) : à faire avant le lot 12 bis (hors ligne et tablette), puis la recette (lot 14). Exigences : PRD §5.10 (FCH-01 à FCH-09), ACT-16, FIL-11, CTL-14 ; TRD §1.5 (TEC-54 à TEC-57), §3, §4, §6.2, D12 ; Brief §2.6, §6.9, §6.10, §7.2, §11.3.
+
+| Tâche | Réf. |
+|---|---|
+| Modèle et données : `SheetNode`, `Sheet`, élément `show-sheet`, bloc de fil `sheet`, stores `sheetNodes` / `sheets` (nouvelle version du schéma), contrat, cascades | TEC-54, D12 |
+| Onglet « Fiches » : route, navigation à trois onglets, arborescence, fiche ouverte au centre (titre = nom, texte Markdown, enregistrement automatique), recherche titre + texte, « Utilisée dans », avertissement à la suppression | FCH-01 à FCH-07, FCH-09, TEC-55 |
+| Éditeur d'action : élément « Afficher une fiche » (jetons `--el-sheet-*`, choix, résumé, fiche supprimée signalée) | ACT-16, PRS-07 |
+| Moteur et écran du MJ : `showSheet`, bloc du fil, fenêtre de fiche, bouton « Fiches » + raccourci F + recherche | FCH-08, FIL-11, CTL-14, TEC-56, TEC-57 |
+
+**Fin du lot** : une fiche préparée dans l'onglet Fiches s'ouvre en Présentation par une action (bloc dans le fil) et à la main par la recherche, sans jamais apparaître dans la fenêtre joueurs.
+
 ### Lot 14 — Recette V1 · S
 
 | Tâche | Réf. |
@@ -210,20 +222,6 @@ Ce document découpe la V1 en **lots** ordonnés. Chaque lot liste ses tâches, 
 
 **Fin du jalon J5** : les critères de succès du PRD sont atteints.
 
-### Lot 15 — Fiches · M
-
-> Ajouté le 16/11/2026 (demande d'Allan), prévu **après la V1**. Exigences : PRD §5.10 (FCH-01 à FCH-09), ACT-16, FIL-11, CTL-14 ; TRD §1.5 (TEC-54 à TEC-57), §3, §4, §6.2, D12 ; Brief §2.6, §6.9, §6.10, §7.2, §11.3.
-
-| Tâche | Réf. |
-|---|---|
-| Modèle et données : `SheetNode`, `Sheet`, élément `show-sheet`, bloc de fil `sheet`, stores `sheetNodes` / `sheets` (nouvelle version du schéma), contrat, cascades | TEC-54, D12 |
-| Onglet « Fiches » : route, navigation à trois onglets, arborescence, fiche ouverte au centre (titre = nom, texte Markdown, enregistrement automatique), recherche titre + texte, « Utilisée dans », avertissement à la suppression | FCH-01 à FCH-07, FCH-09, TEC-55 |
-| Éditeur d'action : élément « Afficher une fiche » (jetons `--el-sheet-*`, choix, résumé, fiche supprimée signalée) | ACT-16, PRS-07 |
-| Moteur et écran du MJ : `showSheet`, bloc du fil, fenêtre de fiche, bouton « Fiches » + raccourci F + recherche | FCH-08, FIL-11, CTL-14, TEC-56, TEC-57 |
-| Export / import de projet (lot 12 bis) : emporter les fiches | PRJ-04 |
-
-**Fin du lot** : une fiche préparée dans l'onglet Fiches s'ouvre en Présentation par une action (bloc dans le fil) et à la main par la recherche, sans jamais apparaître dans la fenêtre joueurs.
-
 ---
 
 ## 4. Dépendances
@@ -231,13 +229,13 @@ Ce document découpe la V1 en **lots** ordonnés. Chaque lot liste ses tâches, 
 ```
 Lot 0 ──► Lot 1 ──► Lot 3 ──┬──► Lot 5
    │                        ├──► Lot 6 ──┐
-   └────► Lot 2 ──► Lot 4 ──┴──► Lot 7 ──┴──► Lot 8 ──► Lot 9 ──► Lot 10 ──► Lot 11 ──► Lot 12 ──► Lot 13 ──► Lot 14 ──► Lot 15
+   └────► Lot 2 ──► Lot 4 ──┴──► Lot 7 ──┴──► Lot 8 ──► Lot 9 ──► Lot 10 ──► Lot 11 ──► Lot 12 ──► Lot 13 ──► Lot 15 ──► Lot 12 bis ──► Lot 14
 ```
 
 - Les lots 1 et 2 peuvent avancer en parallèle après le lot 0.
 - Le lot 9 (moteur) peut commencer dès le lot 4, en parallèle des lots 5 à 8, avec des données de test.
 - Le lot 6 (sons) doit précéder le lot 8, qui a besoin du sélecteur de son.
-- Le lot 15 (fiches) vient après le lot 14 (V1) ; s'il est fait après le lot 12 bis, l'export / import de projet doit être complété pour emporter les fiches.
+- Le lot 15 (fiches) fait partie de la V1 et précède le lot 12 bis (décision d'Allan) : l'export / import de projet et le lecteur hors ligne du 12 bis emportent donc les fiches dès le départ.
 
 ---
 
@@ -270,4 +268,4 @@ Une tâche est terminée quand :
 
 ## 7. Après la V1
 
-Lot 15 — Fiches (§3), puis, dans l'ordre suggéré : sauvegarde / restauration de projet (conception d'abord), export `.zip` hors ligne, plusieurs parties par projet, élément « Faire apparaître une action », traduction, stockage via API, tests de bout en bout (Playwright).
+Dans l'ordre suggéré : sauvegarde / restauration de projet (conception d'abord), export `.zip` hors ligne, plusieurs parties par projet, élément « Faire apparaître une action », traduction, stockage via API, tests de bout en bout (Playwright).

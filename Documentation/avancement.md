@@ -31,11 +31,11 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
 | 11 | Fenêtre joueurs | 7 | 7 | Terminé |
 | 12 | Reprise et cohérence des données | 6 | 6 | Terminé |
 | 12 ter | Vidéos (fait avant le 12 bis) | 13 | 13 | Terminé |
-| 12 bis | Hors ligne et tablette | 8 | 0 | À faire |
 | 13 | Robustesse, performance, accessibilité | 16 | 15 | En cours |
+| 15 | Fiches (fait avant le 12 bis) | 11 | 0 | À faire |
+| 12 bis | Hors ligne et tablette (fait après le 15) | 8 | 0 | À faire |
 | 14 | Recette V1 | 6 | 0 | À faire |
-| 15 | Fiches (après la V1) | 12 | 0 | À faire |
-| **Total** | | **248** | **221** | |
+| **Total** | | **247** | **221** | |
 
 ---
 
@@ -671,31 +671,6 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
 
 ---
 
-## Lot 12 bis — Hors ligne et tablette
-
-> Ajouté après le jalon J4 (décision d'Allan) : Présentation sur tablette Android (Chrome) en V1, application utilisable sans connexion internet et lancée depuis un fichier HTML, transfert des projets du PC vers la tablette.
-
-- [ ] **12b.1** Conception : lancement hors ligne depuis un fichier HTML (fichier unique, application installable, ou autre), validée par Allan après prototypes sur PC et sur tablette Android. [O5, PRJ-04, NF-04]
-  - Note : —
-- [ ] **12b.2** Format d'export d'un projet (scènes, actions, battlemaps, sons et vidéos du projet, sons et vidéos de la bibliothèque globale utilisés) et « Exporter le projet » depuis l'accueil, avec la case « Inclure les vidéos » (cochée par défaut, poids affiché). [PRJ-04, PRJ-05, VID-13]
-  - Note : —
-- [ ] **12b.3** « Importer un projet » (nouveau projet, fichiers refusés expliqués, quota). [PRJ-05]
-  - Note : —
-- [ ] **12b.4** Build hors ligne selon 12b.1 : traductions, polices et médias embarqués, navigation sans serveur. [TEC-90]
-  - Note : —
-- [ ] **12b.5** Mise en page tablette : fil à gauche, onglets Actions / Cartes / Sons, « Scène suivante » en bas, cibles ≥ 48 px. [CTL-12, Brief §7.3]
-  - Note : —
-- [ ] **12b.6** Tablette : un seul écran (pas de fenêtre joueurs, donc vidéos non diffusées et signalées, VID-07), plein écran et son débloqués au toucher, stockage persistant. [NF-04, TEC-43]
-  - Note : —
-- [ ] **12b.7** Lecteur `.zip` hors ligne : Présentation seule d'un projet exporté. [PRJ-04]
-  - Note : —
-- [ ] **12b.8** Vérification sur une tablette Android réelle (Allan) et en émulation : import, séance complète, reprise. [Plan §2]
-  - Note : —
-
-**Critère de fin** : un projet préparé sur le PC est présenté sur la tablette Android sans connexion internet.
-
----
-
 ## Lot 13 — Robustesse, performance, accessibilité
 
 ### 13.1 Stockage
@@ -744,26 +719,11 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
 
 ---
 
-## Lot 14 — Recette V1
-
-- [ ] **14.1** Saisir un scénario réel complet dans l'outil. [PRD §7]
-  - Note : —
-- [ ] **14.2** Animer une séance réelle de 4 heures sans quitter l'outil. [PRD §7]
-  - Note : —
-- [ ] **14.3** Vérifier la reprise après fermeture du navigateur pendant la séance. [PRD §7]
-  - Note : —
-- [ ] **14.4** Recenser et corriger les anomalies (lister ici les anomalies bloquantes). [—]
-  - Note : —
-- [ ] **14.5** Mettre à jour les documents (PRD, TRD, brief, spécifications) avec les écarts constatés. [—]
-  - Note : —
-- [ ] **14.6** Étiqueter la version `v1.0.0`. [—]
-  - Note : —
-
 ## Lot 15 — Fiches
 
-> Ajouté le 16/11/2026 (demande d'Allan), prévu **après la V1**. Exigences : PRD §5.10 (FCH-01 à FCH-09), ACT-16, FIL-11, CTL-14 ; TRD §1.5 (TEC-54 à TEC-57), §3, §4.1, §4.2, §6.2, D12 ; Brief §2.6, §6.9, §6.10, §7.2, §11.3.
+> Ajouté le 16/11/2026 (demande d'Allan) et **intégré à la V1** : à faire avant le lot 12 bis (hors ligne et tablette, décision d'Allan) puis la recette (lot 14). L'emport des fiches dans l'export / import et le lecteur hors ligne est fait par le lot 12 bis (12b.2, 12b.3, 12b.7). Exigences : PRD §5.10 (FCH-01 à FCH-09), ACT-16, FIL-11, CTL-14 ; TRD §1.5 (TEC-54 à TEC-57), §3, §4.1, §4.2, §6.2, D12 ; Brief §2.6, §6.9, §6.10, §7.2, §11.3.
 >
-> ✅ Décisions (Allan, 16/11/2026) : une fiche = un titre + un texte Markdown, **sans image** ; fiches du **projet seulement** (pas de fiches globales) ; onglet « Fiches » entre Scènes et Bibliothèque ; arborescence à gauche et **fiche ouverte au centre**, modifiable, enregistrée automatiquement ; **titre = nom** dans l'arborescence ; recherche sur le **titre et le texte** ; élément « Afficher une fiche » : la fiche s'ouvre dans une **fenêtre** et **l'action continue** ; un bloc « Fiche : « titre » » cliquable est ajouté au fil **seulement si la fiche est ouverte par une action**, sans doublon à la relance ; ouverture à la main par un **bouton « Fiches » dans l'en-tête + raccourci** (F) et une fenêtre de recherche ; fenêtre en **lecture seule** ; fiches **jamais** montrées aux joueurs ; lot fait **après la V1**.
+> ✅ Décisions (Allan, 16/11/2026) : une fiche = un titre + un texte Markdown, **sans image** ; fiches du **projet seulement** (pas de fiches globales) ; onglet « Fiches » entre Scènes et Bibliothèque ; arborescence à gauche et **fiche ouverte au centre**, modifiable, enregistrée automatiquement ; **titre = nom** dans l'arborescence ; recherche sur le **titre et le texte** ; élément « Afficher une fiche » : la fiche s'ouvre dans une **fenêtre** et **l'action continue** ; un bloc « Fiche : « titre » » cliquable est ajouté au fil **seulement si la fiche est ouverte par une action**, sans doublon à la relance ; ouverture à la main par un **bouton « Fiches » dans l'en-tête + raccourci** (F) et une fenêtre de recherche ; fenêtre en **lecture seule** ; fiches **jamais** montrées aux joueurs ; lot intégré à la **V1**, fait avant le lot 12 bis puis la recette (lot 14).
 >
 > ℹ️ Choix proposés, à confirmer en cours de lot : nom dans le code `Sheet` (`SheetNode`, `features/sheets`, `SheetsPage`, `SheetsStore`, `SheetDialog`, `SheetPicker`, élément `show-sheet`, route `/projects/:projectId/sheets`) ; icône Lucide `ScrollText` ; couleurs `--el-sheet-*` (Brief §11.3) ; pause d'affichage (`DISPLAY_GAP_MS`) avant « Afficher une fiche », comme pour un texte ; ouvrir une fiche ferme celle déjà affichée ; « Dupliquer » une fiche (FCH-09, priorité C).
 
@@ -787,12 +747,54 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
   - Note : —
 - [ ] **15.10** Ouverture à la main : bouton « Fiches » dans l'en-tête de la Présentation, raccourci **F** (`PRESENTATION_SHORTCUTS`, `onShortcut`, `aria-keyshortcuts`), fenêtre `SheetPicker` (recherche titre + texte, extraits, clavier haut / bas / Entrée) ; rien n'est ajouté au fil ; rien n'est envoyé à la fenêtre joueurs. [CTL-14, FCH-08, TEC-57]
   - Note : —
-- [ ] **15.11** Export / import de projet (si le lot 12 bis est fait) : emporter les fiches (`sheetNodes`, `sheets`) et les relire dans le lecteur hors ligne. [PRJ-04]
-  - Note : —
-- [ ] **15.12** Vérification dans Chromium (deux thèmes) : création et recherche de fiches, enregistrement automatique, élément dans une action, bloc du fil après « Continuer », ouverture à la main (F), fenêtre joueurs inchangée ; mise à jour de `CLAUDE.md`. [FCH-01 à FCH-09]
+- [ ] **15.11** Vérification dans Chromium (deux thèmes) : création et recherche de fiches, enregistrement automatique, élément dans une action, bloc du fil après « Continuer », ouverture à la main (F), fenêtre joueurs inchangée ; mise à jour de `CLAUDE.md`. [FCH-01 à FCH-09]
   - Note : —
 
 **Critère de fin** : une fiche préparée dans l'onglet Fiches s'ouvre en Présentation par une action (bloc dans le fil, qui la rouvre) et à la main par la recherche (bouton « Fiches » ou touche F), sans jamais apparaître dans la fenêtre joueurs.
+
+---
+
+## Lot 12 bis — Hors ligne et tablette
+
+> Ajouté après le jalon J4 (décision d'Allan) : Présentation sur tablette Android (Chrome) en V1, application utilisable sans connexion internet et lancée depuis un fichier HTML, transfert des projets du PC vers la tablette.
+>
+> ✅ Décision (Allan, 16/11/2026) : lot fait **après le lot 15** (Fiches) : l'export, l'import et le lecteur hors ligne emportent aussi les fiches.
+
+- [ ] **12b.1** Conception : lancement hors ligne depuis un fichier HTML (fichier unique, application installable, ou autre), validée par Allan après prototypes sur PC et sur tablette Android. [O5, PRJ-04, NF-04]
+  - Note : —
+- [ ] **12b.2** Format d'export d'un projet (scènes, actions, fiches, battlemaps, sons et vidéos du projet, sons et vidéos de la bibliothèque globale utilisés) et « Exporter le projet » depuis l'accueil, avec la case « Inclure les vidéos » (cochée par défaut, poids affiché). [PRJ-04, PRJ-05, VID-13]
+  - Note : —
+- [ ] **12b.3** « Importer un projet » (nouveau projet, fichiers refusés expliqués, quota). [PRJ-05]
+  - Note : —
+- [ ] **12b.4** Build hors ligne selon 12b.1 : traductions, polices et médias embarqués, navigation sans serveur. [TEC-90]
+  - Note : —
+- [ ] **12b.5** Mise en page tablette : fil à gauche, onglets Actions / Cartes / Sons, « Scène suivante » en bas, cibles ≥ 48 px. [CTL-12, Brief §7.3]
+  - Note : —
+- [ ] **12b.6** Tablette : un seul écran (pas de fenêtre joueurs, donc vidéos non diffusées et signalées, VID-07), plein écran et son débloqués au toucher, stockage persistant. [NF-04, TEC-43]
+  - Note : —
+- [ ] **12b.7** Lecteur `.zip` hors ligne : Présentation seule d'un projet exporté, fiches comprises (fenêtre de fiche, bouton « Fiches »). [PRJ-04]
+  - Note : —
+- [ ] **12b.8** Vérification sur une tablette Android réelle (Allan) et en émulation : import, séance complète, reprise. [Plan §2]
+  - Note : —
+
+**Critère de fin** : un projet préparé sur le PC est présenté sur la tablette Android sans connexion internet.
+
+---
+
+## Lot 14 — Recette V1
+
+- [ ] **14.1** Saisir un scénario réel complet dans l'outil. [PRD §7]
+  - Note : —
+- [ ] **14.2** Animer une séance réelle de 4 heures sans quitter l'outil. [PRD §7]
+  - Note : —
+- [ ] **14.3** Vérifier la reprise après fermeture du navigateur pendant la séance. [PRD §7]
+  - Note : —
+- [ ] **14.4** Recenser et corriger les anomalies (lister ici les anomalies bloquantes). [—]
+  - Note : —
+- [ ] **14.5** Mettre à jour les documents (PRD, TRD, brief, spécifications) avec les écarts constatés. [—]
+  - Note : —
+- [ ] **14.6** Étiqueter la version `v1.0.0`. [—]
+  - Note : —
 
 ---
 
@@ -800,7 +802,7 @@ Suivi détaillé du [plan d'implémentation](./Plan_implementation.md). Chaque t
 
 | Sujet | Statut | Note |
 |---|---|---|
-| Fiches du MJ (lot 15) | 📝 Spécifié (2026-11-16), à faire après la V1 | ✅ Demande (Allan) : notion de fiche (titre + texte Markdown) dans un onglet « Fiches » inspiré de la Bibliothèque, élément d'action « Afficher une fiche », ouverture manuelle en Présentation, fenêtre avec le contenu mis en forme. Décisions d'Allan : voir l'en-tête du lot 15. Documents mis à jour : PRD (§5.10 FCH-01 à FCH-09, ACT-16, FIL-11, CTL-14, glossaire, §9), TRD (§1.5 TEC-54 à TEC-57, §2.2, §2.3, §3, §4.1, §4.2, §6.2, D12), Brief (§2.6, §6.9, §6.10, §7.2, §11.3), spécifications (§3.2), plan (lot 15, jalon J6). ❓ À valider : couleurs `--el-sheet-*` et choix techniques listés dans l'en-tête du lot. |
+| Fiches du MJ (lot 15) | 📝 Spécifié (2026-11-16), intégré à la V1 (avant le lot 12 bis et la recette) | ✅ Demande (Allan) : notion de fiche (titre + texte Markdown) dans un onglet « Fiches » inspiré de la Bibliothèque, élément d'action « Afficher une fiche », ouverture manuelle en Présentation, fenêtre avec le contenu mis en forme. Décisions d'Allan : voir l'en-tête du lot 15. Documents mis à jour : PRD (§5.10 FCH-01 à FCH-09, ACT-16, FIL-11, CTL-14, glossaire), TRD (§1.5 TEC-54 à TEC-57, §2.2, §2.3, §3, §4.1, §4.2, §6.2, D12), Brief (§2.6, §6.9, §6.10, §7.2, §11.3), spécifications (§3.2), plan (lot 15, jalon J5). ✅ Décision (Allan) : lot 15 intégré à la V1, fait avant le lot 12 bis, puis la recette (lot 14). ❓ À valider : couleurs `--el-sheet-*` et choix techniques listés dans l'en-tête du lot. |
 | Diffusion de vidéos (lot 12 ter) | 📝 Spécifié (2026-11-13), à faire avant le lot 12 bis | ✅ Demande (Allan) : importer des vidéos comme les sons, page renommée « Bibliothèque », éléments « Lancer la vidéo » / « Arrêter la vidéo », vidéo jouée seulement dans la fenêtre joueurs (ignorée si elle n'est pas ouverte). Décisions d'Allan : voir l'en-tête du lot 12 ter. Documents mis à jour : PRD (§5.2, VID-01 à VID-13, ACT-14, ACT-15, CTL-13, risques), TRD (TEC-36, TEC-44 à TEC-49, §3, §4.1, §9.1, D10, D11), Brief (§2.6, §6.12, §7.2), Plan, `specifications.md`. ✅ Validé (Allan, 14/11/2026) : couleurs `--el-video-*` proposées (contrôle visuel sur `/dev/themes`) ; arrêt de la vidéo même quand on réaffiche la battlemap déjà affichée ; renommage complet dans le code (voir l'en-tête du lot). |
 | « Afficher / Masquer l'action » vers plusieurs actions (ACT-12, ACT-13) | ✅ Fait (2026-11-13) | ✅ Demande (Allan) : choisir une liste d'actions. Réalisation : `ShowActionElement` / `HideActionElement` portent `actionIds: Id[]` (au lieu de `actionId`), rangés dans l'ordre des actions de la scène ; **`DB_VERSION` 2**, migration `migrateActionTargets` (`jdr-db.ts`) : `actionId` → `[actionId]`, vide → `[]`. Éditeur : cases à cocher au lieu de boutons radio (désactivées par « Masquer toutes les actions ») ; action visée supprimée : avertissement « Une action choisie a été supprimée. » et bouton « Retirer » qui l'enlève de la liste ; résumé « afficher « X » » pour une action, « afficher N actions » pour plusieurs ; détail replié = noms séparés par des virgules ; avertissement à la suppression d'une action visée par l'une de ces listes ; duplication de scène : toutes les cibles remappées. Présentation : toutes les actions visées sont affichées / masquées en un seul enregistrement ; une action supprimée est ignorée et signalée (les autres sont traitées). TRD §3 et PRD ACT-12 / ACT-13 mis à jour. Tests : `jdr-db` (migration), `element-form`, `action-summary`, `presentation-engine`. ⚠️ Alerte : depuis le shell Bash de Claude, `ng test` échoue (« Vitest failed to find the runner », casse de la lettre de lecteur) ; passe depuis PowerShell. `check:i18n` signale les pages `features/dev` sous Windows (filtre `'/features/dev/'` avec des `/`) et `format:check` les fins de ligne CRLF de la copie de travail : préexistant, non corrigé. ⚠️ À vérifier par Allan dans le navigateur. |
 | Élément « Masquer l'action » (ACT-13) | ✅ Fait (2026-11-13) | ✅ Demande (Allan) : pendant d'« Afficher l'action ». ✅ Décisions (Allan) : l'action masquée s'affiche comme une action masquée au départ (œil barré, lançable) et une action terminée garde son ✓ ; cibles = autres actions « Clic du MJ » de la scène (pas elle-même) ; une action en cours se termine normalement. Réalisation : `HideActionElement` (`hide-action`, icône `EyeOff`, couleur `action`), `SceneState.hiddenActionIds` (facultatif, pas de changement de schéma ni de `DB_VERSION`) ; `hidden` d'une `ManualAction` = terminée, ou dans `hiddenActionIds`, ou masquée au départ sans être affichée ; « Afficher l'action » retire aussi l'action de `hiddenActionIds`. Éditeur : formulaire partagé avec « Afficher l'action » (`ng-template #actionChoice`, aide et erreur propres), résumé, validation, duplication de scène (cible remappée), avertissement à la suppression d'une action visée (« affichée ou masquée par… »). Cible supprimée en Présentation : message `presentation.errors.missingActionToHide`. PRD ACT-13 et TRD §3 mis à jour. Tests : `action-runner`, `presentation-engine`, `element-form`, `action-summary`, `action-editor`, `editor-store`, `pill`. ✅ Demande (Allan) : case « Masquer toutes les actions » (`HideActionElement.all`) ; cochée, les actions du formulaire sont désactivées et le choix précédent est effacé (`actionId: ''`) ; résumé « masquer toutes les actions », jamais signalé comme cible supprimée. En Présentation, toutes les actions « Clic du MJ » de la scène sont ajoutées à `hiddenActionIds`, y compris celle qui contient l'élément ; « Afficher l'action » en réaffiche une. ⚠️ À vérifier par Allan dans le navigateur. |
