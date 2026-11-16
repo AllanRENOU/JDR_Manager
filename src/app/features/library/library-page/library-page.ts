@@ -29,6 +29,7 @@ import { DATA_REPOSITORY } from '../../../core/data/data-repository';
 import { pluralKey } from '../../../core/i18n/plural';
 import {
   FORMAT_LABELS,
+  LARGE_VIDEO_BYTES,
   MediaKind,
   acceptAttribute,
   formatLabel,
@@ -50,7 +51,7 @@ import { formatDuration } from '../../../shared/util/duration';
 import { formatFileSize } from '../../../shared/util/file-size';
 import { AudioPlayer } from '../../presentation/audio/audio-player';
 import { ListenButton } from '../listen-button/listen-button';
-import { LARGE_VIDEO_BYTES, LibraryKindFilter, LibraryRow, LibraryStore } from '../library-store';
+import { LibraryKindFilter, LibraryRow, LibraryStore } from '../library-store';
 import { SoundPreview } from '../sound-preview';
 import { VideoPreviewData, VideoPreviewDialog } from '../video-preview-dialog/video-preview-dialog';
 import {

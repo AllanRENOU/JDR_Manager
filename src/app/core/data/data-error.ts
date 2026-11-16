@@ -1,5 +1,6 @@
 /** Cause d'une erreur de la couche de données. */
-export type DataErrorCode = 'unsupported-media-type' | 'quota-exceeded' | 'media-not-found';
+export type DataErrorCode =
+  'unsupported-media-type' | 'quota-exceeded' | 'media-not-found' | 'project-not-found';
 
 /**
  * Erreur métier de la couche de données. `messageKey` est la clé de traduction à afficher

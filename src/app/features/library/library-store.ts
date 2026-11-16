@@ -22,12 +22,6 @@ import {
   pathTo,
 } from '../../shared/tree/tree-model';
 
-/**
- * Au-delà de cette taille (500 Mo), l'écran demande une confirmation avant d'importer un fichier :
- * il est copié dans le navigateur et occupe autant de place en plus sur l'ordinateur (VID-03).
- */
-export const LARGE_VIDEO_BYTES = 500 * 1024 * 1024;
-
 /** Dossier ouvert : sa bibliothèque et le dossier (`null` = racine de la bibliothèque). */
 export interface OpenedFolder {
   libraryId: LibraryId;

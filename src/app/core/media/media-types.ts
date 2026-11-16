@@ -112,3 +112,15 @@ const LABEL_BY_MIME: Record<string, string> = {
 export function formatLabel(mimeType: string): string {
   return LABEL_BY_MIME[mimeType] ?? (mimeType.split('/').pop() ?? '').toUpperCase();
 }
+
+/**
+ * Vidéo « lourde » (500 Mo) : l'import demande une confirmation, car le fichier est copié dans le
+ * navigateur et occupe autant de place en plus sur l'ordinateur (VID-03) ; l'export d'un projet ne
+ * l'inclut pas par défaut (VID-13).
+ */
+export const LARGE_VIDEO_BYTES = 500 * 1024 * 1024;
+
+/** Catégorie d'un type MIME accepté (déjà normalisé), ou `null` s'il n'est pas accepté. */
+export function mediaKindOfMime(mimeType: string): MediaKind | null {
+  return BY_MIME[mimeType]?.kind ?? null;
+}

@@ -593,7 +593,13 @@
     "data": {
       "unsupported-media-type": "Format de fichier non pris en charge. Images : PNG, JPG, WebP. Sons : MP3, OGG, WAV, M4A. Vidéos : MP4, WebM.",
       "quota-exceeded": "Espace de stockage du navigateur insuffisant. Supprimez des projets, des sons ou des vidéos inutilisés, puis réessayez.",
-      "media-not-found": "Fichier introuvable : il a peut-être été supprimé."
+      "media-not-found": "Fichier introuvable : il a peut-être été supprimé.",
+      "project-not-found": "Ce projet est introuvable : il a peut-être été supprimé."
+    },
+    "archive": {
+      "not-an-archive": "Ce fichier n’est pas un projet exporté par JDR Manager.",
+      "newer-version": "Ce projet a été exporté par une version plus récente de JDR Manager. Mettez l’application à jour, puis réessayez.",
+      "invalid-data": "Ce fichier de projet est endommagé : il ne peut pas être importé."
     }
   },
   "settings": {
