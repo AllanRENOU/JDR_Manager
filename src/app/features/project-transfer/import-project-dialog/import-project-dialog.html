@@ -1,0 +1,104 @@
+<app-modal
+  [title]="'transfer.import.title' | transloco"
+  [subtitle]="file.name"
+  [hideClose]="importing()"
+>
+  @if (errorKey(); as key) {
+    <app-alert>{{ key | transloco }}</app-alert>
+  } @else if (!plan.hasValue()) {
+    <p class="import__status" role="status">{{ 'transfer.import.reading' | transloco }}</p>
+  } @else if (progressText(); as text) {
+    <div role="status">
+      <p class="import__status">{{ 'transfer.import.writing' | transloco }}</p>
+      <span
+        class="progress"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="percent()"
+        [attr.aria-label]="'transfer.import.progressLabel' | transloco"
+      >
+        <span class="progress__bar" [style.width.%]="percent()"></span>
+      </span>
+      <p class="import__hint">{{ 'transfer.import.progress' | transloco: text }}</p>
+    </div>
+  } @else {
+    @let p = plan.value();
+    @let c = counts(p);
+    <p class="import__name">{{ p.archive.data.project.name }}</p>
+    <p class="import__hint">
+      {{ pluralKey('transfer.import.scenes', c.scenes) | transloco: { count: c.scenes } }} ·
+      {{ pluralKey('transfer.import.sheets', c.sheets) | transloco: { count: c.sheets } }} ·
+      {{ pluralKey('transfer.import.media', c.media) | transloco: { count: c.media } }}
+    </p>
+    <p class="import__line">
+      @if (p.toImport.length === 0) {
+        {{ 'transfer.import.noFiles' | transloco }}
+      } @else {
+        {{
+          pluralKey('transfer.import.files', p.toImport.length)
+            | transloco: { count: p.toImport.length, size: formatFileSize(p.bytes) }
+        }}
+      }
+    </p>
+    @if (p.alreadyPresent > 0) {
+      <p class="import__hint">
+        {{
+          pluralKey('transfer.import.alreadyPresent', p.alreadyPresent)
+            | transloco: { count: p.alreadyPresent }
+        }}
+      </p>
+    }
+    @if (p.withoutFile > 0) {
+      <p class="import__hint">
+        {{
+          pluralKey('transfer.import.withoutFile', p.withoutFile)
+            | transloco: { count: p.withoutFile }
+        }}
+      </p>
+    }
+    @if (p.existing; as existing) {
+      <app-alert class="import__alert">
+        {{
+          'transfer.import.replace'
+            | transloco
+              : {
+                  name: existing.name,
+                  local: (existing.updatedAt | date: 'd MMMM y, HH:mm'),
+                  file: (p.archive.data.project.updatedAt | date: 'd MMMM y, HH:mm'),
+                }
+        }}
+      </app-alert>
+    }
+    @if (p.insufficientSpace; as space) {
+      <app-alert class="import__alert">
+        {{
+          'transfer.import.insufficientSpace'
+            | transloco
+              : {
+                  needed: formatFileSize(space.needed),
+                  available: formatFileSize(space.available),
+                }
+        }}
+      </app-alert>
+    }
+  }
+
+  <button modalFooterEnd appButton="secondary" type="button" (click)="cancel()">
+    {{ (errorKey() ? 'common.actions.close' : 'common.actions.cancel') | transloco }}
+  </button>
+  @if (plan.hasValue() && !importing()) {
+    <button
+      modalFooterEnd
+      type="button"
+      [appButton]="plan.value().existing ? 'danger-strong' : 'primary'"
+      [disabled]="plan.value().insufficientSpace !== null"
+      (click)="import()"
+    >
+      {{
+        (plan.value().existing ? 'transfer.import.replaceSubmit' : 'transfer.import.submit')
+          | transloco
+      }}
+    </button>
+  }
+</app-modal>

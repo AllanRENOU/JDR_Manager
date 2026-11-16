@@ -616,6 +616,49 @@
       "done": "Projet « {{ name }} » exporté.",
       "cancelled": "Export annulé.",
       "failed": "L’export a échoué. Vérifiez la place libre sur le disque, puis réessayez."
+    },
+    "import": {
+      "title": "Importer un projet",
+      "reading": "Lecture du fichier…",
+      "scenes": {
+        "one": "{{ count }} scène",
+        "other": "{{ count }} scènes"
+      },
+      "sheets": {
+        "one": "{{ count }} fiche",
+        "other": "{{ count }} fiches"
+      },
+      "media": {
+        "one": "{{ count }} son ou vidéo",
+        "other": "{{ count }} sons et vidéos"
+      },
+      "files": {
+        "one": "{{ count }} fichier à importer · {{ size }}",
+        "other": "{{ count }} fichiers à importer · {{ size }}"
+      },
+      "noFiles": "Aucun nouveau fichier à importer.",
+      "alreadyPresent": {
+        "one": "{{ count }} fichier déjà présent sur ce navigateur ne sera pas réimporté.",
+        "other": "{{ count }} fichiers déjà présents sur ce navigateur ne seront pas réimportés."
+      },
+      "withoutFile": {
+        "one": "{{ count }} fichier n’est pas dans l’export : l’élément sera créé sans fichier, à importer plus tard depuis la Bibliothèque.",
+        "other": "{{ count }} fichiers ne sont pas dans l’export : les éléments seront créés sans fichier, à importer plus tard depuis la Bibliothèque."
+      },
+      "replace": "Le projet « {{ name }} » existe déjà sur ce navigateur et sera remplacé. Modifié ici le {{ local }} ; dans le fichier le {{ file }}. Ce qui a été ajouté depuis sur ce navigateur est conservé, comme la partie en cours.",
+      "insufficientSpace": "Espace de stockage insuffisant : il faut {{ needed }}, il reste environ {{ available }}. Supprimez des projets, des sons ou des vidéos inutilisés, puis réessayez.",
+      "submit": "Importer",
+      "replaceSubmit": "Remplacer",
+      "writing": "Import en cours…",
+      "progressLabel": "Avancement de l’import",
+      "progress": "{{ written }} sur {{ total }}",
+      "done": "Projet « {{ name }} » importé.",
+      "doneWithoutFile": {
+        "one": "Projet « {{ name }} » importé. {{ count }} fichier est à importer depuis la Bibliothèque.",
+        "other": "Projet « {{ name }} » importé. {{ count }} fichiers sont à importer depuis la Bibliothèque."
+      },
+      "cancelled": "Import annulé : rien n’a été enregistré.",
+      "failed": "L’import a échoué : rien n’a été enregistré."
     }
   },
   "error": {

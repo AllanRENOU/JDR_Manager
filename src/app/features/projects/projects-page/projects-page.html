@@ -42,7 +42,21 @@
 </app-header>
 
 <main class="page">
-  <h1 class="page__title">{{ 'project.title' | transloco }}</h1>
+  <div class="page__heading">
+    <h1 class="page__title">{{ 'project.title' | transloco }}</h1>
+    <button appButton="secondary" type="button" (click)="importInput.click()">
+      <svg lucideUpload aria-hidden="true"></svg>{{ 'project.import' | transloco }}
+    </button>
+    <input
+      #importInput
+      class="page__file-input"
+      type="file"
+      accept=".zip,application/zip"
+      tabindex="-1"
+      aria-hidden="true"
+      (change)="onImportChosen(importInput)"
+    />
+  </div>
 
   @if (projects.error()) {
     <app-alert>{{ 'project.loadError' | transloco }}</app-alert>

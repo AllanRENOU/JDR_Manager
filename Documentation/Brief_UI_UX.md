@@ -225,6 +225,7 @@ Hauteurs : **44 px** (standard), 40 px (en-tête), 34–36 px (dans un volet), 4
 ### 6.4 Cartes
 
 - **Carte de projet** : fond `--bg-card`, bordure `--border-subtle`, rayon 14, vignette de 150 px en haut, actions en bas (Éditer / Présenter). Menu « ⋯ » : Renommer, Exporter (lot 16 : fenêtre « Exporter le projet », taille `md` : texte d'introduction, cases « Inclure les vidéos » et « Inclure aussi les vidéos de plus de 500 Mo » avec nombre et poids en `--text-tertiary`, vidéos exportées sans fichier, « Poids de l'export » en gras, alerte Firefox au-delà de 2 Go ; pendant l'écriture, barre de progression `--accent` et « x Mo sur y Mo », seul « Annuler » reste), séparateur, Supprimer.
+- **Accueil, « Importer un projet »** (lot 16) : bouton secondaire (icône `Upload`) à droite du titre « Mes projets ». Fenêtre « Importer un projet » (taille `md`, sous-titre = nom du fichier) : nom du projet en gras, nombres en `--text-tertiary`, fichiers à importer et poids, fichiers déjà présents, fichiers absents de l'export ; projet existant : alerte avec les deux dates et bouton « Remplacer » (`danger-strong`) ; place insuffisante : alerte, bouton désactivé ; fichier refusé : alerte et « Fermer » ; pendant l'import, barre de progression et « Annuler ».
 - **Carte de liste** (action, son) : rayon 10–12, marge 10–14 px ; la carte sélectionnée ou en cours d'édition prend une bordure `--accent`.
 - **Carte « Créer »** : contour pointillé 2 px, contenu centré, toujours en dernière position de la grille.
 

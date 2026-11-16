@@ -1,10 +1,11 @@
 import { Component, inject, resource } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { LucideLibraryBig, LucidePlus, LucideSettings } from '@lucide/angular';
+import { LucideLibraryBig, LucidePlus, LucideSettings, LucideUpload } from '@lucide/angular';
 import { firstValueFrom } from 'rxjs';
 
 import { DATA_REPOSITORY } from '../../../core/data/data-repository';
+import { pluralKey } from '../../../core/i18n/plural';
 import { Project, newId } from '../../../core/models';
 import { Alert } from '../../../shared/ui/alert/alert';
 import { AppHeader } from '../../../shared/ui/app-header/app-header';
@@ -19,6 +20,10 @@ import type {
   ExportProjectDialogData,
   ExportProjectDialogResult,
 } from '../../project-transfer/export-project-dialog/export-project-dialog';
+import type {
+  ImportProjectDialogData,
+  ImportProjectDialogResult,
+} from '../../project-transfer/import-project-dialog/import-project-dialog';
 import { ProjectCard } from '../project-card/project-card';
 import { loadProjectSummary } from '../project-summary';
 
@@ -35,6 +40,7 @@ import { loadProjectSummary } from '../project-summary';
     LucideLibraryBig,
     LucidePlus,
     LucideSettings,
+    LucideUpload,
   ],
   templateUrl: './projects-page.html',
   styleUrl: './projects-page.scss',
@@ -115,6 +121,41 @@ export class ProjectsPage {
       );
     }
     return exported;
+  }
+
+  /** Fichier choisi avec « Importer un projet ». */
+  protected onImportChosen(input: HTMLInputElement): void {
+    const file = input.files?.[0];
+    // Remis à zéro : choisir de nouveau le même fichier doit relancer l'import.
+    input.value = '';
+    if (file) {
+      void this.importProject(file);
+    }
+  }
+
+  /**
+   * Ouvre la fenêtre « Importer un projet » (PRJ-05), chargée à la demande comme l'export, puis
+   * recharge la liste. @returns le résultat de l'import, ou `undefined` si rien n'a été importé.
+   */
+  async importProject(file: File): Promise<ImportProjectDialogResult | undefined> {
+    const { ImportProjectDialog } =
+      await import('../../project-transfer/import-project-dialog/import-project-dialog');
+    const ref = this.modals.open<ImportProjectDialogResult, ImportProjectDialogData>(
+      ImportProjectDialog,
+      { data: { file }, size: 'md', closable: false },
+    );
+    const result = await firstValueFrom(ref.closed);
+    if (result) {
+      this.projects.reload();
+      const key =
+        result.withoutFile > 0
+          ? pluralKey('transfer.import.doneWithoutFile', result.withoutFile)
+          : 'transfer.import.done';
+      this.notifications.info(
+        this.transloco.translate(key, { name: result.name, count: result.withoutFile }),
+      );
+    }
+    return result;
   }
 
   /** Supprime le projet et tout son contenu après confirmation (PRJ-02, NF-31). */

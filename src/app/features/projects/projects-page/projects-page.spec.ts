@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { BlobWriter } from '@zip.js/zip.js';
 
 import { aPlaySession, aProject, aSceneNode } from '../../../../testing/data-builders';
 import { useNodeBlob } from '../../../../testing/node-blob';
@@ -10,6 +11,9 @@ import { DATA_REPOSITORY } from '../../../core/data/data-repository';
 import { provideFrenchLocale } from '../../../core/i18n/locale';
 import { Modals } from '../../../shared/ui/modal/modals';
 import { Notifications } from '../../../shared/ui/notification-host/notifications';
+import { collectProject } from '../../project-transfer/collect-project';
+import { DEFAULT_EXPORT_OPTIONS, buildArchive } from '../../project-transfer/project-archive';
+import { writeProjectZip } from '../../project-transfer/zip-writer';
 import { ProjectsPage } from './projects-page';
 
 describe('ProjectsPage (4.1)', () => {
@@ -138,6 +142,55 @@ describe('ProjectsPage (4.1)', () => {
     const saved = await TestBed.inject(DATA_REPOSITORY).getProject(project.id);
     expect(saved?.name).toBe('La crypte oubliée');
     expect(saved?.updatedAt).not.toBe(project.updatedAt);
+  });
+
+  describe('import (16.5)', () => {
+    useNodeBlob();
+
+    it('importe un projet exporté depuis « Importer un projet »', async () => {
+      const repository = TestBed.inject(DATA_REPOSITORY);
+      await repository.saveProject(aProject({ id: 'p1', name: 'La crypte' }));
+      await repository.saveSceneNodes([aSceneNode('p1')]);
+      const archive = buildArchive(await collectProject(repository, 'p1'), DEFAULT_EXPORT_OPTIONS);
+      const zip = await writeProjectZip<Blob>(new BlobWriter(), archive, (id) =>
+        repository.getMediaBlob(id),
+      );
+      await repository.deleteProject('p1');
+      const { fixture, el, names } = await render();
+      expect(names()).toEqual([]);
+
+      const button = [...el.querySelectorAll<HTMLButtonElement>('.page__heading button')][0];
+      expect(button.textContent).toContain('Importer un projet');
+      const input = el.querySelector<HTMLInputElement>('.page__heading input[type="file"]')!;
+      expect(input.accept).toBe('.zip,application/zip');
+      Object.defineProperty(input, 'files', {
+        value: [new File([zip], 'La crypte.zip', { type: 'application/zip' })],
+      });
+      input.dispatchEvent(new Event('change'));
+
+      const submit = await vi.waitFor(() => {
+        TestBed.tick();
+        const found = [
+          ...document.querySelectorAll<HTMLButtonElement>(
+            'app-import-project-dialog .modal__footer button',
+          ),
+        ].find((b) => b.textContent?.includes('Importer'));
+        expect(found).toBeDefined();
+        return found!;
+      });
+      submit.click();
+
+      await vi.waitFor(async () => {
+        await fixture.whenStable();
+        expect(names()).toEqual(['La crypte']);
+      });
+      expect(
+        TestBed.inject(Notifications)
+          .notifications()
+          .map((n) => n.message),
+      ).toContain('Projet « La crypte » importé.');
+      expect(await repository.listSceneNodes('p1')).toHaveLength(1);
+    });
   });
 
   describe('export (16.4)', () => {

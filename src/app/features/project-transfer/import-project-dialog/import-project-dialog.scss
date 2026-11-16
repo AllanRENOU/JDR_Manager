@@ -1,0 +1,45 @@
+@use 'functions' as *;
+
+.import__name {
+  margin: 0;
+  color: color(text-primary);
+  font-weight: font-weight(semibold);
+}
+
+.import__line {
+  margin: space(16) 0 space(4);
+  color: color(text-primary);
+}
+
+.import__hint {
+  margin: 0 0 space(4);
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+.import__status {
+  margin: 0 0 space(8);
+  color: color(text-secondary);
+}
+
+.import__alert {
+  display: block;
+  margin-top: space(16);
+}
+
+.progress {
+  display: block;
+  width: 100%;
+  height: space(4);
+  margin-bottom: space(8);
+  border-radius: radius(pill);
+  background: color(border-default);
+}
+
+.progress__bar {
+  display: block;
+  height: 100%;
+  border-radius: radius(pill);
+  background: color(accent);
+  transition: transition(width);
+}
