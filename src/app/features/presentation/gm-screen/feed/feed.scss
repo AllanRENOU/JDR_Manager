@@ -153,6 +153,54 @@ app-feed-battlemap {
   color: color(el-video-fg);
 }
 
+// Fiche ouverte par une action : ligne cliquable qui la rouvre (Brief §6.10).
+.sheet {
+  display: flex;
+  align-items: center;
+  gap: space(10);
+  width: 100%;
+  margin: 0;
+  padding: space(12) space(18);
+  border: 1px solid transparent;
+  border-radius: radius(lg);
+  background: color(el-sheet-bg);
+  color: color(text-secondary);
+  font: inherit;
+  font-size: font-size(small);
+  text-align: left;
+  cursor: pointer;
+  transition: transition(border-color, color);
+
+  &:hover {
+    border-color: color(el-sheet-fg);
+    color: color(text-primary);
+  }
+}
+
+.sheet__icon,
+.sheet__open {
+  flex-shrink: 0;
+  width: space(16);
+  height: space(16);
+  color: color(el-sheet-fg);
+}
+
+.sheet__label {
+  flex: 1;
+}
+
+// Fiche supprimée depuis : signalée, non cliquable (PRS-07).
+.sheet--missing {
+  border-color: color(danger-border);
+  background: color(danger-bg);
+  color: color(danger-text);
+  cursor: default;
+
+  .sheet__icon {
+    color: color(danger-text);
+  }
+}
+
 .empty {
   color: color(text-tertiary);
   font-style: italic;

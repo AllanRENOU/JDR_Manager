@@ -6,7 +6,7 @@ import {
   startPresentation,
   usePresentation,
 } from '../../../../../testing/presentation-harness';
-import { aSoundNode, anAction } from '../../../../../testing/data-builders';
+import { aSheetNode, aSoundNode, anAction } from '../../../../../testing/data-builders';
 import { DATA_REPOSITORY } from '../../../../core/data/data-repository';
 import { PlayerVideo } from '../player-video';
 import { Feed } from './feed';
@@ -83,6 +83,36 @@ describe('Feed', () => {
     // À sa place, entre le texte de scène et le texte suivant.
     const items = [...el.querySelectorAll('.item')].map((i) => i.textContent?.trim());
     expect(items).toEqual(['Odeur de bière.', 'Vidéo lancée : « Intro »', 'Le film commence.']);
+  });
+
+  it('fiche : bloc « Fiche : « titre » » qui rouvre la fiche ; fiche supprimée signalée (FIL-11)', async () => {
+    await seedPresentation([
+      anAction('A', {
+        id: 'accueil',
+        name: 'Accueil',
+        elements: [{ id: 'sf', type: 'show-sheet', sheetId: 'aubergiste' }],
+      }),
+    ]);
+    await TestBed.inject(DATA_REPOSITORY).saveSheetNodes([
+      aSheetNode('p1', { id: 'aubergiste', name: 'Aubergiste' }),
+    ]);
+    const engine = await startPresentation();
+    const { fixture, el } = await render();
+    await engine.runAction('accueil');
+    await fixture.whenStable();
+
+    const block = el.querySelector('button.sheet') as HTMLButtonElement;
+    expect(block.textContent).toContain('Fiche : « Aubergiste »');
+    expect(block.getAttribute('aria-label')).toBe('Rouvrir la fiche « Aubergiste »');
+    const seq = engine.sheetRequest()!.seq;
+    block.click();
+    expect(engine.sheetRequest()).toEqual({ sheetId: 'aubergiste', seq: seq + 1 });
+
+    // Fiche supprimée depuis : le bloc reste, signalé et non cliquable.
+    engine.sheetNodes.set([]);
+    await fixture.whenStable();
+    expect(el.querySelector('button.sheet')).toBeNull();
+    expect(el.querySelector('.sheet--missing')?.textContent).toContain('Fiche supprimée');
   });
 
   it('Changer de scène : bloc « Aller à la scène », la scène change au clic sur « Aller »', async () => {

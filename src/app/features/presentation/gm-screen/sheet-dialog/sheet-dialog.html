@@ -1,0 +1,7 @@
+<app-modal [title]="sheet.title" [subtitle]="sheet.path">
+  @if (sheet.text.trim()) {
+    <div class="sheet app-markdown" [innerHTML]="sheet.text | markdown"></div>
+  } @else {
+    <p class="empty">{{ 'presentation.sheetEmpty' | transloco }}</p>
+  }
+</app-modal>

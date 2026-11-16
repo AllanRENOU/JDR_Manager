@@ -39,6 +39,29 @@
               }}
             </p>
           }
+          @case ('sheet') {
+            <!-- Fiche ouverte par une action (FIL-11) : le bloc la rouvre ; rien pour les joueurs. -->
+            @let sheetName = engine.sheetName(item.sheetId);
+            @if (sheetName === null) {
+              <p class="sheet sheet--missing">
+                <svg lucideTriangleAlert class="sheet__icon" aria-hidden="true"></svg>
+                {{ 'presentation.sheetMissing' | transloco }}
+              </p>
+            } @else {
+              <button
+                class="sheet"
+                type="button"
+                [attr.aria-label]="'presentation.reopenSheet' | transloco: { name: sheetName }"
+                (click)="engine.openSheet(item.sheetId)"
+              >
+                <svg lucideScrollText class="sheet__icon" aria-hidden="true"></svg>
+                <span class="sheet__label">{{
+                  'presentation.sheetBlock' | transloco: { name: sheetName }
+                }}</span>
+                <svg lucideExternalLink class="sheet__open" aria-hidden="true"></svg>
+              </button>
+            }
+          }
           @case ('user-click') {
             <!-- Aussi le bloc d'un « Changer de scène » : la scène change au clic sur « Aller ». -->
             @let sceneName = engine.targetSceneName(item);

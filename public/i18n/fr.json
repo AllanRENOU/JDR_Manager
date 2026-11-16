@@ -329,6 +329,10 @@
     "videoNotShown": "Vidéo non diffusée : la fenêtre joueurs n’est pas ouverte.",
     "videoLaunched": "Vidéo lancée : « {{ name }} »",
     "videoLaunchedMissing": "Vidéo lancée (supprimée du projet depuis)",
+    "sheetBlock": "Fiche : « {{ name }} »",
+    "reopenSheet": "Rouvrir la fiche « {{ name }} »",
+    "sheetMissing": "Fiche supprimée",
+    "sheetEmpty": "Cette fiche est vide.",
     "videoMuted": "La vidéo passe sans le son : cliquez une fois dans la fenêtre joueurs pour l’autoriser.",
     "errors": {
       "missingSound": "Un son a été supprimé du projet : il n’est pas lancé.",

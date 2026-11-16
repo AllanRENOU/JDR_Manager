@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { aProject, anAction } from '../../../../../testing/data-builders';
+import { aProject, aSheet, aSheetNode, anAction } from '../../../../../testing/data-builders';
 import { seedPresentation, usePresentation } from '../../../../../testing/presentation-harness';
 import { DATA_REPOSITORY } from '../../../../core/data/data-repository';
 import { lastEditedSceneKey } from '../../../../core/preferences/last-edited-scene';
@@ -273,5 +273,46 @@ describe('GmScreenPage', () => {
     // Plus de clic en attente à la fin du fil : Entrée ne fait rien.
     press('Enter');
     expect(continueClick).toHaveBeenCalledOnce();
+  });
+
+  it('fiche : ouverte par une action dans une fenêtre, remplacée par la suivante, rouverte par le fil (FCH-08)', async () => {
+    await seedPresentation([
+      anAction('A', {
+        id: 'accueil',
+        name: 'Accueil',
+        elements: [{ id: 'sf', type: 'show-sheet', sheetId: 'aubergiste' }],
+      }),
+    ]);
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    await repository.saveSheetNodes([
+      aSheetNode('p1', { id: 'pnj', kind: 'folder', name: 'PNJ' }),
+      aSheetNode('p1', { id: 'aubergiste', name: 'Aubergiste', parentId: 'pnj' }),
+      aSheetNode('p1', { id: 'garde', name: 'Garde', order: 1 }),
+    ]);
+    await repository.saveSheet(aSheet('p1', 'aubergiste', { text: '**Bourru** mais juste.' }));
+    const page = await render('p1');
+    await launch('Commencer la partie', page);
+    const dialogs = () => [...document.querySelectorAll('app-sheet-dialog')];
+    const waitDialog = (title: string) =>
+      vi.waitFor(() => {
+        TestBed.tick();
+        expect(dialogs()).toHaveLength(1);
+        expect(dialogs()[0].querySelector('h2')?.textContent).toContain(title);
+      });
+
+    await page.engine.runAction('accueil');
+    await waitDialog('Aubergiste');
+    expect(dialogs()[0].textContent).toContain('PNJ');
+    expect(dialogs()[0].querySelector('strong')?.textContent).toBe('Bourru');
+
+    // Une autre fiche remplace la première.
+    page.engine.openSheet('garde');
+    await waitDialog('Garde');
+    expect(dialogs()[0].textContent).toContain('Cette fiche est vide.');
+
+    // Le bloc du fil rouvre la fiche de l'action.
+    await page.fixture.whenStable();
+    (page.el.querySelector('app-feed button.sheet') as HTMLButtonElement).click();
+    await waitDialog('Aubergiste');
   });
 });

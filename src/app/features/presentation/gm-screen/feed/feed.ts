@@ -17,7 +17,10 @@ import {
   LucideCheck,
   LucideChevronUp,
   LucideClapperboard,
+  LucideExternalLink,
   LucideMousePointerClick,
+  LucideScrollText,
+  LucideTriangleAlert,
 } from '@lucide/angular';
 
 import { pluralKey } from '../../../../core/i18n/plural';
@@ -51,7 +54,10 @@ const SCROLLED_UP_THRESHOLD = 48;
     LucideCheck,
     LucideChevronUp,
     LucideClapperboard,
+    LucideExternalLink,
     LucideMousePointerClick,
+    LucideScrollText,
+    LucideTriangleAlert,
   ],
   templateUrl: './feed.html',
   styleUrl: './feed.scss',

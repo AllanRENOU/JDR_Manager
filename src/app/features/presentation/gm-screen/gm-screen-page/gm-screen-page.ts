@@ -1,3 +1,4 @@
+import { DialogRef } from '@angular/cdk/dialog';
 import {
   Component,
   DestroyRef,
@@ -33,6 +34,7 @@ import { Alert } from '../../../../shared/ui/alert/alert';
 import { AppHeader } from '../../../../shared/ui/app-header/app-header';
 import { Button } from '../../../../shared/ui/button/button';
 import { Modals } from '../../../../shared/ui/modal/modals';
+import { SheetDialog, SheetDialogData } from '../sheet-dialog/sheet-dialog';
 import { Notifications } from '../../../../shared/ui/notification-host/notifications';
 import { ActionRunner } from '../../engine/action-runner';
 import { PlaySessionStore } from '../../engine/play-session-store';
@@ -98,6 +100,8 @@ export class GmScreenPage {
   private readonly transloco = inject(TranslocoService);
 
   protected readonly playerWindow = inject(PlayerWindow);
+  /** Fenêtre de fiche ouverte : fermée avant d'en ouvrir une autre (FCH-08). */
+  private sheetRef: DialogRef<unknown, SheetDialog> | null = null;
 
   /** Affichage choisi au lancement (AFF-03). */
   protected readonly displayMode = signal<DisplayMode>('single');
@@ -146,9 +150,39 @@ export class GmScreenPage {
         ),
       );
     });
+    // Fiche demandée par le moteur (action, bloc du fil, recherche) : une seule fenêtre (TEC-56).
+    effect(() => {
+      const request = this.engine.sheetRequest();
+      if (request) {
+        untracked(() => this.openSheet(request.sheetId));
+      }
+    });
     inject(DestroyRef).onDestroy(() => {
       this.modals.closeAll();
       void this.engine.stop();
+    });
+  }
+
+  /** Ouvre la fiche dans une fenêtre, en fermant d'abord celle déjà affichée. */
+  private openSheet(sheetId: Id): void {
+    const title = this.engine.sheetName(sheetId);
+    if (title === null) {
+      return;
+    }
+    const path = pathTo(this.engine.sheetNodes(), sheetId)
+      .slice(0, -1)
+      .map((n) => n.name)
+      .join(' › ');
+    this.sheetRef?.close();
+    const ref = this.modals.open<unknown, SheetDialogData, SheetDialog>(SheetDialog, {
+      size: 'lg',
+      data: { title, path, text: this.engine.sheetText(sheetId) },
+    });
+    this.sheetRef = ref;
+    ref.closed.subscribe(() => {
+      if (this.sheetRef === ref) {
+        this.sheetRef = null;
+      }
     });
   }
 

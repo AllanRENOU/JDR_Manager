@@ -1,0 +1,13 @@
+@use 'functions' as *;
+
+// Texte de la fiche : comme le fil (Lora), le corps de la fenêtre défile.
+.sheet {
+  font-family: font-family(narrative);
+  font-size: font-size(narrative);
+  line-height: line-height(narrative);
+}
+
+.empty {
+  color: color(text-tertiary);
+  font-style: italic;
+}
