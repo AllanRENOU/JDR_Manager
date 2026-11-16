@@ -60,6 +60,18 @@
   @if (engine.status() === 'ready') {
     <button
       headerEnd
+      aria-keyshortcuts="F"
+      appButton="secondary"
+      size="header"
+      type="button"
+      (click)="searchSheets()"
+    >
+      <svg lucideScrollText aria-hidden="true"></svg>{{ 'presentation.sheets.button' | transloco }}
+    </button>
+  }
+  @if (engine.status() === 'ready') {
+    <button
+      headerEnd
       aria-keyshortcuts="A"
       appButton="secondary"
       size="header"

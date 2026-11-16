@@ -1,0 +1,69 @@
+@let list = results();
+<app-modal [title]="'presentation.sheets.title' | transloco">
+  <div class="search">
+    <svg lucideSearch class="search__icon" aria-hidden="true"></svg>
+    <!-- Liste déroulante toujours visible (combobox) : le focus reste dans le champ, la ligne
+         active est annoncée par aria-activedescendant. -->
+    <input
+      appInput
+      cdkFocusInitial
+      type="search"
+      role="combobox"
+      aria-autocomplete="list"
+      aria-expanded="true"
+      [attr.aria-controls]="listId"
+      [attr.aria-activedescendant]="activeId()"
+      [attr.aria-label]="'presentation.sheets.search' | transloco"
+      [placeholder]="'presentation.sheets.search' | transloco"
+      [value]="query()"
+      (input)="onInput($any($event.target).value)"
+      (keydown)="onKeydown($event)"
+    />
+  </div>
+
+  <ul
+    class="list"
+    role="listbox"
+    [id]="listId"
+    [attr.aria-label]="'presentation.sheets.title' | transloco"
+  >
+    @for (result of list; track result.node.id; let i = $index) {
+      <!-- Choix au clavier depuis le champ (flèches, Entrée) ; la souris choisit au clic. -->
+      <li
+        class="option"
+        role="option"
+        tabindex="-1"
+        [id]="optionId(result.node.id)"
+        [class.option--active]="i === activeIndex()"
+        [attr.aria-selected]="i === activeIndex()"
+        (click)="choose(result.node.id)"
+        (keydown.enter)="choose(result.node.id)"
+        (mousemove)="activeIndex.set(i)"
+      >
+        <svg lucideScrollText class="option__icon" aria-hidden="true"></svg>
+        <span class="option__body">
+          <span class="option__title">{{ result.node.name }}</span>
+          @if (result.folders.length > 0) {
+            <span class="option__path">{{ folderPath(result.folders) }}</span>
+          }
+          @if (searching() && result.textMatch && result.excerpt; as excerpt) {
+            <span class="option__excerpt"
+              >{{ excerpt.cutStart ? '…' : '' }}{{ excerpt.before
+              }}<strong>{{ excerpt.match }}</strong
+              >{{ excerpt.after }}{{ excerpt.cutEnd ? '…' : '' }}</span
+            >
+          }
+        </span>
+      </li>
+    }
+  </ul>
+  @if (list.length === 0) {
+    <p class="empty" role="status">
+      @if (hasSheets) {
+        {{ 'sheet.noResult' | transloco: { query: query().trim() } }}
+      } @else {
+        {{ 'presentation.sheets.none' | transloco }}
+      }
+    </p>
+  }
+</app-modal>

@@ -18,6 +18,7 @@ import {
   LucideArrowLeft,
   LucideKeyboard,
   LucideMap,
+  LucideScrollText,
   LucideMonitor,
   LucideMonitorUp,
   LucidePresentation,
@@ -35,6 +36,7 @@ import { AppHeader } from '../../../../shared/ui/app-header/app-header';
 import { Button } from '../../../../shared/ui/button/button';
 import { Modals } from '../../../../shared/ui/modal/modals';
 import { SheetDialog, SheetDialogData } from '../sheet-dialog/sheet-dialog';
+import { SheetPicker, SheetPickerData } from '../sheet-picker/sheet-picker';
 import { Notifications } from '../../../../shared/ui/notification-host/notifications';
 import { ActionRunner } from '../../engine/action-runner';
 import { PlaySessionStore } from '../../engine/play-session-store';
@@ -78,6 +80,7 @@ import { SettingsButton } from '../../../settings/settings-button/settings-butto
     LucideArrowLeft,
     LucideKeyboard,
     LucideMap,
+    LucideScrollText,
     LucideMonitor,
     LucideMonitorUp,
     LucidePresentation,
@@ -241,6 +244,8 @@ export class GmScreenPage {
       run(() => this.nextScene()?.activate());
     } else if (key === 'a') {
       run(() => this.goToScene());
+    } else if (key === 'f') {
+      run(() => this.searchSheets());
     } else if (key === 'p') {
       run(() => this.engine.togglePlayback());
     } else if (key === '?') {
@@ -251,6 +256,21 @@ export class GmScreenPage {
       if (action) {
         run(() => this.engine.runAction(action.action.id));
       }
+    }
+  }
+
+  /**
+   * Bouton « Fiches » et touche F (CTL-14) : recherche d'une fiche, puis ouverture. Rien n'est
+   * ajouté au fil ni envoyé à la fenêtre joueurs (TEC-57).
+   */
+  protected async searchSheets(): Promise<void> {
+    const ref = this.modals.open<Id, SheetPickerData, SheetPicker>(SheetPicker, {
+      size: 'md',
+      data: { nodes: this.engine.sheetNodes(), sheets: Object.values(this.engine.sheets()) },
+    });
+    const chosen = await firstValueFrom(ref.closed);
+    if (chosen) {
+      this.engine.openSheet(chosen);
     }
   }
 

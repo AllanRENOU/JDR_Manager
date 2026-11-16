@@ -330,6 +330,12 @@
     "videoLaunched": "Vidéo lancée : « {{ name }} »",
     "videoLaunchedMissing": "Vidéo lancée (supprimée du projet depuis)",
     "sheetBlock": "Fiche : « {{ name }} »",
+    "sheets": {
+      "button": "Fiches",
+      "title": "Fiches",
+      "search": "Rechercher dans les titres et les textes",
+      "none": "Aucune fiche dans ce projet."
+    },
     "reopenSheet": "Rouvrir la fiche « {{ name }} »",
     "sheetMissing": "Fiche supprimée",
     "sheetEmpty": "Cette fiche est vide.",
@@ -434,6 +440,7 @@
       "continue": "Cliquer pour continuer (dernier clic en attente)",
       "nextScene": "Scène suivante",
       "goToScene": "Aller à une scène",
+      "sheets": "Rechercher une fiche",
       "playPause": "Tout lire / tout mettre en pause",
       "runAction": "Lancer la 1re à la 9e action disponible",
       "help": "Afficher cette aide"

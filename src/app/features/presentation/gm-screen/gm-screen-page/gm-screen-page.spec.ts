@@ -5,6 +5,7 @@ import { seedPresentation, usePresentation } from '../../../../../testing/presen
 import { DATA_REPOSITORY } from '../../../../core/data/data-repository';
 import { lastEditedSceneKey } from '../../../../core/preferences/last-edited-scene';
 import { UiPreferences } from '../../../../core/preferences/ui-preferences';
+import { Modals } from '../../../../shared/ui/modal/modals';
 import { Notifications } from '../../../../shared/ui/notification-host/notifications';
 import { PresentationEngine } from '../../engine/presentation-engine';
 import { GmScreenPage } from './gm-screen-page';
@@ -314,5 +315,54 @@ describe('GmScreenPage', () => {
     await page.fixture.whenStable();
     (page.el.querySelector('app-feed button.sheet') as HTMLButtonElement).click();
     await waitDialog('Aubergiste');
+  });
+
+  it('bouton « Fiches » et touche F : recherche, puis ouverture sans rien ajouter au fil (CTL-14)', async () => {
+    await seedPresentation();
+    const repository = TestBed.inject(DATA_REPOSITORY);
+    await repository.saveSheetNodes([
+      aSheetNode('p1', { id: 'aubergiste', name: 'Aubergiste' }),
+      aSheetNode('p1', { id: 'garde', name: 'Garde', order: 1 }),
+    ]);
+    await repository.saveSheet(aSheet('p1', 'garde', { text: 'Surveille le pont.' }));
+    const page = await render('p1');
+    await launch('Commencer la partie', page);
+    const feedBefore = page.engine.feed().length;
+    const picker = () => document.querySelector('app-sheet-picker');
+
+    const headerButton = button(page.el.querySelector('app-header')!, 'Fiches');
+    expect(headerButton.getAttribute('aria-keyshortcuts')).toBe('F');
+    headerButton.click();
+    await vi.waitFor(() => {
+      TestBed.tick();
+      expect(picker()).not.toBeNull();
+    });
+    // Fenêtre ouverte : F n'en ouvre pas une seconde.
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', bubbles: true }));
+    TestBed.tick();
+    expect(document.querySelectorAll('app-sheet-picker')).toHaveLength(1);
+    TestBed.inject(Modals).closeAll();
+    await vi.waitFor(() => {
+      TestBed.tick();
+      expect(picker()).toBeNull();
+    });
+
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'F', bubbles: true }));
+    await vi.waitFor(() => {
+      TestBed.tick();
+      expect(picker()).not.toBeNull();
+    });
+    const input = picker()!.querySelector('input') as HTMLInputElement;
+    input.value = 'pont';
+    input.dispatchEvent(new Event('input'));
+    TestBed.tick();
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+    await vi.waitFor(() => {
+      TestBed.tick();
+      expect(picker()).toBeNull();
+      expect(document.querySelector('app-sheet-dialog h2')?.textContent).toContain('Garde');
+    });
+    expect(page.engine.feed()).toHaveLength(feedBefore);
   });
 });
