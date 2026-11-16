@@ -212,7 +212,7 @@ Ce document découpe la V1 en **lots** ordonnés. Chaque lot liste ses tâches, 
 
 ### Lot 15 — Fiches · M
 
-> Ajouté le 16/11/2026 (demande d'Allan), prévu **après la V1**. Exigences : PRD §5.10 (FCH-01 à FCH-09), ACT-16, FIL-11, CTL-14 ; TRD §1.5 bis (TEC-54 à TEC-57), §3, §4, §6.2, D12 ; Brief §2.6, §6.9, §6.10, §7.2, §11.3.
+> Ajouté le 16/11/2026 (demande d'Allan), prévu **après la V1**. Exigences : PRD §5.10 (FCH-01 à FCH-09), ACT-16, FIL-11, CTL-14 ; TRD §1.5 (TEC-54 à TEC-57), §3, §4, §6.2, D12 ; Brief §2.6, §6.9, §6.10, §7.2, §11.3.
 
 | Tâche | Réf. |
 |---|---|

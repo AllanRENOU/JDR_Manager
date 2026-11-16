@@ -16,7 +16,7 @@ Ce document décrit **comment** l'application est construite : choix techniques,
 
 **Priorités (MoSCoW)** : **M** = Must · **S** = Should · **C** = Could · **W** = Won't (version future).
 
-### 1.1 Stack et conventions
+### 1.1 Stack, conventions, styles et thèmes
 
 | ID | Exigence | Priorité |
 |---|---|---|
@@ -32,11 +32,6 @@ Ce document décrit **comment** l'application est construite : choix techniques,
 | TEC-10 | Routage avec chargement paresseux (`loadComponent`) des modes Édition et Présentation. | S |
 | TEC-18 | Utiliser **Angular CLI** autant que possible pendant l'implémentation, plutôt que de créer ou modifier les fichiers à la main (cf. §2.4). | M |
 | TEC-19 | Nommage des services : décorateur `@Service()` d'Angular 22 et noms **sans suffixe** `Service`, comme les génère `ng g service` (ex. `Theme`, `UiPreferences`). Si le nom court masque un objet global du navigateur, choisir un nom plus précis (ex. `AudioPlayer` et non `Audio`, `MediaUrls`). Les noms de services cités dans ce document suivent cette règle. | S |
-
-### 1.1 bis Styles et thèmes
-
-| ID | Exigence | Priorité |
-|---|---|---|
 | TEC-11 | Tous les styles sont écrits en **SCSS** (styles globaux et styles de composants, `inlineStyleLanguage: scss`). | M |
 | TEC-12 | Chaque thème est défini dans **un seul fichier** `src/styles/themes/_<theme>.scss`, sous forme de map SCSS contenant **tous** les jetons du Brief UI/UX (§2). Une map incomplète fait échouer la compilation (contrôle par une fonction SCSS). | M |
 | TEC-13 | Les maps de thème sont converties en **variables CSS** (`--bg-app`, `--accent`…) sous un sélecteur `[data-theme="<theme>"]` ; le thème par défaut est aussi appliqué à `:root`. Changer de thème = changer l'attribut `data-theme` de `<html>`, sans rechargement. | M |
@@ -70,7 +65,7 @@ Ce document décrit **comment** l'application est construite : choix techniques,
 | TEC-36 | Vidéos : copiées en `Blob` dans le store `media`, comme les sons (décision D10). Durée lue à l'import par un élément `<video>` (`loadedmetadata`), via un service `MediaDuration` qui remplace `AudioDuration` (sons et vidéos). Au-delà de `LARGE_VIDEO_BYTES` (500 Mo, `features/library/library-store.ts`), l'écran demande une confirmation avant `uploadMedia` (PRD VID-03), une seule pour tous les gros fichiers d'un import ; « Annuler » importe quand même les autres fichiers. Pendant l'import, l'écran affiche « Import en cours (n / N) » : un gros fichier peut prendre plusieurs secondes. | M |
 | TEC-35 | Import par **glisser-déposer depuis le disque** via une directive réutilisable (`appFileDrop`) posée sur l'écran de la bibliothèque de sons et sur l'éditeur de scène : écoute de `dragenter` / `dragover` / `dragleave` / `drop` au niveau de la fenêtre, calque plein écran affiché seulement si `dataTransfer.types` contient `Files` (pour ne pas réagir aux glisser-déposer internes du CDK), compteur d'entrées / sorties pour éviter le clignotement, filtrage des types MIME (TEC-34), puis appel de `uploadMedia` pour chaque fichier. La destination (dossier ouvert ou scène ouverte) est fournie par l'écran hôte. | M |
 
-### 1.4 Audio
+### 1.4 Audio et vidéo
 
 | ID | Exigence | Priorité |
 |---|---|---|
@@ -78,11 +73,6 @@ Ce document décrit **comment** l'application est construite : choix techniques,
 | TEC-41 | Les sons ne sont **jamais entièrement décodés** en mémoire (`decodeAudioData` interdit pour la lecture). | M |
 | TEC-42 | Volume, boucle, fondus (entrée / sortie), **pause / reprise** par son et **réglage du volume en direct** gérés par un **service audio unique**, avec `GainNode.gain.linearRampToValueAtTime`. | M |
 | TEC-43 | L'`AudioContext` est créé ou repris (`resume()`) sur le premier clic de l'utilisateur, pour respecter les règles de lecture automatique des navigateurs. | M |
-
-### 1.4 bis Vidéo (lot 12 ter)
-
-| ID | Exigence | Priorité |
-|---|---|---|
 | TEC-44 | La vidéo est lue **dans la fenêtre joueurs seulement**, par un élément `<video>` posé par-dessus la battlemap (`object-fit: contain`, fond noir). La fenêtre joueurs résout elle-même l'URL (`MediaUrls`, à partir de l'identifiant reçu) ; le volume passe par `HTMLMediaElement.volume` (pas de Web Audio pour la vidéo). | M |
 | TEC-45 | L'écran du MJ commande la vidéo par le `BroadcastChannel` de la fenêtre joueurs (§9) et ne lit jamais le fichier. Son état (vidéo en cours, position, durée, pause, muette) vient des messages de la fenêtre joueurs : service `PlayerVideo` (`gm-screen/player-video.ts`, fourni par l'écran, à côté de `PlayerWindow`), signal `video`. | M |
 | TEC-46 | Coupure des sons pendant une vidéo (PRD VID-08) : `AudioPlayer` place un `GainNode` **maître** entre les sons et la sortie ; `duck(true)` le descend à 0 en `DUCK_FADE_MS` (1 s), `duck(false)` le remonte à 1. Les volumes de chaque son et `playingSounds` ne changent pas ; la coupure n'est pas enregistrée. | M |
@@ -90,7 +80,7 @@ Ce document décrit **comment** l'application est construite : choix techniques,
 | TEC-48 | La vidéo n'est **pas** enregistrée dans `PlaySession` (PRD VID-11) : `SceneState` ne change pas. | M |
 | TEC-49 | Prototype autonome avant le développement (`prototypes/prototype-video.html`, à la racine du dépôt) : lecture avec son dans une fenêtre ouverte par `window.open` sans clic dans cette fenêtre (Chrome, Edge, Firefox) ; vidéo de 1 à 2 Go en `Blob` dans IndexedDB (durée d'import, mémoire, déplacement dans la vidéo, URL `blob:` lue depuis une autre fenêtre). | M |
 
-### 1.5 Présentation
+### 1.5 Présentation et fiches
 
 | ID | Exigence | Priorité |
 |---|---|---|
@@ -98,11 +88,6 @@ Ce document décrit **comment** l'application est construite : choix techniques,
 | TEC-51 | Chaque exécution d'action est **annulable** (`AbortController`) : changement de scène, attente, clic en attente. | M |
 | TEC-52 | L'état de la partie est **sauvegardé à chaque événement** (élément exécuté, battlemap changée, son lancé / arrêté, clic validé). | M |
 | TEC-53 | Fenêtre joueurs : ouverte avec `window.open` sur une route dédiée, synchronisée avec l'écran du MJ par **`BroadcastChannel`**. | S |
-
-### 1.5 bis Fiches (lot 15)
-
-| ID | Exigence | Priorité |
-|---|---|---|
 | TEC-54 | Les fiches sont rangées comme les scènes : arborescence `SheetNode` (store `sheetNodes`, le titre est le `name` du nœud) et contenu `Sheet` (store `sheets`, même `id` que le nœud, texte Markdown). L'arborescence reste légère ; les textes ne sont lus que pour l'écran Fiches et la Présentation (recherche). Nouvelle version du schéma IndexedDB (§4.2). | M |
 | TEC-55 | Recherche sur le titre **et** le texte : fonction pure `searchSheets(nodes, sheets, query)` (`features/sheets/sheet-search.ts`) qui normalise comme `filterNodes()` (accents, casse) et renvoie les fiches trouvées avec un **extrait** autour de la première occurrence (texte Markdown rendu en texte brut). Utilisée par l'écran Fiches (arborescence filtrée : `filterNodes` sur les identifiants trouvés et leurs dossiers) et par la fenêtre de recherche de la Présentation. | M |
 | TEC-56 | Le moteur n'ouvre pas de fenêtre lui-même : `PresentationEngine` expose `openSheet(sheetId)` et un signal `sheetRequest` (`{ sheetId, seq } \| null`, `seq` incrémenté à chaque demande pour rouvrir la même fiche) ; `GmScreenPage` le suit dans un `effect` et ouvre `SheetDialog` (`Modals.open`, taille `lg`) en **fermant d'abord** la fiche déjà ouverte. Rien de la fenêtre n'est enregistré ; seul le bloc du fil l'est (TEC-52). | M |

@@ -73,7 +73,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 
 ### 5.2 Bibliothèques (sons et vidéos)
 
-> Les exigences SON- valent pour tous les éléments d'une bibliothèque, sons et vidéos ; ce qui est propre aux vidéos est en §5.2 bis.
+> Les exigences SON- valent pour tous les éléments d'une bibliothèque, sons et vidéos ; les exigences VID- sont propres aux vidéos (évolution demandée par Allan le 13/11/2026, lot 12 ter).
 
 | ID | Exigence | Priorité |
 |---|---|---|
@@ -83,13 +83,6 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | SON-04 | Les bibliothèques sont organisées en arborescence de dossiers (créer, renommer, supprimer, déplacer), avec les mêmes interactions que l'arborescence des scènes (SCN-08 à SCN-11). | M |
 | SON-05 | L'utilisateur peut pré-écouter un son depuis la bibliothèque. | S |
 | SON-06 | L'utilisateur peut aussi importer des sons en les **glissant-déposant depuis son disque**. Pendant le glisser, un calque couvre tout l'écran et indique le nombre de fichiers, le dossier de destination (dossier ouvert) et les formats acceptés ; il disparaît au dépôt ou si le fichier ressort de la fenêtre. | M |
-
-### 5.2 bis Vidéos
-
-> Évolution demandée par Allan le 13/11/2026 (lot 12 ter). Décisions d'Allan reportées ci-dessous.
-
-| ID | Exigence | Priorité |
-|---|---|---|
 | VID-01 | L'utilisateur importe des **vidéos** comme des sons (bouton, sélection multiple, glisser-déposer), dans la bibliothèque du projet ou la bibliothèque globale. Sons et vidéos sont **rangés dans les mêmes dossiers**. Formats acceptés : **MP4** (H.264) et **WebM**. La durée est lue à l'import. | M |
 | VID-02 | L'écran des sons devient l'écran **« Bibliothèque »** (navigation « Scènes / Bibliothèque », bouton « Bibliothèque globale » de l'accueil). Le tableau distingue sons et vidéos (icône, colonne « Type ») et propose un filtre **Tous / Sons / Vidéos**. Bouton d'import : « Importer des sons ou des vidéos ». | M |
 | VID-03 | Un fichier de plus de **500 Mo** n'est importé qu'après une confirmation qui rappelle sa taille et la place qu'il occupera (le fichier est copié dans l'outil, NF-11). Un quota dépassé affiche un message clair. | M |
