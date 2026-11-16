@@ -268,4 +268,4 @@ Une tâche est terminée quand :
 
 ## 7. Après la V1
 
-Dans l'ordre suggéré : sauvegarde / restauration de projet (conception d'abord), export `.zip` hors ligne, plusieurs parties par projet, élément « Faire apparaître une action », traduction, stockage via API, tests de bout en bout (Playwright).
+Dans l'ordre suggéré : sauvegarde / restauration de projet (conception d'abord), export `.zip` hors ligne, plusieurs parties par projet, dupliquer un projet, élément « Faire apparaître une action », traduction, stockage via API, tests de bout en bout (Playwright).

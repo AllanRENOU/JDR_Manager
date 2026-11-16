@@ -68,8 +68,8 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | PRJ-01 | L'utilisateur peut lister, créer, renommer et supprimer des projets. Les projets sont affichés en cartes, sur une grille qui s'adapte à la largeur de l'écran ; la création se fait par une carte « Créer un projet » placée en dernier. | M |
 | PRJ-02 | La suppression d'un projet demande une confirmation. | M |
 | PRJ-03 | Un projet peut être ouvert en mode **Édition** ou en mode **Présentation**. | M |
-| PRJ-04 | Export d'un projet en `.zip` autonome (HTML + toutes les ressources, y compris les sons de la bibliothèque globale utilisés), lisible hors ligne sur une tablette. | W |
-| PRJ-05 | Sauvegarde / restauration d'un projet (`.zip` données + médias). Conception préalable nécessaire. | W |
+| PRJ-04 | Export d'un projet en `.zip` autonome (HTML + toutes les ressources, y compris les sons de la bibliothèque globale utilisés), lisible hors ligne sur une tablette. En V1 (lot 12 bis, décision d'Allan : Présentation sur tablette Android). | M |
+| PRJ-05 | Sauvegarde / restauration d'un projet (`.zip` : un fichier JSON avec toutes les données + chaque fichier son, vidéo et image). À l'import, les identifiants sont conservés : un média déjà présent n'est pas réimporté, les autres objets de même identifiant sont écrasés ; tous les sons et vidéos vont dans la bibliothèque du projet ; tout le contenu du zip est importé (rien de local n'est supprimé), avec confirmation si le projet existe déjà ; les parties sauvegardées ne sont pas exportées (décisions d'Allan, 16/11/2026, lot 12 bis). En V1 : c'est aussi le moyen de transférer un projet du PC vers la tablette. | M |
 
 ### 5.2 Bibliothèques (sons et vidéos)
 
@@ -95,7 +95,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | VID-10 | Le bouton global **lecture / pause** (CTL-10) met aussi la vidéo en pause et la fait reprendre. | M |
 | VID-11 | Une vidéo n'est **pas enregistrée** dans la partie : « Continuer » ou le retour sur une scène ne la relance pas. | M |
 | VID-12 | Si le navigateur refuse de lire la vidéo avec le son dans la fenêtre joueurs (lecture automatique bloquée), la vidéo est jouée **muette** et une notification demande au MJ de cliquer une fois dans la fenêtre joueurs pour autoriser le son. | S |
-| VID-13 | Export d'un projet (PRJ-04, PRJ-05) : case **« Inclure les vidéos »**, cochée par défaut, avec le poids de l'export ; sans les vidéos, les éléments qui les lancent sont signalés comme visant une vidéo absente (PRS-07). | S |
+| VID-13 | Export d'un projet (PRJ-04, PRJ-05) : case **« Inclure les vidéos »**, cochée par défaut, avec le poids de l'export ; une vidéo de **plus de 500 Mo** est **décochée par défaut** (décision d'Allan, 16/11/2026). Une vidéo non exportée est quand même créée à l'import, sans fichier : la Bibliothèque la signale par une alerte et permet d'importer son fichier plus tard, en gardant son identifiant (les actions qui la lancent liront ce fichier) ; en attendant, les éléments qui la lancent sont signalés (PRS-07). | S |
 
 ### 5.3 Scènes (Édition)
 
@@ -288,7 +288,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 
 | Type | Description | Mitigation |
 |---|---|---|
-| Risque | **Perte de données** : vider les données du navigateur efface tous les projets. | Demande de stockage persistant (NF-12, TRD TEC-26) ; sauvegarde / restauration en version future (PRJ-05). |
+| Risque | **Perte de données** : vider les données du navigateur efface tous les projets. | Demande de stockage persistant (NF-12, TRD TEC-26) ; sauvegarde / restauration de projet en V1 (PRJ-05, lot 12 bis). |
 | Risque | **Quota de stockage** atteint avec de nombreux sons ou grandes images. | Affichage de la place utilisée (NF-14) ; message clair en cas d'échec d'import. |
 | Risque | **Poids des vidéos** : une vidéo est copiée dans le navigateur (deux fois sa taille sur le PC) et alourdit l'export. | Copie dans IndexedDB conservée (décision d'Allan, 13/11/2026 ; quota large : environ 60 % du disque sur Chrome / Edge, 50 % sur Firefox avec stockage persistant) ; confirmation au-delà de 500 Mo (VID-03) ; vidéos comptées à part dans Paramètres › Stockage (NF-14) ; case « Inclure les vidéos » à l'export (VID-13). |
 | Risque | **Lecture automatique** : la fenêtre joueurs n'a reçu aucun clic, le navigateur peut y refuser une vidéo avec son. | Prototype en début de lot 12 ter ; repli : vidéo muette et notification au MJ (VID-12). |
@@ -299,9 +299,8 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 
 ## 9. Hors périmètre V1 (récapitulatif)
 
-- Export `.zip` autonome hors ligne (PRJ-04)
-- Sauvegarde / restauration de projet (PRJ-05)
 - Plusieurs parties sauvegardées par projet (PRS-08)
+- Dupliquer un projet (idée d'Allan, 16/11/2026 : l'import conserve les identifiants et remplace le projet, il ne crée pas de copie)
 - Battlemaps enrichies (BTM-03)
 - Stockage en ligne / multi-appareils (NF-15)
 - Safari, tablettes, tactile (NF-04)

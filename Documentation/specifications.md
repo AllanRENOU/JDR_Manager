@@ -270,6 +270,7 @@ Si le projet est modifié en mode Édition alors qu'une partie est sauvegardée,
 - Export `.zip` HTML autonome (lisible hors ligne)
 - Sauvegarde / restauration de projet (`.zip` données + médias) — **conception à faire** au préalable
 - Plusieurs parties sauvegardées par projet (ex. une par groupe de joueurs)
+- Dupliquer un projet
 - Élément d'action « Faire apparaître une action »
 - Stockage via une API (à définir)
 - Battlemaps plus riches que de simples images (à définir)
