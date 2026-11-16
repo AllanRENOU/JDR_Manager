@@ -198,6 +198,11 @@ Générer avec la CLI : `ng g c`, `ng g s`, `ng g directive`, `ng g interface`, 
 - Ouverture à la main : bouton « Fiches » de l'en-tête et touche **F** → `SheetPicker` (combobox + listbox, flèches / Entrée), puis `engine.openSheet`. Rien dans le fil, rien envoyé à la fenêtre joueurs (TEC-57). Raccourcis ignorés tant qu'une fiche est ouverte (décision d'Allan).
 - Vérification dans Chrome (Linux) : `playwright-core` installé dans un dossier temporaire, `chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] })` (sans `--no-sandbox`, le lancement bloque) ; attendre que le champ d'une fenêtre ait le focus avant de taper (focus posé juste après l'affichage).
 
+## Export / import de projet (lot 16)
+
+- `features/project-transfer` : `ProjectExport` (`collect`, `pickDestination` **en premier** dans le clic, `write`), `ProjectImport` (`prepare` → `ImportPlan`, `run` : médias puis `importProjectData` en une transaction ; médias écrits retirés en cas d'erreur), archive `projet.json` + `medias/<id>.<ext>` (`parseProjectArchive`, `ArchiveError`). Fenêtres chargées par `import()` dynamique (zip.js hors du bundle de l'accueil).
+- Vérification dans les navigateurs : `showSaveFilePicker()` remplacé par un fichier de l'OPFS (`navigator.storage.getDirectory()`), qui se télécharge ensuite par une URL d'objet. Quota : Firefox `dom.quotaManager.temporaryStorage.fixedLimit` (Ko) ; Chromium `Storage.overrideQuotaForOrigin` limite l'écriture mais pas `estimate()`. Firefox Playwright : `playwright-core install firefox` bloque à l'extraction (Node 26) ; télécharger le zip et l'extraire avec `tar`.
+
 ## Vidéos (lot 12 ter)
 
 - Modèle : une vidéo est un `LibraryNode` (`mediaKind: 'video'`, lu par `mediaKindOf()`), rangée dans les mêmes bibliothèques que les sons. Éléments `play-video` (`videoId`, `volume` 0–1) et `stop-video`. Formats : MP4, WebM (`media-types.ts`). Import : confirmation au-delà de `LARGE_VIDEO_BYTES` (500 Mo, `library-store.ts`). Choix d'une cible : `soundChoiceNodes(…, kinds)` (`'sound'` par défaut, `'video'` ou les deux).
