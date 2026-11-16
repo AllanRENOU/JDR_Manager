@@ -182,7 +182,9 @@
       "hideAction": "masquer « {{ name }} »",
       "hideActions": "masquer {{ count }} actions",
       "hideActionMissing": "masquer une action supprimée",
-      "hideAllActions": "masquer toutes les actions"
+      "hideAllActions": "masquer toutes les actions",
+      "sheet": "fiche « {{ name }} »",
+      "sheetMissing": "fiche supprimée"
     },
     "types": {
       "show-battlemap": "Afficher une battlemap",
@@ -196,7 +198,8 @@
       "wait": "Attendre",
       "user-click": "Clic de l’utilisateur",
       "show-action": "Afficher l’action",
-      "hide-action": "Masquer l’action"
+      "hide-action": "Masquer l’action",
+      "show-sheet": "Afficher une fiche"
     },
     "detail": {
       "noText": "Texte à saisir",

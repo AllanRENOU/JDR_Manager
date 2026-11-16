@@ -10,6 +10,8 @@ import {
   Project,
   Scene,
   SceneNode,
+  Sheet,
+  SheetNode,
   LibraryId,
   LibraryNode,
   newId,
@@ -81,6 +83,14 @@ export class IndexedDbRepository implements DataRepository {
         mediaIds.add(sound.mediaId);
       }
       await tx.objectStore('soundNodes').delete(sound.id);
+    }
+
+    // Fiches du projet
+    for (const nodeId of await tx.objectStore('sheetNodes').index('projectId').getAllKeys(id)) {
+      await tx.objectStore('sheetNodes').delete(nodeId);
+    }
+    for (const sheetId of await tx.objectStore('sheets').index('projectId').getAllKeys(id)) {
+      await tx.objectStore('sheets').delete(sheetId);
     }
 
     await tx.objectStore('playSessions').delete(id);
@@ -181,6 +191,68 @@ export class IndexedDbRepository implements DataRepository {
 
   async deleteAction(id: Id): Promise<void> {
     await (await this.db()).delete('actions', id);
+  }
+
+  // ── Fiches du MJ (lot 15) ──────────────────────────────────────────────
+
+  async listSheetNodes(projectId: Id): Promise<SheetNode[]> {
+    const db = await this.db();
+    return byOrder(await db.getAllFromIndex('sheetNodes', 'projectId', projectId));
+  }
+
+  async saveSheetNodes(nodes: SheetNode[]): Promise<void> {
+    const tx = (await this.db()).transaction('sheetNodes', 'readwrite');
+    await Promise.all([...nodes.map((node) => tx.store.put(node)), tx.done]);
+  }
+
+  async deleteSheetNode(id: Id): Promise<void> {
+    const tx = (await this.db()).transaction(['sheetNodes', 'sheets'], 'readwrite');
+    const node = await tx.objectStore('sheetNodes').get(id);
+    if (node) {
+      const projectNodes = await tx
+        .objectStore('sheetNodes')
+        .index('projectId')
+        .getAll(node.projectId);
+      for (const n of collectSubtree(projectNodes, id)) {
+        await tx.objectStore('sheetNodes').delete(n.id);
+        await tx.objectStore('sheets').delete(n.id);
+      }
+    }
+    await tx.done;
+  }
+
+  async listSheets(projectId: Id): Promise<Sheet[]> {
+    return (await this.db()).getAllFromIndex('sheets', 'projectId', projectId);
+  }
+
+  async getSheet(id: Id): Promise<Sheet | undefined> {
+    return (await this.db()).get('sheets', id);
+  }
+
+  async saveSheet(sheet: Sheet): Promise<void> {
+    await (await this.db()).put('sheets', sheet);
+  }
+
+  async countSheetUsages(projectId: Id): Promise<Record<Id, number>> {
+    const db = await this.db();
+    const tx = db.transaction(['sceneNodes', 'actions']);
+    const sceneIds = (await tx.objectStore('sceneNodes').index('projectId').getAll(projectId))
+      .filter((n) => n.kind === 'item')
+      .map((n) => n.id);
+    const counts: Record<Id, number> = {};
+    for (const sceneId of sceneIds) {
+      for (const action of await tx.objectStore('actions').index('sceneId').getAll(sceneId)) {
+        // Une action compte une fois par fiche, même si plusieurs éléments la visent.
+        const sheetIds = new Set(
+          action.elements.flatMap((e) => (e.type === 'show-sheet' && e.sheetId ? [e.sheetId] : [])),
+        );
+        for (const sheetId of sheetIds) {
+          counts[sheetId] = (counts[sheetId] ?? 0) + 1;
+        }
+      }
+    }
+    await tx.done;
+    return counts;
   }
 
   // ── Bibliothèques (sons et vidéos ; store `soundNodes`) ────────────────

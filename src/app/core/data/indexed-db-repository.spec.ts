@@ -10,6 +10,8 @@ import {
   aProject,
   aScene,
   aSceneNode,
+  aSheet,
+  aSheetNode,
   aSoundNode,
   anAction,
 } from '../../../testing/data-builders';
@@ -74,6 +76,10 @@ describe('IndexedDbRepository', () => {
       const sharedBattlemap = aBattlemap(scene.id, sharedMedia.id);
       const action = anAction(scene.id);
       const sound = aSoundNode(project.id, { mediaId: soundMedia.id });
+      const sheetNode = aSheetNode(project.id);
+      const sheet = aSheet(project.id, sheetNode.id, { text: 'Garde' });
+      const otherSheetNode = aSheetNode(other.id);
+      const otherSheet = aSheet(other.id, otherSheetNode.id);
 
       const otherNode = aSceneNode(other.id);
       const otherScene = aScene(other.id, otherNode.id);
@@ -89,6 +95,8 @@ describe('IndexedDbRepository', () => {
       await raw.put('actions', action);
       for (const s of [sound, globalSound]) await raw.put('soundNodes', s);
       await raw.put('playSessions', aPlaySession(project.id, scene.id));
+      for (const n of [sheetNode, otherSheetNode]) await raw.put('sheetNodes', n);
+      for (const s of [sheet, otherSheet]) await raw.put('sheets', s);
 
       await repository.deleteProject(project.id);
 
@@ -99,6 +107,8 @@ describe('IndexedDbRepository', () => {
       expect(await raw.get('actions', action.id)).toBeUndefined();
       expect(await raw.get('soundNodes', sound.id)).toBeUndefined();
       expect(await raw.get('playSessions', project.id)).toBeUndefined();
+      expect(await raw.get('sheetNodes', sheetNode.id)).toBeUndefined();
+      expect(await raw.get('sheets', sheet.id)).toBeUndefined();
       expect(await raw.get('media', ownMedia.id)).toBeUndefined();
       expect(await raw.get('media', soundMedia.id)).toBeUndefined();
 
@@ -107,6 +117,8 @@ describe('IndexedDbRepository', () => {
       expect(await raw.get('scenes', otherScene.id)).toBeDefined();
       expect(await raw.get('battlemaps', otherBattlemap.id)).toBeDefined();
       expect(await raw.get('soundNodes', globalSound.id)).toBeDefined();
+      expect(await raw.get('sheetNodes', otherSheetNode.id)).toBeDefined();
+      expect(await raw.get('sheets', otherSheet.id)).toBeDefined();
       // Média encore utilisé par l'autre projet
       expect(await raw.get('media', sharedMedia.id)).toBeDefined();
     });
@@ -211,6 +223,82 @@ describe('IndexedDbRepository', () => {
       expect((await repository.listActions('s1')).map((a) => a.id)).toEqual([second.id]);
     });
   });
+  describe('fiches (lot 15)', () => {
+    it('liste les nœuds de fiches d’un projet triés par ordre et les enregistre en lot', async () => {
+      const project = aProject();
+      const b = aSheetNode(project.id, { name: 'Taverne', order: 1 });
+      const a = aSheetNode(project.id, { name: 'Aubergiste', order: 0 });
+      await repository.saveSheetNodes([b, a, aSheetNode('autre-projet')]);
+      expect((await repository.listSheetNodes(project.id)).map((n) => n.name)).toEqual([
+        'Aubergiste',
+        'Taverne',
+      ]);
+    });
+
+    it('enregistre, relit et liste les textes des fiches d’un projet', async () => {
+      const sheet = aSheet('p1', 'f1', { text: '**Garde** du pont' });
+      await repository.saveSheet(sheet);
+      await repository.saveSheet(aSheet('p2', 'f2'));
+      await repository.saveSheet({ ...sheet, text: 'Modifié' });
+
+      expect(await repository.getSheet('f1')).toEqual({ ...sheet, text: 'Modifié' });
+      expect(await repository.getSheet('inconnue')).toBeUndefined();
+      expect((await repository.listSheets('p1')).map((s) => s.id)).toEqual(['f1']);
+    });
+
+    it('supprime un dossier de fiches avec ses descendants et leurs textes', async () => {
+      const folder = aSheetNode('p1', { kind: 'folder', name: 'PNJ' });
+      const sub = aSheetNode('p1', { kind: 'folder', parentId: folder.id });
+      const inner = aSheetNode('p1', { parentId: sub.id });
+      const kept = aSheetNode('p1');
+      await repository.saveSheetNodes([folder, sub, inner, kept]);
+      await repository.saveSheet(aSheet('p1', inner.id));
+      await repository.saveSheet(aSheet('p1', kept.id));
+
+      await repository.deleteSheetNode(folder.id);
+
+      expect((await repository.listSheetNodes('p1')).map((n) => n.id)).toEqual([kept.id]);
+      expect((await repository.listSheets('p1')).map((s) => s.id)).toEqual([kept.id]);
+    });
+
+    it('ne modifie pas les éléments « Afficher une fiche » qui visent une fiche supprimée', async () => {
+      const node = aSheetNode('p1');
+      await repository.saveSheetNodes([node]);
+      const action = anAction('scene-a', {
+        elements: [{ id: 'e1', type: 'show-sheet', sheetId: node.id }],
+      });
+      await repository.saveAction(action);
+
+      await repository.deleteSheetNode(node.id);
+
+      expect(await raw.get('actions', action.id)).toEqual(action);
+    });
+
+    it('ignore la suppression d’une fiche inconnue', async () => {
+      await expect(repository.deleteSheetNode('inconnue')).resolves.toBeUndefined();
+    });
+
+    it('compte les actions du projet qui affichent chaque fiche', async () => {
+      await repository.saveSceneNodes([
+        aSceneNode('p1', { id: 'scene-a' }),
+        aSceneNode('p1', { id: 'scene-b' }),
+        aSceneNode('p2', { id: 'autre' }),
+      ]);
+      const show = (sheetId: string) => ({
+        id: crypto.randomUUID(),
+        type: 'show-sheet' as const,
+        sheetId,
+      });
+      await repository.saveAction(
+        anAction('scene-a', { elements: [show('garde'), show('garde'), show('pont')] }),
+      );
+      await repository.saveAction(anAction('scene-b', { elements: [show('garde')] }));
+      await repository.saveAction(anAction('autre', { elements: [show('garde')] }));
+
+      expect(await repository.countSheetUsages('p1')).toEqual({ garde: 2, pont: 1 });
+    });
+  });
+
   describe('bibliothèques (sons et vidéos)', () => {
     it('sépare la bibliothèque globale de celles des projets et trie par ordre', async () => {
       const project = aProject();

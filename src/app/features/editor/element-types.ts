@@ -8,6 +8,7 @@ import {
   LucideIcon,
   LucideMap,
   LucideMousePointerClick,
+  LucideScrollText,
   LucideSquareStop,
   LucideSquareX,
   LucideType,
@@ -45,6 +46,7 @@ const ICONS: Record<ActionElementType, LucideIcon> = {
   'user-click': LucideMousePointerClick,
   'show-action': LucideEye,
   'hide-action': LucideEyeOff,
+  'show-sheet': LucideScrollText,
 };
 
 /** Ordre du menu « Ajouter un élément » (spécifications §4.3). */
@@ -105,5 +107,7 @@ export function newElement(type: ActionElementType): ActionElement {
     case 'show-action':
     case 'hide-action':
       return { id, type, actionIds: [] };
+    case 'show-sheet':
+      return { id, type, sheetId: '' };
   }
 }

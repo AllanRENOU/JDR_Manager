@@ -20,6 +20,8 @@ describe('openJdrDb', () => {
       'projects',
       'sceneNodes',
       'scenes',
+      'sheetNodes',
+      'sheets',
       'soundNodes',
     ]);
 
@@ -30,6 +32,8 @@ describe('openJdrDb', () => {
       'actions',
       'soundNodes',
       'playSessions',
+      'sheetNodes',
+      'sheets',
     ]);
     expect([...tx.objectStore('sceneNodes').indexNames]).toEqual(['projectId']);
     expect([...tx.objectStore('scenes').indexNames]).toEqual(['projectId']);
@@ -37,6 +41,8 @@ describe('openJdrDb', () => {
     expect([...tx.objectStore('actions').indexNames]).toEqual(['sceneId']);
     expect([...tx.objectStore('soundNodes').indexNames].sort()).toEqual(['libraryId', 'mediaId']);
     expect(tx.objectStore('playSessions').keyPath).toBe('projectId');
+    expect([...tx.objectStore('sheetNodes').indexNames]).toEqual(['projectId']);
+    expect([...tx.objectStore('sheets').indexNames]).toEqual(['projectId']);
     db.close();
   });
 
@@ -78,10 +84,28 @@ describe('openJdrDb', () => {
     db.close();
   });
 
+  it('version 3 : ajoute les stores des fiches en gardant les données', async () => {
+    // Base en version 2 (stores réduits à ceux utiles au test), rouverte en version courante.
+    const old = await openDB(name, 2, {
+      upgrade(db) {
+        db.createObjectStore('projects', { keyPath: 'id' });
+        db.createObjectStore('actions', { keyPath: 'id' }).createIndex('sceneId', 'sceneId');
+      },
+    });
+    await old.put('projects', { id: 'p1', name: 'La crypte' });
+    old.close();
+
+    const db = await openJdrDb(name);
+    expect(db.objectStoreNames.contains('sheetNodes')).toBe(true);
+    expect(db.objectStoreNames.contains('sheets')).toBe(true);
+    expect(await db.get('projects', 'p1')).toEqual({ id: 'p1', name: 'La crypte' });
+    db.close();
+  });
+
   it('rouvre une base existante sans erreur', async () => {
     (await openJdrDb(name)).close();
     const db = await openJdrDb(name);
-    expect(db.objectStoreNames.length).toBe(8);
+    expect(db.objectStoreNames.length).toBe(10);
     db.close();
   });
 });

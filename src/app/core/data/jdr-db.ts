@@ -9,6 +9,8 @@ import {
   Project,
   Scene,
   SceneNode,
+  Sheet,
+  SheetNode,
   LibraryNode,
 } from '../models';
 
@@ -16,7 +18,7 @@ import {
 export const DB_NAME = 'jdr-manager';
 
 /** Version courante du schéma (TEC-25). Toute modification du schéma l'incrémente. */
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 
 /** Schéma IndexedDB (TRD §4.2), typé pour `idb`. */
 export interface JdrDbSchema extends DBSchema {
@@ -28,6 +30,8 @@ export interface JdrDbSchema extends DBSchema {
   soundNodes: { key: Id; value: LibraryNode; indexes: { libraryId: string; mediaId: Id } };
   media: { key: Id; value: Media };
   playSessions: { key: Id; value: PlaySession };
+  sheetNodes: { key: Id; value: SheetNode; indexes: { projectId: Id } };
+  sheets: { key: Id; value: Sheet; indexes: { projectId: Id } };
 }
 
 export type JdrDb = IDBPDatabase<JdrDbSchema>;
@@ -41,7 +45,9 @@ export type JdrStoreName =
   | 'actions'
   | 'soundNodes'
   | 'media'
-  | 'playSessions';
+  | 'playSessions'
+  | 'sheetNodes'
+  | 'sheets';
 
 /**
  * Ouvre la base et applique les migrations nécessaires (TEC-25).
@@ -73,6 +79,11 @@ export function openJdrDb(name: string = DB_NAME): Promise<JdrDb> {
       if (oldVersion < 2) {
         // « Afficher / Masquer l'action » visent une liste d'actions : `actionId` → `actionIds`.
         void migrateActionTargets(transaction.objectStore('actions'));
+      }
+      if (oldVersion < 3) {
+        // Fiches du MJ (lot 15, D12) : arborescence et textes, sans migration de données.
+        db.createObjectStore('sheetNodes', { keyPath: 'id' }).createIndex('projectId', 'projectId');
+        db.createObjectStore('sheets', { keyPath: 'id' }).createIndex('projectId', 'projectId');
       }
     },
     blocking(_currentVersion, _blockedVersion, event) {

@@ -43,6 +43,6 @@ describe('Pill', () => {
     expect(ELEMENT_TONES['hide-action']).toBe('action');
     expect(ELEMENT_TONES['play-video']).toBe('video');
     expect(ELEMENT_TONES['stop-video']).toBe('video');
-    expect(Object.keys(ELEMENT_TONES)).toHaveLength(12);
+    expect(Object.keys(ELEMENT_TONES)).toHaveLength(13);
   });
 });

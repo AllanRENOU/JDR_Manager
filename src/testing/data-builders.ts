@@ -7,6 +7,8 @@ import {
   Project,
   Scene,
   SceneNode,
+  Sheet,
+  SheetNode,
   LibraryId,
   LibraryNode,
   newId,
@@ -82,6 +84,22 @@ export function aSoundNode(
     name: 'Son',
     ...overrides,
   };
+}
+
+export function aSheetNode(projectId: Id, overrides: Partial<SheetNode> = {}): SheetNode {
+  return {
+    id: newId(),
+    projectId,
+    parentId: null,
+    order: 0,
+    kind: 'item',
+    name: 'Fiche',
+    ...overrides,
+  };
+}
+
+export function aSheet(projectId: Id, id: Id = newId(), overrides: Partial<Sheet> = {}): Sheet {
+  return { id, projectId, text: '', ...overrides };
 }
 
 export function aMedia(overrides: Partial<Media> = {}): Media {

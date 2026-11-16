@@ -9,6 +9,8 @@ import {
   Project,
   Scene,
   SceneNode,
+  Sheet,
+  SheetNode,
   LibraryId,
   LibraryNode,
 } from '../models';
@@ -29,7 +31,8 @@ export interface DataRepository {
   saveProject(project: Project): Promise<void>;
   /**
    * Supprime le projet et tout son contenu dans une seule transaction : scènes, battlemaps,
-   * actions, bibliothèque de sons du projet, partie sauvegardée et médias devenus inutilisés.
+   * actions, fiches, bibliothèque de sons du projet, partie sauvegardée et médias devenus
+   * inutilisés.
    */
   deleteProject(id: Id): Promise<void>;
 
@@ -63,6 +66,26 @@ export interface DataRepository {
    * scènes visées (avertissement à la suppression d'une scène, PRS-07).
    */
   listSceneLinks(projectId: Id): Promise<SceneLink[]>;
+
+  // ── Fiches du MJ (lot 15, TEC-54) ──────────────────────────────────────
+  /** Nœuds de l'arborescence des fiches d'un projet, triés par `order`. */
+  listSheetNodes(projectId: Id): Promise<SheetNode[]>;
+  /** Crée ou remplace plusieurs nœuds en une transaction (déplacement, réordonnancement). */
+  saveSheetNodes(nodes: SheetNode[]): Promise<void>;
+  /**
+   * Supprime un nœud, ses descendants et leurs `Sheet` en une transaction. Les éléments
+   * `show-sheet` qui les visent ne sont pas modifiés : ils sont signalés à l'affichage (PRS-07).
+   */
+  deleteSheetNode(id: Id): Promise<void>;
+  /** Textes de toutes les fiches d'un projet (recherche, Présentation). */
+  listSheets(projectId: Id): Promise<Sheet[]>;
+  getSheet(id: Id): Promise<Sheet | undefined>;
+  saveSheet(sheet: Sheet): Promise<void>;
+  /**
+   * Nombre d'actions du projet qui affichent chaque fiche, par id de `SheetNode` ; une fiche
+   * absente du résultat n'est pas utilisée (« Utilisée dans », FCH-07).
+   */
+  countSheetUsages(projectId: Id): Promise<Record<Id, number>>;
 
   // ── Bibliothèques (sons et vidéos) ─────────────────────────────────────
   /** Nœuds d'une bibliothèque (`'global'` ou id du projet), triés par `order`. */

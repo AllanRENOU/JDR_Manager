@@ -97,6 +97,16 @@ export interface HideActionElement extends BaseElement {
   all?: boolean;
 }
 
+/**
+ * Ouvre une fiche du projet dans une fenêtre de l'écran du MJ, sans attendre sa fermeture ; la fiche
+ * n'est jamais montrée aux joueurs (ACT-16).
+ */
+export interface ShowSheetElement extends BaseElement {
+  type: 'show-sheet';
+  /** Id du `SheetNode` de la fiche. */
+  sheetId: Id;
+}
+
 /** Affiche un texte et attend le clic « Cliquer pour continuer ». */
 export interface UserClickElement extends BaseElement {
   type: 'user-click';
@@ -116,7 +126,8 @@ export type ActionElement =
   | WaitElement
   | UserClickElement
   | ShowActionElement
-  | HideActionElement;
+  | HideActionElement
+  | ShowSheetElement;
 
 /** Type d'élément d'action. */
 export type ActionElementType = ActionElement['type'];

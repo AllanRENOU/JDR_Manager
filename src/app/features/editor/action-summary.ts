@@ -10,6 +10,8 @@ export interface SummaryContext {
   sceneNodes: readonly SceneNode[];
   /** Actions de la scène : cible de « Afficher l'action » et « Masquer l'action » (ACT-12). */
   actions?: readonly Action[];
+  /** Titres des fiches du projet, par id de `SheetNode` (« Afficher une fiche », lot 15). */
+  sheetNames?: Readonly<Record<Id, string>>;
 }
 
 /** Partie de résumé d'un élément : clé de traduction et paramètres ; `missing` = cible supprimée (PRS-07). */
@@ -74,6 +76,12 @@ export function summarizeElement(element: ActionElement, context: SummaryContext
         ? { key: `action.summary.${verb}`, params: { name: first.name }, missing: false }
         : { key: `action.summary.${verb}s`, params: { count: targets.length }, missing: false };
     }
+    case 'show-sheet': {
+      const name = context.sheetNames?.[element.sheetId];
+      return name
+        ? { key: 'action.summary.sheet', params: { name }, missing: false }
+        : { key: 'action.summary.sheetMissing', params: {}, missing: true };
+    }
   }
 }
 
@@ -128,6 +136,8 @@ export function describeElement(element: ActionElement, context: SummaryContext)
         return { key: 'action.detail.notChosen', missing: true };
       }
       return describeActionTargets(actionTargets(element.actionIds, context));
+    case 'show-sheet':
+      return target(element.sheetId, context.sheetNames?.[element.sheetId]);
     case 'stop-all-sounds':
     case 'stop-video':
       return { missing: false };

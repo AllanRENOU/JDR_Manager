@@ -16,6 +16,8 @@ export const ALL_STORES: JdrStoreName[] = [
   'soundNodes',
   'media',
   'playSessions',
+  'sheetNodes',
+  'sheets',
 ];
 
 /**

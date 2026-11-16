@@ -11,4 +11,6 @@ export * from './project';
 export * from './scene';
 export * from './scene-node';
 export * from './scene-state';
+export * from './sheet';
+export * from './sheet-node';
 export * from './tree-node';
