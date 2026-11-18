@@ -51,7 +51,7 @@ describe('StorageUsage', () => {
       [...r.children].map((c) => c.textContent?.replace(/\s+/g, ' ').trim()).join(' '),
     );
     expect(rows).toEqual([
-      'Images (battlemaps) 1 fichier · 3 Mo',
+      'Images (battlemaps, projets) 1 fichier · 3 Mo',
       'Sons 1 fichier · 1,5 Ko',
       'Vidéos 1 fichier · 5 Mo',
       'Total 8 Mo',

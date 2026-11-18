@@ -703,6 +703,15 @@
   "settings": {
     "title": "Paramètres",
     "open": "Ouvrir les paramètres",
+    "project": {
+      "title": "Projet",
+      "hint": "L’image s’affiche sur la carte du projet, à l’accueil. Cliquez dessus pour la changer.",
+      "choose": "Choisir une image",
+      "chooseLabel": "Choisir l’image du projet",
+      "replaceLabel": "Remplacer l’image du projet",
+      "remove": "Retirer l’image",
+      "formats": "Formats acceptés : {{ formats }}"
+    },
     "appearance": "Apparence",
     "appearanceHint": "Le thème s’applique immédiatement à tous les écrans, y compris la fenêtre joueurs. Il est mémorisé dans ce navigateur.",
     "theme": "Thème",
@@ -720,7 +729,7 @@
     "storage": {
       "title": "Stockage",
       "hint": "Les projets, battlemaps, sons et vidéos sont enregistrés dans ce navigateur, sur cet ordinateur.",
-      "images": "Images (battlemaps)",
+      "images": "Images (battlemaps, projets)",
       "sounds": "Sons",
       "videos": "Vidéos",
       "total": "Total",

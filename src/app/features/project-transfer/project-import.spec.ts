@@ -43,7 +43,10 @@ describe('ProjectImport', () => {
 
   /** Projet « La crypte » : scène, battlemap, action, fiche, son du projet, son global, vidéo. */
   async function seed(): Promise<void> {
-    await repository.saveProject(aProject({ id: 'p1', name: 'La crypte', firstSceneId: 's1' }));
+    await repository.importMedia('m-illustration', file('crypte', 'crypte.webp', 'image/webp'));
+    await repository.saveProject(
+      aProject({ id: 'p1', name: 'La crypte', firstSceneId: 's1', imageMediaId: 'm-illustration' }),
+    );
     await repository.saveSceneNodes([aSceneNode('p1', { id: 's1' })]);
     await repository.saveScene(aScene('p1', 's1'));
     await repository.importMedia('m-carte', file('carte', 'carte.png', 'image/png'));
@@ -109,6 +112,7 @@ describe('ProjectImport', () => {
     expect(plan.existing).toBeNull();
     expect(plan.toImport.map((m) => m.id).sort()).toEqual([
       'm-carte',
+      'm-illustration',
       'm-intro',
       'm-pluie',
       'm-taverne',
@@ -132,6 +136,7 @@ describe('ProjectImport', () => {
     expect(after.media.sort(byId)).toEqual(before.media.sort(byId));
     expect(await text('m-pluie')).toBe('pluie');
     expect(await text('m-intro')).toBe('vidéo');
+    expect(await text('m-illustration')).toBe('crypte');
   });
 
   it('réimporte sur le navigateur d’origine sans dupliquer les médias', async () => {
@@ -150,7 +155,7 @@ describe('ProjectImport', () => {
     expect(plan.existing?.name).toBe('Renommée ici');
     expect(plan.toImport).toEqual([]);
     expect(plan.bytes).toBe(0);
-    expect(plan.alreadyPresent).toBe(4);
+    expect(plan.alreadyPresent).toBe(5);
     await importer.run(plan);
 
     expect(importMedia).not.toHaveBeenCalled();
@@ -239,7 +244,12 @@ describe('ProjectImport', () => {
     const { archive } = await exportZip();
     await forgetEverything();
     const plan = await importer.prepare(
-      await rezip(archive, { 'm-carte': 'carte', 'm-taverne': 'taverne', 'm-pluie': 'pluie' }),
+      await rezip(archive, {
+        'm-carte': 'carte',
+        'm-illustration': 'crypte',
+        'm-taverne': 'taverne',
+        'm-pluie': 'pluie',
+      }),
     );
     expect(plan.withoutFile).toBe(1);
     await importer.run(plan);

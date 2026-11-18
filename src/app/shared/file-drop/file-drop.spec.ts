@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { getTranslocoTestingModule } from '../../../testing/transloco-testing';
+import { Modals } from '../ui/modal/modals';
 import { Notifications } from '../ui/notification-host/notifications';
 import { FileDrop } from './file-drop';
 
@@ -95,6 +96,22 @@ describe('FileDrop', () => {
     fire('drop', transfer(['Files'], files));
     expect(await state()).toBe('false 0');
     expect(fixture.componentInstance.dropped).toEqual([]);
+  });
+
+  it('ignore un fichier déposé sur une fenêtre ouverte, sans que le navigateur l’ouvre (5.3)', async () => {
+    const { fixture, state } = await render();
+    const modals = TestBed.inject(Modals);
+    vi.spyOn(modals, 'isOpen').mockReturnValue(true);
+
+    fire('dragenter', transfer(['Files'], files));
+    const data = transfer(['Files'], files);
+    expect(fire('dragover', data).defaultPrevented).toBe(true);
+    expect(data.dropEffect).toBe('none');
+    expect(fire('drop', transfer(['Files'], files)).defaultPrevented).toBe(true);
+
+    expect(await state()).toBe('false 0');
+    expect(fixture.componentInstance.dropped).toEqual([]);
+    expect(TestBed.inject(Notifications).notifications()).toEqual([]);
   });
 
   describe('filtrage des formats (3.4.3)', () => {

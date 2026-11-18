@@ -43,7 +43,7 @@
       <svg lucidePlay aria-hidden="true"></svg>{{ 'project.present' | transloco }}
     </a>
   }
-  <app-settings-button headerEnd />
+  <app-settings-button headerEnd [projectId]="projectId()" />
 </app-header>
 
 <main

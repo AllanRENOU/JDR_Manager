@@ -1,0 +1,47 @@
+<section class="section" aria-labelledby="settings-project">
+  <h2 class="section__title" id="settings-project">{{ 'settings.project.title' | transloco }}</h2>
+  <p class="section__hint">{{ 'settings.project.hint' | transloco }}</p>
+
+  <div class="image">
+    <!-- Un clic sur l'aperçu choisit ou remplace l'image. -->
+    <button
+      class="image__preview"
+      type="button"
+      [disabled]="busy()"
+      [attr.aria-label]="
+        (imageId() ? 'settings.project.replaceLabel' : 'settings.project.chooseLabel') | transloco
+      "
+      (click)="fileInput.click()"
+    >
+      @if (image.url(); as url) {
+        <img [src]="url" alt="" />
+      } @else {
+        <app-placeholder grid="fine" />
+        <span class="image__empty">
+          <svg lucideUpload aria-hidden="true"></svg>{{ 'settings.project.choose' | transloco }}
+        </span>
+      }
+    </button>
+
+    <div class="image__actions">
+      @if (imageId()) {
+        <button appButton="danger" type="button" [disabled]="busy()" (click)="remove()">
+          <svg lucideTrash2 aria-hidden="true"></svg>{{ 'settings.project.remove' | transloco }}
+        </button>
+      }
+      <p class="image__formats">
+        {{ 'settings.project.formats' | transloco: { formats } }}
+      </p>
+    </div>
+  </div>
+
+  <input
+    #fileInput
+    class="file-input"
+    type="file"
+    tabindex="-1"
+    aria-hidden="true"
+    [accept]="accept"
+    (change)="onFileChosen(fileInput)"
+  />
+</section>

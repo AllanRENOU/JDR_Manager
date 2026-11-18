@@ -224,6 +224,7 @@ interface Project {
   id: Id;
   name: string;
   firstSceneId: Id | null;
+  imageMediaId?: Id | null;     // image d'illustration (carte de l'accueil, lot 5.3) ; absente = aucune
   createdAt: string;            // ISO 8601
   updatedAt: string;
 }

@@ -2,6 +2,7 @@ import { Directive, inject, input, output, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 
 import { FORMAT_LABELS, MediaKind, resolveMediaType } from '../../core/media/media-types';
+import { Modals } from '../ui/modal/modals';
 import { Notifications } from '../ui/notification-host/notifications';
 
 /**
@@ -18,7 +19,10 @@ import { Notifications } from '../ui/notification-host/notifications';
  * - ne transmet que les formats acceptés (TEC-34) ; les fichiers refusés sont signalés par une
  *   notification (désactivable) et par la sortie `filesRejected`.
  * - un compteur d'entrées / sorties évite le clignotement quand le pointeur passe d'un élément
- *   enfant à un autre.
+ *   enfant à un autre ;
+ * - ne fait rien tant qu'une fenêtre (`Modals`) est ouverte : un fichier déposé sur une fenêtre
+ *   (ex. Paramètres › Projet) ne doit pas être importé par l'écran derrière (battlemap, son). Le
+ *   dépôt est alors refusé (`dropEffect = 'none'`), sans que le navigateur ouvre le fichier.
  */
 @Directive({
   selector: '[appFileDrop]',
@@ -45,6 +49,7 @@ export class FileDrop {
   readonly filesRejected = output<File[]>();
 
   private readonly notifications = inject(Notifications);
+  private readonly modals = inject(Modals);
   private readonly transloco = inject(TranslocoService);
 
   /** Un glisser de fichiers est en cours au-dessus de la fenêtre (affiche le calque). */
@@ -65,6 +70,13 @@ export class FileDrop {
   }
 
   protected onDragOver(event: DragEvent): void {
+    if (this.blockedByModal(event)) {
+      event.preventDefault();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'none';
+      }
+      return;
+    }
     if (!this.accepts(event)) {
       return;
     }
@@ -86,6 +98,11 @@ export class FileDrop {
   }
 
   protected onDrop(event: DragEvent): void {
+    if (this.blockedByModal(event)) {
+      event.preventDefault();
+      this.reset();
+      return;
+    }
     if (!this.accepts(event)) {
       return;
     }
@@ -116,7 +133,12 @@ export class FileDrop {
   }
 
   private accepts(event: DragEvent): boolean {
-    return !this.disabled() && hasFiles(event.dataTransfer);
+    return !this.disabled() && !this.modals.isOpen() && hasFiles(event.dataTransfer);
+  }
+
+  /** Glisser de fichiers pendant qu'une fenêtre est ouverte : ignoré par l'écran. */
+  private blockedByModal(event: DragEvent): boolean {
+    return !this.disabled() && this.modals.isOpen() && hasFiles(event.dataTransfer);
   }
 
   private reset(): void {

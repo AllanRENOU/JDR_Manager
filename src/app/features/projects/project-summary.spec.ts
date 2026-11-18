@@ -29,7 +29,7 @@ describe('loadProjectSummary (5.1.2)', () => {
     });
   });
 
-  it('compte scènes et sons, trouve la dernière scène jouée et la vignette', async () => {
+  it('compte scènes et sons, trouve la dernière scène jouée', async () => {
     const project = aProject();
     const folder = aSceneNode(project.id, { kind: 'folder' });
     const first = aSceneNode(project.id, { name: 'Entrée', parentId: folder.id });
@@ -54,7 +54,23 @@ describe('loadProjectSummary (5.1.2)', () => {
       soundCount: 1,
       lastSceneName: 'Crypte',
       hasPlaySession: true,
-      thumbnailMediaId: 'media-2',
     });
+  });
+
+  it("prend l'image du projet pour la vignette, jamais une battlemap (5.3.3)", async () => {
+    const project = aProject();
+    const scene = aSceneNode(project.id);
+    const map = aBattlemap(scene.id, 'media-map');
+    await repository().saveProject({ ...project, firstSceneId: scene.id });
+    await repository().saveSceneNodes([scene]);
+    await repository().saveScene(aScene(project.id, scene.id, { defaultBattlemapId: map.id }));
+    await repository().saveBattlemap(map);
+
+    const withoutImage = { ...project, firstSceneId: scene.id };
+    expect((await loadProjectSummary(repository(), withoutImage)).thumbnailMediaId).toBeNull();
+    const withImage = { ...withoutImage, imageMediaId: 'media-image' };
+    expect((await loadProjectSummary(repository(), withImage)).thumbnailMediaId).toBe(
+      'media-image',
+    );
   });
 });

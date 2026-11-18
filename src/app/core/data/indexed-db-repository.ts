@@ -75,14 +75,38 @@ export class IndexedDbRepository implements DataRepository {
     await (await this.db()).put('projects', project);
   }
 
+  async setProjectImage(projectId: Id, mediaId: Id | null): Promise<void> {
+    const tx = (await this.db()).transaction(ALL_STORES, 'readwrite');
+    const project = await tx.objectStore('projects').get(projectId);
+    if (!project) {
+      tx.abort();
+      await tx.done.catch(() => undefined);
+      throw new DataError('project-not-found', `Projet introuvable : ${projectId}`);
+    }
+    const previous = project.imageMediaId ?? null;
+    await tx.objectStore('projects').put({
+      ...project,
+      imageMediaId: mediaId,
+      updatedAt: new Date().toISOString(),
+    });
+    if (previous && previous !== mediaId) {
+      await deleteUnusedMedia(tx, [previous]);
+    }
+    await tx.done;
+  }
+
   async deleteProject(id: Id): Promise<void> {
     const tx = (await this.db()).transaction(ALL_STORES, 'readwrite');
+    const imageMediaId = (await tx.objectStore('projects').get(id))?.imageMediaId;
 
     for (const nodeId of await tx.objectStore('sceneNodes').index('projectId').getAllKeys(id)) {
       await tx.objectStore('sceneNodes').delete(nodeId);
     }
     const sceneIds = await tx.objectStore('scenes').index('projectId').getAllKeys(id);
     const mediaIds = await deleteScenes(tx, sceneIds);
+    if (imageMediaId) {
+      mediaIds.add(imageMediaId);
+    }
 
     // Bibliothèque de sons du projet
     for (const sound of await tx.objectStore('soundNodes').index('libraryId').getAll(id)) {
@@ -419,7 +443,16 @@ export class IndexedDbRepository implements DataRepository {
 
   async importProjectData(data: ProjectData): Promise<void> {
     const tx = (await this.db()).transaction([...IMPORT_STORES], 'readwrite');
+    let replacedImage: Id | null = null;
     try {
+      // Image du projet : un export qui n'en parle pas (antérieur à l'image) garde l'image locale.
+      const local = await tx.objectStore('projects').get(data.project.id);
+      const localImage = local?.imageMediaId ?? null;
+      if (data.project.imageMediaId === undefined && localImage) {
+        data = { ...data, project: { ...data.project, imageMediaId: localImage } };
+      } else if (localImage && localImage !== data.project.imageMediaId) {
+        replacedImage = localImage;
+      }
       await writeProjectData(tx, data);
     } catch (error) {
       // Sans annulation explicite, IndexedDB validerait les écritures déjà faites.
@@ -432,6 +465,9 @@ export class IndexedDbRepository implements DataRepository {
       throw error;
     }
     await tx.done;
+    if (replacedImage) {
+      await this.deleteMedia(replacedImage);
+    }
   }
 
   async getMediaInfo(ids: readonly Id[]): Promise<MediaInfo[]> {

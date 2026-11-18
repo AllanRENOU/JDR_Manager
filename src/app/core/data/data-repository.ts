@@ -30,9 +30,16 @@ export interface DataRepository {
   /** Crée ou remplace le projet. */
   saveProject(project: Project): Promise<void>;
   /**
+   * Remplace l'image d'illustration du projet (`null` : la retire) et met à jour sa date de
+   * modification, en une transaction ; l'ancienne image est supprimée si plus rien ne l'utilise.
+   * Le média s'enregistre avant, avec `uploadMedia`.
+   * @throws DataError `project-not-found`.
+   */
+  setProjectImage(projectId: Id, mediaId: Id | null): Promise<void>;
+  /**
    * Supprime le projet et tout son contenu dans une seule transaction : scènes, battlemaps,
-   * actions, fiches, bibliothèque de sons du projet, partie sauvegardée et médias devenus
-   * inutilisés.
+   * actions, fiches, bibliothèque de sons du projet, image du projet, partie sauvegardée et médias
+   * devenus inutilisés.
    */
   deleteProject(id: Id): Promise<void>;
 
@@ -117,7 +124,7 @@ export interface DataRepository {
   getMediaUrl(mediaId: Id): Promise<string>;
   /** Nombre et taille des médias enregistrés, par type (place utilisée, NF-14). */
   getStorageUsage(): Promise<StorageUsage>;
-  /** Supprime le média, seulement s'il n'est plus référencé par une battlemap ou un son. */
+  /** Supprime le média, seulement s'il n'est plus référencé par une battlemap, un son ou un projet. */
   deleteMedia(id: Id): Promise<void>;
   /**
    * Contenu d'un média, pour l'export d'un projet (lot 16). Réservé à l'export : un composant
@@ -148,6 +155,9 @@ export interface DataRepository {
    * Bibliothèque : un nœud dont l'`id` existe déjà dans **une autre** bibliothèque (ex. resté dans
    * la bibliothèque globale du navigateur d'origine) est conservé tel quel et n'est pas écrit ; un
    * nœud dont le parent n'est ni dans `data`, ni dans sa bibliothèque, est rattaché à la racine.
+   *
+   * Image du projet : un `data.project` sans `imageMediaId` (export antérieur) garde l'image
+   * locale ; une image locale remplacée est supprimée si plus rien ne l'utilise.
    *
    * Les données doivent avoir été validées avant (format d'export, 16.2).
    */

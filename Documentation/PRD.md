@@ -65,7 +65,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 
 | ID | Exigence | Priorité |
 |---|---|---|
-| PRJ-01 | L'utilisateur peut lister, créer, renommer et supprimer des projets. Les projets sont affichés en cartes, sur une grille qui s'adapte à la largeur de l'écran ; la création se fait par une carte « Créer un projet » placée en dernier. | M |
+| PRJ-01 | L'utilisateur peut lister, créer, renommer et supprimer des projets. Les projets sont affichés en cartes, sur une grille qui s'adapte à la largeur de l'écran ; la création se fait par une carte « Créer un projet » placée en dernier. Chaque projet peut avoir une **image d'illustration**, montrée sur sa carte (visuel quadrillé sinon), choisie dans les paramètres ouverts depuis le projet (section « Projet ») et exportée avec lui (décisions d'Allan, 18/11/2026). | M |
 | PRJ-02 | La suppression d'un projet demande une confirmation. | M |
 | PRJ-03 | Un projet peut être ouvert en mode **Édition** ou en mode **Présentation**. | M |
 | PRJ-04 | Export d'un projet en `.zip` autonome (HTML + toutes les ressources, y compris les sons de la bibliothèque globale utilisés), lisible hors ligne sur une tablette. En V1 (lot 12 bis, décision d'Allan : Présentation sur tablette Android). | M |

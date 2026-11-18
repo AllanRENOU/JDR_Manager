@@ -1,0 +1,94 @@
+@use 'functions' as *;
+
+:host {
+  display: block;
+  margin-bottom: space(40);
+}
+
+.section__title {
+  margin-bottom: space(4);
+  font-size: font-size(section);
+}
+
+.section__hint {
+  margin-bottom: space(16);
+  color: color(text-secondary);
+  font-size: font-size(small);
+}
+
+.image {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: space(20);
+}
+
+// Même format que la vignette d'une carte de l'accueil ; un clic choisit ou remplace l'image.
+.image__preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  width: layout(card-min);
+  max-width: 100%;
+  height: layout(card-thumb);
+  padding: 0;
+  border: 1px solid color(border-subtle);
+  border-radius: radius(lg);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transition(border-color);
+
+  &:hover:not(:disabled) {
+    border-color: color(accent);
+  }
+
+  &:disabled {
+    cursor: progress;
+  }
+
+  img,
+  app-placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  img {
+    object-fit: cover;
+  }
+}
+
+.image__empty {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: space(8);
+  color: color(text-secondary);
+  font-size: font-size(small);
+  font-weight: font-weight(semibold);
+
+  svg {
+    width: space(16);
+    height: space(16);
+  }
+}
+
+.image__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: space(8);
+}
+
+.image__formats {
+  color: color(text-tertiary);
+  font-size: font-size(small);
+}
+
+.file-input {
+  display: none;
+}

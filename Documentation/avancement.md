@@ -24,7 +24,7 @@ Suivi du [plan d'implémentation](./Plan_implementation.md). Chaque lot est déc
 | 2 | Couche de données et médias | 17 | 17 | Terminé | [lot-02-donnees-medias.md](./avancement/lot-02-donnees-medias.md) |
 | 3 | Composants partagés | 22 | 22 | Terminé | [lot-03-composants-partages.md](./avancement/lot-03-composants-partages.md) |
 | 4 | Tranche verticale | 9 | 9 | Terminé | [lot-04-tranche-verticale.md](./avancement/lot-04-tranche-verticale.md) |
-| 5 | Projets et paramètres | 9 | 9 | Terminé | [lot-05-projets-parametres.md](./avancement/lot-05-projets-parametres.md) |
+| 5 | Projets et paramètres | 14 | 14 | Terminé | [lot-05-projets-parametres.md](./avancement/lot-05-projets-parametres.md) |
 | 6 | Bibliothèques de sons | 11 | 11 | Terminé | [lot-06-bibliotheques-sons.md](./avancement/lot-06-bibliotheques-sons.md) |
 | 7 | Éditeur de scène | 17 | 17 | Terminé | [lot-07-editeur-scene.md](./avancement/lot-07-editeur-scene.md) |
 | 8 | Éditeur d'action | 18 | 18 | Terminé | [lot-08-editeur-action.md](./avancement/lot-08-editeur-action.md) |
@@ -38,7 +38,7 @@ Suivi du [plan d'implémentation](./Plan_implementation.md). Chaque lot est déc
 | 16 | Export / import de projet (fait avant le 12 bis) | 7 | 7 | Terminé | [lot-16-export-import-projet.md](./avancement/lot-16-export-import-projet.md) |
 | 12 bis | Hors ligne et tablette (fait après le 16) | 6 | 0 | À faire | [lot-12bis-hors-ligne-tablette.md](./avancement/lot-12bis-hors-ligne-tablette.md) |
 | 14 | Recette V1 | 6 | 0 | À faire | [lot-14-recette-v1.md](./avancement/lot-14-recette-v1.md) |
-| **Total** | | **252** | **239** | | |
+| **Total** | | **257** | **244** | | |
 
 ---
 
@@ -66,7 +66,7 @@ Premier parcours complet : accueil, éditeur minimal (texte de scène, enregistr
 
 ### Lot 5 — Projets et paramètres
 
-Accueil complet (cartes de projet, renommer, supprimer) et Paramètres › Apparence (choix du thème). — **Terminé** · [détail](./avancement/lot-05-projets-parametres.md)
+Accueil complet (cartes de projet, renommer, supprimer), Paramètres › Apparence (choix du thème) et image d'illustration du projet (Paramètres › Projet, carte de l'accueil, export ; ajout 5.3). — **Terminé** · [détail](./avancement/lot-05-projets-parametres.md)
 
 ### Lot 6 — Bibliothèques de sons
 

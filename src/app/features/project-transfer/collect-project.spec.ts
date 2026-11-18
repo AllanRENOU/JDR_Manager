@@ -31,7 +31,10 @@ describe('collectProject', () => {
 
   /** Projet « La crypte » : une scène, une battlemap, des sons du projet et de la bibliothèque globale. */
   async function seed(): Promise<void> {
-    await repository.saveProject(aProject({ id: 'p1', name: 'La crypte', firstSceneId: 's1' }));
+    await repository.importMedia('m-illustration', file('crypte.webp', 'image/webp'));
+    await repository.saveProject(
+      aProject({ id: 'p1', name: 'La crypte', firstSceneId: 's1', imageMediaId: 'm-illustration' }),
+    );
     await repository.saveSceneNodes([aSceneNode('p1', { id: 's1' })]);
     await repository.saveScene(aScene('p1', 's1'));
     await repository.importMedia('m-carte', file('carte.png', 'image/png'));
@@ -106,7 +109,14 @@ describe('collectProject', () => {
     await seed();
     const { media } = await collectProject(repository, 'p1');
 
-    expect(media.map((m) => m.id).sort()).toEqual(['m-carte', 'm-intro', 'm-pluie', 'm-taverne']);
+    // L'image d'illustration du projet est exportée (5.3).
+    expect(media.map((m) => m.id).sort()).toEqual([
+      'm-carte',
+      'm-illustration',
+      'm-intro',
+      'm-pluie',
+      'm-taverne',
+    ]);
     expect(media.find((m) => m.id === 'm-intro')).toMatchObject({
       mimeType: 'video/mp4',
       fileName: 'intro.mp4',

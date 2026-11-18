@@ -308,6 +308,18 @@ describe('EditorStore', () => {
       expect((await repository().getProject(project.id))?.firstSceneId).toBe(market.id);
     });
 
+    it('garde l’image du projet choisie dans les paramètres pendant l’édition (5.3)', async () => {
+      const { project, market } = await loadTree();
+      await repository().setProjectImage(project.id, 'm-illustration');
+
+      await store.setFirstScene(market.id);
+
+      expect(await repository().getProject(project.id)).toMatchObject({
+        firstSceneId: market.id,
+        imageMediaId: 'm-illustration',
+      });
+    });
+
     it('supprime un dossier et son contenu ; la scène ouverte supprimée est remplacée (7.1.3)', async () => {
       const { project, act, crypt } = await loadTree();
       await store.removeNode(act.id);

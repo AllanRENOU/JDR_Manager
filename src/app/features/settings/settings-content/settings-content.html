@@ -1,3 +1,7 @@
+@if (projectId(); as id) {
+  <app-project-image [projectId]="id" />
+}
+
 <section class="section" aria-labelledby="settings-appearance">
   <h2 class="section__title" id="settings-appearance">{{ 'settings.appearance' | transloco }}</h2>
   <p class="section__hint">{{ 'settings.appearanceHint' | transloco }}</p>

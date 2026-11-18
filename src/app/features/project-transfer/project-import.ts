@@ -63,6 +63,7 @@ export class ProjectImport {
         libraryNodes: archive.data.libraryNodes.map((n) => ({ ...n, libraryId: projectId })),
       };
       const referenced = new Set([
+        ...(data.project.imageMediaId ? [data.project.imageMediaId] : []),
         ...data.battlemaps.map((b) => b.mediaId),
         ...data.libraryNodes.flatMap((n) => (n.kind === 'item' && n.mediaId ? [n.mediaId] : [])),
       ]);

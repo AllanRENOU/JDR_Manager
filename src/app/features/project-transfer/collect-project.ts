@@ -4,7 +4,8 @@ import { ActionElement, GLOBAL_LIBRARY, Id, LibraryNode } from '../../core/model
 import { CollectedProject } from './project-archive';
 
 /**
- * Relit tout ce qu'il faut exporter d'un projet (PRJ-05) : scènes, battlemaps, actions, fiches,
+ * Relit tout ce qu'il faut exporter d'un projet (PRJ-05) : image du projet, scènes, battlemaps,
+ * actions, fiches,
  * toute la bibliothèque du projet, et les sons et vidéos de la bibliothèque globale utilisés par
  * ses actions, avec les dossiers qui y mènent. Pas de partie sauvegardée.
  * @throws DataError `project-not-found`.
@@ -40,6 +41,7 @@ export async function collectProject(
   const libraryNodes = [...projectLibrary, ...withAncestors(globalLibrary, usedIds)];
 
   const mediaIds = new Set([
+    ...(project.imageMediaId ? [project.imageMediaId] : []),
     ...battlemaps.map((b) => b.mediaId),
     ...libraryNodes.flatMap((n) => (n.kind === 'item' && n.mediaId ? [n.mediaId] : [])),
   ]);

@@ -93,6 +93,15 @@ describe('SheetsStore', () => {
     expect((await repository.getProject(project.id))?.updatedAt).not.toBe(project.updatedAt);
   });
 
+  it('garde l’image du projet choisie dans les paramètres pendant l’édition (5.3)', async () => {
+    await store.load(project.id);
+    await repository.setProjectImage(project.id, 'm-illustration');
+
+    await store.createNode('item', null, 'Nouvelle fiche');
+
+    expect((await repository.getProject(project.id))?.imageMediaId).toBe('m-illustration');
+  });
+
   it('crée un dossier sans texte ni ouverture', async () => {
     await store.load(project.id);
     const node = await store.createNode('folder', null, 'Lieux');

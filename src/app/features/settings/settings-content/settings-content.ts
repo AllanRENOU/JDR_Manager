@@ -1,22 +1,28 @@
-import { Component, ElementRef, inject } from '@angular/core';
+import { Component, ElementRef, inject, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LucideCheck } from '@lucide/angular';
 
+import { Id } from '../../../core/models';
 import { Theme, ThemeId } from '../../../core/theme/theme';
+import { ProjectImage } from '../project-image/project-image';
 import { StorageUsage } from '../storage-usage/storage-usage';
 import { ThemePreview } from '../theme-preview/theme-preview';
 
 /**
- * Contenu des paramètres (Apparence, Stockage), partagé par la page `/settings` (accueil)
- * et la fenêtre `SettingsDialog` (modes Édition et Présentation).
+ * Contenu des paramètres (Projet, Apparence, Stockage), partagé par la page `/settings` (accueil)
+ * et la fenêtre `SettingsDialog` (modes Édition et Présentation). La section Projet n'apparaît
+ * qu'avec `projectId` (écrans d'édition du projet).
  */
 @Component({
   selector: 'app-settings-content',
-  imports: [StorageUsage, ThemePreview, TranslocoPipe, LucideCheck],
+  imports: [ProjectImage, StorageUsage, ThemePreview, TranslocoPipe, LucideCheck],
   templateUrl: './settings-content.html',
   styleUrl: './settings-content.scss',
 })
 export class SettingsContent {
+  /** Projet ouvert : affiche la section Projet (image d'illustration). */
+  readonly projectId = input<Id | null>(null);
+
   protected readonly theme = inject(Theme);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 

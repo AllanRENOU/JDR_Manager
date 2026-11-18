@@ -123,6 +123,80 @@ describe('IndexedDbRepository', () => {
       // Média encore utilisé par l'autre projet
       expect(await raw.get('media', sharedMedia.id)).toBeDefined();
     });
+
+    describe("image d'illustration (5.3)", () => {
+      it("enregistre l'image et met à jour la date de modification", async () => {
+        const project = aProject({ updatedAt: '2026-01-01T00:00:00.000Z' });
+        const image = aMedia();
+        await raw.put('projects', project);
+        await raw.put('media', image);
+
+        await repository.setProjectImage(project.id, image.id);
+
+        const saved = await repository.getProject(project.id);
+        expect(saved?.imageMediaId).toBe(image.id);
+        expect(saved!.updatedAt > project.updatedAt).toBe(true);
+      });
+
+      it("supprime l'ancienne image quand elle est remplacée ou retirée", async () => {
+        const first = aMedia();
+        const second = aMedia();
+        const project = aProject({ imageMediaId: first.id });
+        await raw.put('projects', project);
+        await raw.put('media', first);
+        await raw.put('media', second);
+
+        await repository.setProjectImage(project.id, second.id);
+        expect(await raw.get('media', first.id)).toBeUndefined();
+        expect(await raw.get('media', second.id)).toBeDefined();
+
+        await repository.setProjectImage(project.id, null);
+        expect((await repository.getProject(project.id))?.imageMediaId).toBeNull();
+        expect(await raw.get('media', second.id)).toBeUndefined();
+      });
+
+      it('garde une ancienne image encore utilisée par une battlemap', async () => {
+        const shared = aMedia();
+        const project = aProject({ imageMediaId: shared.id });
+        await raw.put('projects', project);
+        await raw.put('media', shared);
+        await raw.put('battlemaps', aBattlemap('scene', shared.id));
+
+        await repository.setProjectImage(project.id, null);
+
+        expect(await raw.get('media', shared.id)).toBeDefined();
+      });
+
+      it('refuse un projet inconnu sans rien modifier', async () => {
+        const image = aMedia();
+        await raw.put('media', image);
+        await expect(repository.setProjectImage('inconnu', image.id)).rejects.toSatisfy(
+          (e: unknown) => isDataError(e) && e.code === 'project-not-found',
+        );
+        expect(await raw.get('projects', 'inconnu')).toBeUndefined();
+      });
+
+      it("ne supprime pas un média utilisé comme image d'un projet", async () => {
+        const image = aMedia();
+        await raw.put('projects', aProject({ imageMediaId: image.id }));
+        await raw.put('media', image);
+
+        await repository.deleteMedia(image.id);
+
+        expect(await raw.get('media', image.id)).toBeDefined();
+      });
+
+      it("supprime l'image avec le projet", async () => {
+        const image = aMedia();
+        const project = aProject({ imageMediaId: image.id });
+        await raw.put('projects', project);
+        await raw.put('media', image);
+
+        await repository.deleteProject(project.id);
+
+        expect(await raw.get('media', image.id)).toBeUndefined();
+      });
+    });
   });
   describe('scènes, battlemaps, actions', () => {
     it('liste les nœuds d’un projet triés par ordre et les enregistre en lot', async () => {
@@ -691,6 +765,27 @@ describe('IndexedDbRepository', () => {
         ],
       };
     }
+
+    it("garde l'image locale du projet si l'export n'en parle pas (5.3)", async () => {
+      await raw.put('projects', aProject({ id: 'p1', imageMediaId: 'm-locale' }));
+      await repository.importProjectData(projectData());
+      expect((await repository.getProject('p1'))?.imageMediaId).toBe('m-locale');
+    });
+
+    it("remplace l'image locale du projet et la supprime si plus rien ne l'utilise (5.3)", async () => {
+      const local = aMedia({ id: 'm-locale' });
+      await raw.put('media', local);
+      await raw.put('projects', aProject({ id: 'p1', imageMediaId: local.id }));
+      const data = projectData();
+
+      await repository.importProjectData({
+        ...data,
+        project: { ...data.project, imageMediaId: 'm-export' },
+      });
+
+      expect((await repository.getProject('p1'))?.imageMediaId).toBe('m-export');
+      expect(await raw.get('media', local.id)).toBeUndefined();
+    });
 
     it('écrit tous les objets avec leurs identifiants', async () => {
       const data = projectData();

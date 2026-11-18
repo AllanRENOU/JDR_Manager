@@ -28,5 +28,18 @@ describe('SettingsButton', () => {
     expect(dialog.querySelector('.modal__title')?.textContent).toContain('Paramètres');
     expect(dialog.querySelector('[role="radiogroup"]')).not.toBeNull();
     expect(TestBed.inject(Modals).isOpen()).toBe(true);
+    // Sans projet : pas de section Projet.
+    expect(dialog.querySelector('app-project-image')).toBeNull();
+  });
+
+  it('montre la section Projet quand un projet est ouvert (5.3)', async () => {
+    const fixture = TestBed.createComponent(SettingsButton);
+    fixture.componentRef.setInput('projectId', 'p1');
+    await fixture.whenStable();
+    (fixture.nativeElement as HTMLElement).querySelector('button')!.click();
+    TestBed.tick();
+
+    const dialog = document.querySelector('app-settings-dialog') as HTMLElement;
+    expect(dialog.querySelector('app-project-image #settings-project')).not.toBeNull();
   });
 });

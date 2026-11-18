@@ -10,7 +10,7 @@ export interface ProjectSummary {
   lastSceneName: string | null;
   /** Une partie est sauvegardée (PRS-02). */
   hasPlaySession: boolean;
-  /** Image de la vignette : battlemap par défaut de la première scène, sinon sa première battlemap. */
+  /** Image de la vignette : image d'illustration du projet (Paramètres › Projet), sinon `null`. */
   thumbnailMediaId: Id | null;
 }
 
@@ -27,23 +27,12 @@ export async function loadProjectSummary(
   const scenes = nodes.filter((n) => n.kind === 'item');
   const lastScene = session ? scenes.find((n) => n.id === session.currentSceneId) : undefined;
 
-  let thumbnailMediaId: Id | null = null;
-  const firstSceneId = project.firstSceneId ?? scenes[0]?.id;
-  if (firstSceneId) {
-    const [scene, battlemaps] = await Promise.all([
-      repository.getScene(firstSceneId),
-      repository.listBattlemaps(firstSceneId),
-    ]);
-    const battlemap = battlemaps.find((b) => b.id === scene?.defaultBattlemapId) ?? battlemaps[0];
-    thumbnailMediaId = battlemap?.mediaId ?? null;
-  }
-
   return {
     project,
     sceneCount: scenes.length,
     soundCount: sounds.filter((n) => n.kind === 'item').length,
     lastSceneName: lastScene?.name ?? null,
     hasPlaySession: !!session,
-    thumbnailMediaId,
+    thumbnailMediaId: project.imageMediaId ?? null,
   };
 }

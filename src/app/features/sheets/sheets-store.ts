@@ -292,11 +292,19 @@ export class SheetsStore {
     return project;
   }
 
-  /** Met à jour la date de modification du projet (cartes de l'accueil). */
+  /**
+   * Met à jour la date de modification du projet (cartes de l'accueil). L'image du projet est
+   * relue : elle a pu changer dans Paramètres › Projet pendant que l'écran était ouvert.
+   */
   private async touchProject(): Promise<void> {
     const project = this.project();
     if (project) {
-      const saved = { ...project, updatedAt: new Date().toISOString() };
+      const stored = await this.repository.getProject(project.id);
+      const saved = {
+        ...project,
+        imageMediaId: stored?.imageMediaId ?? null,
+        updatedAt: new Date().toISOString(),
+      };
       await this.repository.saveProject(saved);
       this.project.set(saved);
     }

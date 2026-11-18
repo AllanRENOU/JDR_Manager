@@ -44,16 +44,18 @@ export async function deleteScenes(
   return mediaIds;
 }
 
-/** Vrai si une battlemap ou un son utilise encore ce média. */
+/** Vrai si une battlemap, un son ou l'image d'un projet utilise encore ce média. */
 export async function isMediaUsed(tx: CascadeTransaction, mediaId: Id): Promise<boolean> {
-  const [battlemaps, sounds] = await Promise.all([
+  const [battlemaps, sounds, projects] = await Promise.all([
     tx.objectStore('battlemaps').index('mediaId').count(mediaId),
     tx.objectStore('soundNodes').index('mediaId').count(mediaId),
+    // Peu de projets : pas d'index sur `imageMediaId` (pas de changement de schéma).
+    tx.objectStore('projects').getAll(),
   ]);
-  return battlemaps + sounds > 0;
+  return battlemaps + sounds > 0 || projects.some((p) => p.imageMediaId === mediaId);
 }
 
-/** Supprime les médias qui ne sont plus utilisés par aucune battlemap ni aucun son. */
+/** Supprime les médias qui ne sont plus utilisés par aucune battlemap, aucun son ni aucun projet. */
 export async function deleteUnusedMedia(
   tx: CascadeTransaction,
   mediaIds: Iterable<Id>,

@@ -822,9 +822,17 @@ export class EditorStore {
     }
   }
 
-  /** Enregistre le projet en mettant à jour sa date de modification. */
+  /**
+   * Enregistre le projet en mettant à jour sa date de modification. L'image du projet est relue :
+   * elle a pu changer dans Paramètres › Projet pendant que l'éditeur était ouvert.
+   */
   async saveProject(project: Project): Promise<void> {
-    const saved = { ...project, updatedAt: new Date().toISOString() };
+    const stored = await this.repository.getProject(project.id);
+    const saved = {
+      ...project,
+      imageMediaId: stored?.imageMediaId ?? null,
+      updatedAt: new Date().toISOString(),
+    };
     await this.repository.saveProject(saved);
     this.project.set(saved);
   }

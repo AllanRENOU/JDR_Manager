@@ -17,7 +17,7 @@ function anArchive(): ProjectArchive {
   return buildArchive(
     {
       data: {
-        project: aProject({ id: 'p1', firstSceneId: 's1' }),
+        project: aProject({ id: 'p1', firstSceneId: 's1', imageMediaId: 'm-illustration' }),
         sceneNodes: [
           aSceneNode('p1', { id: 'dossier', kind: 'folder' }),
           aSceneNode('p1', { id: 's1', parentId: 'dossier' }),
@@ -111,6 +111,20 @@ describe('parseProjectArchive', () => {
   it('relit à l’identique un export passé par JSON', () => {
     const archive = anArchive();
     expect(parseProjectArchive(jsonOf(archive))).toEqual(archive);
+  });
+
+  it('accepte une image de projet absente (export antérieur) ou retirée (null) (5.3)', () => {
+    const absent = jsonOf();
+    delete absent['data'].project.imageMediaId;
+    expect(parseProjectArchive(absent).data.project).not.toHaveProperty('imageMediaId');
+
+    const removed = jsonOf();
+    removed['data'].project.imageMediaId = null;
+    expect(parseProjectArchive(removed).data.project.imageMediaId).toBeNull();
+
+    const wrong = jsonOf();
+    wrong['data'].project.imageMediaId = '../x';
+    expect(() => parseProjectArchive(wrong)).toThrow(ArchiveError);
   });
 
   it('ne garde que les champs connus', () => {

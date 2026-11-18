@@ -97,10 +97,13 @@ export function parseProjectArchive(value: unknown): ProjectArchive {
 }
 
 function parseProject(f: Fields): Project {
+  // Image du projet : absente des exports antérieurs, `null` si retirée.
+  const imageMediaId = f.has('imageMediaId') ? f.nullableId('imageMediaId') : undefined;
   return {
     id: f.id('id'),
     name: f.name('name'),
     firstSceneId: f.nullableId('firstSceneId'),
+    ...(imageMediaId !== undefined && { imageMediaId }),
     createdAt: f.string('createdAt'),
     updatedAt: f.string('updatedAt'),
   };
@@ -284,7 +287,7 @@ class Fields {
     return Object.hasOwn(this.value, key) ? this.value[key] : undefined;
   }
 
-  private has(key: string): boolean {
+  has(key: string): boolean {
     return this.get(key) !== undefined;
   }
 
