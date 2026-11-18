@@ -228,6 +228,11 @@
       "noElement": "Aucun élément pour l’instant.",
       "addElement": "Ajouter un élément",
       "elementTypes": "Types d’élément",
+      "menuGroups": {
+        "sound": "Sons",
+        "video": "Vidéo",
+        "action": "Action"
+      },
       "delete": "Supprimer l’action",
       "deleteTitle": "Supprimer « {{ name }} » ?",
       "deleteMessage": "L’action et ses éléments seront supprimés. Cette action est irréversible.",

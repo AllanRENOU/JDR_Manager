@@ -182,7 +182,7 @@ describe('ActionEditor', () => {
         `${c.querySelector('.card__type')?.textContent?.trim()} ${c.querySelector('.card__detail')?.textContent?.trim()}`.trim(),
       );
 
-    it('ajoute un élément par le menu des 13 types, à la fin, seul déplié (8.2.3)', async () => {
+    it('ajoute un élément par le menu des types, à la fin, seul déplié (8.2.3)', async () => {
       const { dialog, result } = open(
         anAction('s1', { name: 'Bagarre', elements: [text('a', 'Un')] }),
       );
@@ -192,25 +192,21 @@ describe('ActionEditor', () => {
       button(dialog, 'Ajouter un élément').click();
       await vi.waitFor(() => {
         TestBed.tick();
-        expect(document.querySelectorAll('.types-menu .app-menu-item')).toHaveLength(13);
+        expect(document.querySelectorAll('.types-menu .app-menu-item')).toHaveLength(9);
       });
       const items = [...document.querySelectorAll<HTMLButtonElement>('.types-menu .app-menu-item')];
       expect(items.map((i) => i.textContent?.trim())).toEqual([
         'Afficher une battlemap',
-        'Lancer un son',
-        'Arrêter un son',
-        'Arrêter tous les sons',
-        'Lancer la vidéo',
-        'Arrêter la vidéo',
+        'Sons',
+        'Vidéo',
         'Afficher un texte',
         'Afficher une fiche',
         'Changer de scène',
-        'Afficher l’action',
-        'Masquer l’action',
+        'Action',
         'Attendre',
         'Clic de l’utilisateur',
       ]);
-      items[11].click();
+      items[7].click();
       TestBed.tick();
       expect(titles(dialog)).toEqual(['Afficher un texte Un', 'Attendre 1 s']);
       const cards = [...dialog.querySelectorAll('app-element-card')];
@@ -222,6 +218,50 @@ describe('ActionEditor', () => {
         'add-text',
         'wait',
       ]);
+    });
+
+    it('regroupe les sons, la vidéo et les actions dans des sous-menus', async () => {
+      const { dialog, result } = open(anAction('s1', { name: 'Bagarre', elements: [] }));
+      button(dialog, 'Ajouter un élément').click();
+      const group = async (label: string) => {
+        const trigger = [
+          ...document.querySelectorAll<HTMLButtonElement>('.types-menu__group'),
+        ].find((b) => b.textContent?.trim() === label)!;
+        trigger.click();
+        let submenu: Element | undefined;
+        await vi.waitFor(() => {
+          TestBed.tick();
+          submenu = [...document.querySelectorAll('.types-menu')].find(
+            (m) => m.getAttribute('aria-label') === label,
+          );
+          expect(submenu).toBeTruthy();
+        });
+        return [...submenu!.querySelectorAll<HTMLButtonElement>('.app-menu-item')];
+      };
+      await vi.waitFor(() => {
+        TestBed.tick();
+        expect(document.querySelectorAll('.types-menu__group')).toHaveLength(3);
+      });
+      expect((await group('Sons')).map((i) => i.textContent?.trim())).toEqual([
+        'Lancer un son',
+        'Arrêter un son',
+        'Arrêter tous les sons',
+      ]);
+      expect((await group('Vidéo')).map((i) => i.textContent?.trim())).toEqual([
+        'Lancer la vidéo',
+        'Arrêter la vidéo',
+      ]);
+      const actions = await group('Action');
+      expect(actions.map((i) => i.textContent?.trim())).toEqual([
+        'Afficher l’action',
+        'Masquer l’action',
+      ]);
+      actions[1].click();
+      TestBed.tick();
+      expect(titles(dialog)[0]).toContain('Masquer l’action');
+
+      button(dialog, 'Annuler').click();
+      await result;
     });
 
     it('supprime un élément et réordonne la liste (8.2.1, 8.2.2)', async () => {

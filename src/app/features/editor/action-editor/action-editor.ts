@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { FormField, disabled, form, maxLength, validate } from '@angular/forms/signals';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
-import { LucideDynamicIcon, LucidePlus, LucideTrash2 } from '@lucide/angular';
+import { LucideChevronRight, LucideDynamicIcon, LucidePlus, LucideTrash2 } from '@lucide/angular';
 
 import { pluralKey } from '../../../core/i18n/plural';
 import { Action, ActionElement, ActionElementType, Id, Trigger } from '../../../core/models';
@@ -31,7 +31,7 @@ import {
 import { SummaryContext } from '../action-summary';
 import { ElementCard } from '../element-card/element-card';
 import { ElementForm } from '../element-form/element-form';
-import { ELEMENT_TYPE_INFOS, newElement } from '../element-types';
+import { ELEMENT_MENU, newElement } from '../element-types';
 
 /** Contenu modifiable d'une action. */
 export interface ActionDraft {
@@ -83,6 +83,7 @@ import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
     TranslocoPipe,
     LucideDynamicIcon,
     LucidePlus,
+    LucideChevronRight,
     LucideTrash2,
   ],
   templateUrl: './action-editor.html',
@@ -137,7 +138,7 @@ export class ActionEditor {
     return state.touched() && state.invalid() ? (state.errors()[0]?.message ?? '') : '';
   });
 
-  protected readonly elementTypes = ELEMENT_TYPE_INFOS;
+  protected readonly menuEntries = ELEMENT_MENU;
   /** Cartes dépliées. */
   protected readonly expandedIds = signal<ReadonlySet<Id>>(new Set());
 

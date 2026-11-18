@@ -103,10 +103,8 @@
 
 // Menu des types sur deux colonnes. Rendu dans l'overlay du CDK, il vient quand même du modèle
 // de ce composant : ses styles s'appliquent.
-.types-menu {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  width: layout(modal-sm);
+.types-menu__chevron {
+  margin-left: auto;
 }
 
 .types-menu__icon {

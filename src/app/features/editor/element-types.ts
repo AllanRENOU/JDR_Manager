@@ -9,10 +9,13 @@ import {
   LucideMap,
   LucideMousePointerClick,
   LucideScrollText,
+  LucideSquarePlay,
   LucideSquareStop,
   LucideSquareX,
   LucideType,
+  LucideVolume2,
   LucideVolumeX,
+  LucideZap,
 } from '@lucide/angular';
 
 import { ActionElement, ActionElementType, newId } from '../../core/models';
@@ -74,6 +77,59 @@ export const ELEMENT_TYPE_INFOS: readonly ElementTypeInfo[] = MENU_ORDER.map((ty
   tone: ELEMENT_TONES[type],
   helpKey: HELP_KEYS[type],
 }));
+
+/** Sous-menu du menu « Ajouter un élément » qui regroupe des types voisins (sons, vidéo, actions). */
+export interface ElementMenuGroup {
+  id: 'sound' | 'video' | 'action';
+  /** Clé de traduction du nom du sous-menu. */
+  labelKey: string;
+  icon: LucideIcon;
+  tone: PillTone;
+  types: readonly ElementTypeInfo[];
+}
+
+/** Entrée du menu « Ajouter un élément » : un type, ou un sous-menu de types. */
+export type ElementMenuEntry =
+  { kind: 'type'; info: ElementTypeInfo } | { kind: 'group'; group: ElementMenuGroup };
+
+const MENU_GROUPS: readonly Omit<ElementMenuGroup, 'types' | 'labelKey'>[] = [
+  { id: 'sound', icon: LucideVolume2, tone: 'sound' },
+  { id: 'video', icon: LucideSquarePlay, tone: 'video' },
+  { id: 'action', icon: LucideZap, tone: 'action' },
+];
+
+const GROUP_OF: Partial<Record<ActionElementType, ElementMenuGroup['id']>> = {
+  'play-sound': 'sound',
+  'stop-sound': 'sound',
+  'stop-all-sounds': 'sound',
+  'play-video': 'video',
+  'stop-video': 'video',
+  'show-action': 'action',
+  'hide-action': 'action',
+};
+
+/**
+ * Menu « Ajouter un élément » : les types dans l'ordre de `MENU_ORDER`, ceux d'un même groupe
+ * réunis dans un sous-menu placé à la position du premier d'entre eux.
+ */
+export const ELEMENT_MENU: readonly ElementMenuEntry[] = (() => {
+  const entries: ElementMenuEntry[] = [];
+  for (const info of ELEMENT_TYPE_INFOS) {
+    const groupId = GROUP_OF[info.type];
+    if (!groupId) {
+      entries.push({ kind: 'type', info });
+      continue;
+    }
+    if (entries.some((e) => e.kind === 'group' && e.group.id === groupId)) continue;
+    const base = MENU_GROUPS.find((g) => g.id === groupId)!;
+    const types = ELEMENT_TYPE_INFOS.filter((t) => GROUP_OF[t.type] === groupId);
+    entries.push({
+      kind: 'group',
+      group: { ...base, labelKey: `action.editor.menuGroups.${groupId}`, types },
+    });
+  }
+  return entries;
+})();
 
 export function elementTypeInfo(type: ActionElementType): ElementTypeInfo {
   return ELEMENT_TYPE_INFOS.find((info) => info.type === type)!;

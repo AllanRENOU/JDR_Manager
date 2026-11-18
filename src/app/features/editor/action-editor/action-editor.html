@@ -120,10 +120,44 @@
   </app-modal>
 </form>
 
-<!-- Menu « Ajouter un élément » : les 8 types sur deux colonnes (maquette). -->
+<!-- Menu « Ajouter un élément » : types simples et sous-menus Sons / Vidéo / Action. -->
 <ng-template #typesMenu>
   <div appMenu class="types-menu" [attr.aria-label]="'action.editor.elementTypes' | transloco">
-    @for (type of elementTypes; track type.type) {
+    @for (entry of menuEntries; track $index) {
+      @if (entry.kind === 'type') {
+        <button appMenuItem (triggered)="addElement(entry.info.type)">
+          <span
+            [class]="'types-menu__icon types-menu__icon--' + entry.info.tone"
+            aria-hidden="true"
+          >
+            <svg [lucideIcon]="entry.info.icon"></svg>
+          </span>
+          {{ entry.info.labelKey | transloco }}
+        </button>
+      } @else {
+        <button
+          appMenuItem
+          class="types-menu__group"
+          [cdkMenuTriggerFor]="groupMenu"
+          [cdkMenuTriggerData]="{ $implicit: entry.group }"
+        >
+          <span
+            [class]="'types-menu__icon types-menu__icon--' + entry.group.tone"
+            aria-hidden="true"
+          >
+            <svg [lucideIcon]="entry.group.icon"></svg>
+          </span>
+          {{ entry.group.labelKey | transloco }}
+          <svg lucideChevronRight class="types-menu__chevron" aria-hidden="true"></svg>
+        </button>
+      }
+    }
+  </div>
+</ng-template>
+
+<ng-template #groupMenu let-group>
+  <div appMenu class="types-menu" [attr.aria-label]="group.labelKey | transloco">
+    @for (type of group.types; track type.type) {
       <button appMenuItem (triggered)="addElement(type.type)">
         <span [class]="'types-menu__icon types-menu__icon--' + type.tone" aria-hidden="true">
           <svg [lucideIcon]="type.icon"></svg>
