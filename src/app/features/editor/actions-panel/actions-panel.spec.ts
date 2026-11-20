@@ -66,7 +66,7 @@ describe('ActionsPanel', () => {
     expect(el.querySelector('.section__summary')?.textContent).toContain('· 2');
     expect([...el.querySelectorAll('.group')].map((g) => g.textContent?.trim())).toEqual([
       'À l’ouverture de la scène',
-      'Sur clic du MJ',
+      'Déclenchement manuel',
     ]);
     const rows = [...el.querySelectorAll('.action')];
     expect(rows[0].querySelector('.action__name')?.textContent).toContain('Texte de scène');

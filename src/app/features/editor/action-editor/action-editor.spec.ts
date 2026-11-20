@@ -53,7 +53,7 @@ describe('ActionEditor', () => {
       segments(dialog).map((s) => [s.textContent?.trim(), s.getAttribute('aria-checked')]),
     ).toEqual([
       ['Ouverture de la scène', 'false'],
-      ['Clic du MJ', 'true'],
+      ['Manuel', 'true'],
     ]);
     expect(button(dialog, 'Supprimer l’action')).toBeUndefined();
 
@@ -200,7 +200,7 @@ describe('ActionEditor', () => {
         'Sons',
         'Vidéo',
         'Afficher un texte',
-        'Afficher une fiche',
+        'Ouvrir une fiche',
         'Changer de scène',
         'Action',
         'Attendre',

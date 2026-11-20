@@ -67,7 +67,7 @@ describe('ElementCard', () => {
     fixture.componentInstance.element.set({ id: 'e', type: 'user-click', text: '' });
     await fixture.whenStable();
     expect(el.querySelector('.card__type')?.getAttribute('title')).toBe(
-      'L’action s’arrête ici jusqu’à ce que le MJ clique sur « Continuer » dans le fil d’actualité, ce qui relance l’action.',
+      'L’action est mise en pause jusqu’au clic sur « Continuer »',
     );
   });
 

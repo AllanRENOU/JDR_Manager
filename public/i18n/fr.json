@@ -149,7 +149,7 @@
     "sceneText": "Texte de scène",
     "triggers": {
       "scene-open": "À l’ouverture de la scène",
-      "manual": "Sur clic du MJ"
+      "manual": "Déclenchement manuel"
     },
     "elementCount": {
       "one": "{{ count }} élément",
@@ -202,7 +202,7 @@
       "user-click": "Clic de l’utilisateur",
       "show-action": "Afficher l’action",
       "hide-action": "Masquer l’action",
-      "show-sheet": "Afficher une fiche"
+      "show-sheet": "Ouvrir une fiche"
     },
     "detail": {
       "noText": "Texte à saisir",
@@ -249,7 +249,7 @@
     },
     "triggerOptions": {
       "scene-open": "Ouverture de la scène",
-      "manual": "Clic du MJ"
+      "manual": "Manuel"
     },
     "form": {
       "battlemap": "Battlemap à afficher (battlemaps de la scène)",
@@ -298,7 +298,7 @@
       "waitHelp": "Affiché sur la ligne de l’attente dans l’éditeur et pendant l’attente en Présentation.",
       "clickText": "Texte affiché au MJ",
       "clickTextRequired": "Ce texte est obligatoire.",
-      "clickHelp": "L’action s’arrête ici jusqu’à ce que le MJ clique sur « Continuer » dans le fil d’actualité, ce qui relance l’action.",
+      "clickHelp": "L’action est mise en pause jusqu’au clic sur « Continuer »",
       "battlemapRequired": "Choisissez une battlemap.",
       "soundRequired": "Choisissez un son.",
       "videoRequired": "Choisissez une vidéo.",
