@@ -113,15 +113,24 @@ describe('EditorStore', () => {
       return store.createFirstScene();
     }
 
-    it('crée l’action « Texte de scène » à la première saisie non vide, puis la met à jour', async () => {
+    it('crée l’action « Ouverture de la scène » avec la scène ; la première saisie non vide y ajoute le texte', async () => {
       const scene = await withScene();
+      const [opening] = await repository().listActions(scene.id);
+      expect(opening).toMatchObject({
+        name: 'Ouverture de la scène',
+        trigger: 'scene-open',
+        isSceneText: true,
+        elements: [],
+      });
+      expect((await repository().getScene(scene.id))?.sceneTextActionId).toBe(opening.id);
       await store.setSceneText('   ');
-      expect(await repository().listActions(scene.id)).toEqual([]);
+      expect((await repository().listActions(scene.id))[0].elements).toEqual([]);
 
       await store.setSceneText('La porte grince.');
       const [action] = await repository().listActions(scene.id);
+      expect(action.id).toBe(opening.id);
       expect(action).toMatchObject({
-        name: 'Texte de scène',
+        name: 'Ouverture de la scène',
         trigger: 'scene-open',
         isSceneText: true,
         order: 0,
@@ -177,7 +186,7 @@ describe('EditorStore', () => {
       store.editSceneText('La');
       store.editSceneText('La porte');
       expect(store.saveState()).toBe('pending');
-      expect(await repository().listActions(scene.id)).toEqual([]);
+      expect(await savedText(scene.id)).toBeUndefined();
 
       await vi.waitFor(async () =>
         expect(await savedText(scene.id)).toMatchObject({ text: 'La porte' }),
@@ -264,7 +273,6 @@ describe('EditorStore', () => {
       await store.openScene(crypt.id);
       await store.saveAction(null, {
         name: 'Boucle',
-        trigger: 'manual',
         elements: [{ id: 'c1', type: 'change-scene', sceneId: crypt.id }],
       });
       expect(store.isUnusedScene(crypt.id)).toBe(true);
@@ -273,7 +281,6 @@ describe('EditorStore', () => {
       await store.openScene(market.id);
       await store.saveAction(null, {
         name: 'Descendre',
-        trigger: 'manual',
         elements: [{ id: 'c2', type: 'change-scene', sceneId: crypt.id }],
       });
       expect(store.unusedSceneIds().size).toBe(0);
@@ -337,7 +344,8 @@ describe('EditorStore', () => {
     it('duplique une scène juste après elle, avec battlemaps et actions (7.1.5)', async () => {
       const { project, act, tavern, market } = await loadTree();
       const map = aBattlemap(tavern.id, 'media-1', { name: 'Salle' });
-      const text = anAction(tavern.id, { isSceneText: true, trigger: 'scene-open' });
+      // Action d'ouverture créée à l'ouverture de la scène.
+      const text = store.sceneTextAction()!;
       const show = anAction(tavern.id, {
         name: 'Montrer',
         order: 1,
@@ -402,32 +410,36 @@ describe('EditorStore', () => {
     });
 
     it('« masquée au départ » : enregistrée pour une action « Clic du MJ » seulement (ACT-12)', async () => {
-      await loadTree();
-      const hidden = await store.saveAction(null, {
-        name: 'La fuite',
-        trigger: 'manual',
-        hidden: true,
-        elements: [],
-      });
-      expect(hidden.hidden).toBe(true);
-      const opening = await store.saveAction(hidden, {
-        name: 'La fuite',
-        trigger: 'scene-open',
-        hidden: true,
-        elements: [],
-      });
-      expect('hidden' in opening).toBe(false);
+      const { tavern } = await loadTree();
+      const hidden = await store.saveAction(null, { name: 'La fuite', hidden: true, elements: [] });
+      expect(hidden).toMatchObject({ trigger: 'manual', hidden: true });
       const visible = await store.saveAction(null, {
         name: 'Le garde',
-        trigger: 'manual',
         hidden: false,
         elements: [],
       });
       expect('hidden' in visible).toBe(false);
-      const saved = (await repository().listActions(hidden.sceneId)).find(
-        (a) => a.id === hidden.id,
-      );
-      expect(saved && 'hidden' in saved).toBe(false);
+      // L'action d'ouverture n'est jamais masquée.
+      const opening = store.sceneTextAction()!;
+      const saved = await store.saveAction(opening, {
+        name: opening.name,
+        hidden: true,
+        elements: [],
+      });
+      expect('hidden' in saved).toBe(false);
+      expect(
+        (await repository().listActions(tavern.id)).find((a) => a.isSceneText),
+      ).not.toHaveProperty('hidden');
+    });
+
+    it('déclencheur : une nouvelle action est manuelle, celui d’une action existante est gardé (ACT-02)', async () => {
+      await loadTree();
+      const created = await store.saveAction(null, { name: 'Bagarre', elements: [] });
+      expect(created.trigger).toBe('manual');
+      const opening = store.sceneTextAction()!;
+      const saved = await store.saveAction(opening, { name: 'Entrée', elements: [] });
+      expect(saved).toMatchObject({ trigger: 'scene-open', isSceneText: true, name: 'Entrée' });
+      expect(store.actions().filter((a) => a.trigger === 'scene-open')).toHaveLength(1);
     });
 
     it('déplace une scène dans un autre dossier et renumérote les frères (7.1.4)', async () => {
@@ -478,9 +490,14 @@ describe('EditorStore', () => {
       await store.load(project.id);
 
       expect(store.sceneText()).toBe('La salle.');
-      expect(store.actions().map((a) => a.name)).toEqual(['Texte de scène', 'Feu', 'Bagarre']);
+      // L'ancien nom par défaut « Texte de scène » est remplacé (SCN-05).
+      expect(store.actions().map((a) => a.name)).toEqual([
+        'Ouverture de la scène',
+        'Feu',
+        'Bagarre',
+      ]);
       expect(store.actionTexts().map((t) => [t.action.name, t.element.text])).toEqual([
-        ['Texte de scène', 'Un murmure.'],
+        ['Ouverture de la scène', 'Un murmure.'],
         ['Bagarre', 'Une chope vole.'],
       ]);
       expect(store.initialTexts()).toEqual({ s2: 'Un murmure.', b1: 'Une chope vole.' });
@@ -689,18 +706,16 @@ describe('EditorStore', () => {
 
     await store.saveAction(existing, {
       name: 'Grosse bagarre',
-      trigger: 'manual',
       elements: [{ id: 't', type: 'add-text', text: 'Après' }],
     });
     expect(store.initialTexts()['t']).toBe('Après');
     const created = await store.saveAction(null, {
       name: 'Fuite',
-      trigger: 'manual',
       elements: [],
     });
     expect(created).toMatchObject({ sceneId: node.id, order: 4, isSceneText: false });
 
-    const saved = await repository().listActions(node.id);
+    const saved = (await repository().listActions(node.id)).filter((a) => !a.isSceneText);
     expect(saved.map((a) => [a.name, a.order])).toEqual([
       ['Grosse bagarre', 3],
       ['Fuite', 4],
@@ -708,7 +723,44 @@ describe('EditorStore', () => {
     expect(store.actionTexts()[0].element.text).toBe('Après');
   });
 
-  it('supprime une action, jamais « Texte de scène » (8.1.2)', async () => {
+  it('ouvre une scène sans action d’ouverture : la crée et la relie à la scène (SCN-05)', async () => {
+    const project = aProject();
+    const node = aSceneNode(project.id);
+    await repository().saveProject({ ...project, firstSceneId: node.id });
+    await repository().saveSceneNodes([node]);
+    await repository().saveScene(aScene(project.id, node.id));
+    await store.load(project.id);
+
+    const [opening] = await repository().listActions(node.id);
+    expect(opening).toMatchObject({
+      name: 'Ouverture de la scène',
+      trigger: 'scene-open',
+      isSceneText: true,
+      elements: [],
+    });
+    expect((await repository().getScene(node.id))?.sceneTextActionId).toBe(opening.id);
+    // Rouverte : rien de plus.
+    await store.openScene(node.id);
+    expect(await repository().listActions(node.id)).toHaveLength(1);
+  });
+
+  it('une action d’ouverture qui n’était pas « Texte de scène » le devient, sans changer de nom', async () => {
+    const project = aProject();
+    const node = aSceneNode(project.id);
+    const fire = anAction(node.id, { name: 'Feu', trigger: 'scene-open' });
+    await repository().saveProject({ ...project, firstSceneId: node.id });
+    await repository().saveSceneNodes([node]);
+    await repository().saveScene(aScene(project.id, node.id));
+    await repository().saveAction(fire);
+    await store.load(project.id);
+
+    expect(await repository().listActions(node.id)).toEqual([
+      expect.objectContaining({ id: fire.id, name: 'Feu', isSceneText: true }),
+    ]);
+    expect((await repository().getScene(node.id))?.sceneTextActionId).toBe(fire.id);
+  });
+
+  it('supprime une action, jamais l’action d’ouverture (8.1.2)', async () => {
     const project = aProject();
     const node = aSceneNode(project.id);
     const text = anAction(node.id, { isSceneText: true, trigger: 'scene-open' });

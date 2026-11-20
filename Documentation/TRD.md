@@ -247,7 +247,7 @@ interface Scene {
   projectId: Id;
   defaultBattlemapId: Id | null;
   nextSceneIds: Id[];
-  sceneTextActionId: Id | null; // action « Texte de scène »
+  sceneTextActionId: Id | null; // action « Ouverture de la scène » (seule action d'ouverture, SCN-05)
 }
 
 interface Battlemap {
@@ -294,7 +294,7 @@ interface Action {
   name: string;
   trigger: Trigger;
   order: number;
-  isSceneText: boolean;         // true = action « Texte de scène » (non supprimable)
+  isSceneText: boolean;         // true = action « Ouverture de la scène » (seule `scene-open`, non supprimable)
   hidden?: boolean;             // « Clic du MJ » masquée au départ en Présentation (ACT-12)
   elements: ActionElement[];
 }
@@ -498,7 +498,7 @@ async run(action: Action, context: ActionContext, signal: AbortSignal): Promise<
 - `wait` attend `delay(element.seconds * 1000, signal)` et publie l'attente dans le signal `waits` du moteur pendant sa durée (ligne du fil avec le temps restant, ACT-10) ; elle n'est pas enregistrée dans la partie.
 - `waitForUserClick` ajoute le bloc au fil et renvoie une `Promise` résolue au clic sur « Continuer » (`engine.continueClick(itemId)`) ou rejetée à l'annulation ; un bloc créé par une action interrompue est retiré du fil.
 - Relance d'une action (PRD CTL-03) : un texte ou un bloc de clic déjà présent dans le fil n'est pas ajouté une deuxième fois ; le fil revient sur lui (signal `focus`).
-- Les actions d'ouverture s'exécutent **dans l'ordre**, en commençant par l'action « Texte de scène » (`isSceneText`).
+- Les actions d'ouverture s'exécutent **dans l'ordre**, en commençant par l'action « Ouverture de la scène » (`isSceneText`) ; depuis le 20/11/2026, c'est en pratique la seule (PRD SCN-05). Un élément « Afficher un texte » vide est ignoré (ni affichage, ni pause).
 - Afficher la battlemap déjà affichée n'ajoute pas de miniature ; la battlemap par défaut d'une scène n'est pas ajoutée au fil.
 - `playVideo` : vidéo supprimée → notification `presentation.errors.missingVideo` ; fenêtre joueurs fermée (`PlayerWindow.open()` faux) → notification `presentation.videoNotShown` ; sinon `PlayerVideo.play({ videoId, mediaId, name, volume })` (le moteur résout le nœud de bibliothèque). Dans tous les cas l'action continue aussitôt. Rien n'est enregistré (TEC-48).
 - Toute **battlemap affichée** (élément `show-battlemap` ou sélecteur, même la battlemap déjà affichée) arrête d'abord la vidéo en cours (PRD VID-09). Le `show-battlemap` renvoyé à la fenêtre joueurs en réponse à un `ping` n'arrête rien.

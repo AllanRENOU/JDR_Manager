@@ -5,7 +5,7 @@ Détail du lot (sous-tâches et notes). Mode d'emploi et synthèse : [avancement
 ## 8.1 Fenêtre d'édition
 
 - [x] **8.1.1** Fenêtre modale : nom, déclencheur (contrôle segmenté), Annuler / Enregistrer. [ACT-01, ACT-02]
-  - Note : ✅ Décision : « Texte de scène » garde toujours le déclencheur « Ouverture de la scène » (contrôle désactivé + explication). ✅ Décision : fermeture seulement par Annuler / × / Enregistrer (pas par Échap ni clic à côté), pour ne pas perdre une saisie ; Annuler abandonne sans confirmation.
+  - Note : ✅ Décision : « Texte de scène » garde toujours le déclencheur « Ouverture de la scène » (contrôle désactivé + explication). ✅ Décision : fermeture seulement par Annuler / × / Enregistrer (pas par Échap ni clic à côté), pour ne pas perdre une saisie ; Annuler abandonne sans confirmation. ⚠️ Évolution (20/11/2026, demande d'Allan) : le contrôle segmenté est **retiré** ; le déclencheur s'affiche en lecture seule (icône ▶ / ✋ + libellé `action.triggers.*`). Seule l'action « Ouverture de la scène » (ex-« Texte de scène ») se lance à l'ouverture ; une nouvelle action est toujours manuelle (`EditorStore.saveAction` ignore tout déclencheur demandé). Voir `avancement.md`, sujet « Une seule action à l'ouverture de la scène ».
 - [x] **8.1.2** Suppression de l'action (confirmation ; impossible pour « Texte de scène »). [SCN-06, NF-31]
   - Note : —
 - [x] **8.1.3** Formulaire pilote en Signal Forms pour valider l'approche avant les 8 types. [TEC-06, Plan §6]

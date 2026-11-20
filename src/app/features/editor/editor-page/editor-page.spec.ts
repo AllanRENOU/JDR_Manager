@@ -121,7 +121,7 @@ describe('EditorPage', () => {
         text: 'Saisie dans la taverne',
       }),
     );
-    expect(await repository.listActions(forest.id)).toEqual([]);
+    expect((await repository.listActions(forest.id)).flatMap((a) => a.elements)).toEqual([]);
   });
 
   it('organise l’écran : arborescence, textes au centre, volet droit en trois parties (7.1.1)', async () => {
@@ -388,7 +388,9 @@ describe('EditorPage', () => {
     field.dispatchEvent(new Event('input'));
     field.dispatchEvent(new Event('blur'));
     await vi.waitFor(async () =>
-      expect((await repository.listActions(node.id))[0].elements[0]).toMatchObject({
+      expect(
+        (await repository.listActions(node.id)).find((a) => a.id === action.id)?.elements[0],
+      ).toMatchObject({
         text: 'Le bourgmestre entre.',
       }),
     );
@@ -476,7 +478,9 @@ describe('EditorPage', () => {
     expect(el.querySelector('.action-text')).toBeNull();
     expect(el.querySelector('app-actions-panel')?.textContent).toContain('Aucun élément');
 
-    (el.querySelector('.action__name') as HTMLButtonElement).click();
+    [...el.querySelectorAll<HTMLButtonElement>('.action__name')]
+      .find((b) => b.textContent?.includes('Bagarre'))!
+      .click();
     await vi.waitFor(() => {
       TestBed.tick();
       expect(document.querySelector('app-action-editor')).not.toBeNull();

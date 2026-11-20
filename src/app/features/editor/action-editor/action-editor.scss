@@ -23,20 +23,27 @@
   gap: space(8);
 }
 
-// Le choix du déclencheur garde sa largeur naturelle (la colonne étirerait l'élément).
-.trigger app-segmented-control {
-  align-self: flex-start;
+// Déclencheur en lecture seule : icône et libellé, comme dans le panneau Actions.
+.trigger__value {
+  display: flex;
+  gap: space(8);
+  align-items: center;
+  min-height: control-height(md);
+  color: color(text-primary);
+  font-size: font-size(body);
+}
+
+.trigger__icon {
+  flex-shrink: 0;
+  width: space(16);
+  height: space(16);
+  color: color(text-tertiary);
 }
 
 .trigger__label {
   color: color(text-secondary);
   font-size: font-size(small);
   font-weight: font-weight(medium);
-}
-
-.trigger__hint {
-  color: color(text-tertiary);
-  font-size: font-size(small);
 }
 
 .elements {

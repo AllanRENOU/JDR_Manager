@@ -68,7 +68,6 @@ export interface BattlemapImportResult {
 /** Contenu modifiable d'une action (éditeur d'action). */
 export interface ActionDraftData {
   name: string;
-  trigger: Trigger;
   /** Masquée au départ en Présentation (ACT-12) ; gardé seulement pour une action manuelle. */
   hidden?: boolean;
   elements: ActionElement[];
@@ -158,7 +157,10 @@ export class EditorStore {
 
   /** Actions de la scène ouverte : ouverture de la scène puis clic du MJ, chacune par `order`. */
   readonly actions = signal<Action[]>([]);
-  /** Action « Texte de scène » de la scène ouverte (créée à la première saisie). */
+  /**
+   * Action « Ouverture de la scène » de la scène ouverte (SCN-05, SCN-06) : la seule qui se lance
+   * à l'ouverture. Créée avec la scène, ou à l'ouverture d'une scène qui n'en a pas encore.
+   */
   readonly sceneTextAction = computed(() => this.actions().find((a) => a.isSceneText) ?? null);
   /** Texte de scène : texte du premier élément « Afficher un texte » de cette action. */
   readonly sceneText = computed(() => firstTextElement(this.sceneTextAction())?.text ?? '');
@@ -334,7 +336,7 @@ export class EditorStore {
   }
 
   /**
-   * Déplace une action parmi celles du même déclencheur (7.3.2). « Texte de scène » reste en
+   * Déplace une action parmi celles du même déclencheur (7.3.2). « Ouverture de la scène » reste en
    * tête des actions d'ouverture. Les rangs (`order`) sont renumérotés et enregistrés.
    */
   async reorderAction(trigger: Trigger, from: number, to: number): Promise<void> {
@@ -478,12 +480,14 @@ export class EditorStore {
     }
     await this.flush();
     const actions = this.actions();
+    // Le déclencheur ne se choisit pas (ACT-02) : il est gardé, et une nouvelle action est manuelle.
     const action: Action = existing
-      ? { ...existing, ...draft, trigger: existing.isSceneText ? 'scene-open' : draft.trigger }
+      ? { ...existing, ...draft, trigger: existing.trigger }
       : {
           id: newId(),
           sceneId: scene.id,
           ...draft,
+          trigger: 'manual',
           order: actions.length === 0 ? 0 : Math.max(...actions.map((a) => a.order)) + 1,
           isSceneText: false,
         };
@@ -507,10 +511,10 @@ export class EditorStore {
     return action;
   }
 
-  /** Supprime une action (sauf « Texte de scène », SCN-06). */
+  /** Supprime une action (sauf l'action d'ouverture de la scène, SCN-06). */
   async deleteAction(id: Id): Promise<void> {
     const action = this.actions().find((a) => a.id === id);
-    if (!action || action.isSceneText) {
+    if (!action || action.isSceneText || action.trigger === 'scene-open') {
       return;
     }
     await this.flush();
@@ -573,6 +577,7 @@ export class EditorStore {
     this.scene.set(scene ?? null);
     this.actions.set(sortActions(actions));
     this.battlemaps.set(battlemaps);
+    await this.ensureOpeningAction();
     this.initialSceneText.set(this.sceneText());
     this.initialTexts.set(
       Object.fromEntries(this.actionTexts().map(({ element }) => [element.id, element.text])),
@@ -620,12 +625,14 @@ export class EditorStore {
     await this.repository.saveSceneNodes([node]);
     this.sceneNodes.update((nodes) => [...nodes, node]);
     if (kind === 'item') {
-      const scene = emptyScene(node);
+      const opening = this.newOpeningAction(node.id);
+      const scene: Scene = { ...emptyScene(node), sceneTextActionId: opening.id };
+      await this.repository.saveAction(opening);
       await this.repository.saveScene(scene);
       await this.saveProject({ ...project, firstSceneId: project.firstSceneId ?? node.id });
       this.selectedSceneId.set(node.id);
       this.scene.set(scene);
-      this.actions.set([]);
+      this.actions.set([opening]);
       this.battlemaps.set([]);
       this.initialSceneText.set('');
       this.initialTexts.set({});
@@ -768,9 +775,8 @@ export class EditorStore {
   }
 
   /**
-   * Met à jour le texte de scène (SCN-05, SCN-06). La première saisie non vide crée l'action
-   * « Texte de scène » (déclencheur : ouverture de la scène ; élément : ajouter un texte) et la
-   * relie à la scène ; ensuite seul le texte de l'élément est modifié.
+   * Met à jour le texte de scène (SCN-05) : texte du premier élément « Afficher un texte » de
+   * l'action « Ouverture de la scène ». La première saisie non vide ajoute cet élément en tête.
    */
   setSceneText(text: string): Promise<void> {
     const run = this.writes.then(() => this.writeSceneText(text));
@@ -779,39 +785,81 @@ export class EditorStore {
   }
 
   private async writeSceneText(text: string): Promise<void> {
+    if (!this.scene()) {
+      return;
+    }
+    await this.ensureOpeningAction();
+    const current = this.sceneTextAction();
+    if (!current) {
+      return;
+    }
+    const element = firstTextElement(current);
+    if (!element && !text.trim()) {
+      return;
+    }
+    const elements = element
+      ? current.elements.map((e) => (e.id === element.id ? { ...element, text } : e))
+      : [{ id: newId(), type: 'add-text' as const, text }, ...current.elements];
+    const action = { ...current, elements };
+    await this.repository.saveAction(action);
+    this.replaceAction(action);
+    await this.touchProject();
+  }
+
+  /** Nouvelle action « Ouverture de la scène », sans élément (SCN-05). */
+  private newOpeningAction(sceneId: Id): Action {
+    return {
+      id: newId(),
+      sceneId,
+      name: this.transloco.translate('action.opening'),
+      trigger: 'scene-open',
+      order: 0,
+      isSceneText: true,
+      elements: [],
+    };
+  }
+
+  /**
+   * Garantit que la scène ouverte a son action « Ouverture de la scène » (SCN-05) : scènes créées
+   * avant cette règle, sans texte de scène. Une action d'ouverture existante qui n'était pas
+   * encore « Texte de scène » le devient ; l'ancien nom par défaut « Texte de scène » est
+   * remplacé. N'enregistre rien si tout est déjà en place.
+   */
+  private async ensureOpeningAction(): Promise<void> {
     const scene = this.scene();
     if (!scene) {
       return;
     }
-    const current = this.sceneTextAction();
-    if (!current) {
-      if (!text.trim()) {
-        return;
-      }
-      const action: Action = {
-        id: newId(),
-        sceneId: scene.id,
-        name: this.transloco.translate('action.sceneText'),
-        trigger: 'scene-open',
-        order: 0,
+    const existing =
+      this.actions().find((a) => a.isSceneText) ??
+      this.actions().find((a) => a.trigger === 'scene-open');
+    const legacyName = this.transloco.translate('action.legacySceneTextName');
+    let action: Action;
+    if (!existing) {
+      action = this.newOpeningAction(scene.id);
+    } else if (!existing.isSceneText || existing.name === legacyName) {
+      action = {
+        ...existing,
         isSceneText: true,
-        elements: [{ id: newId(), type: 'add-text', text }],
+        name:
+          existing.isSceneText && existing.name === legacyName
+            ? this.transloco.translate('action.opening')
+            : existing.name,
       };
-      const updatedScene: Scene = { ...scene, sceneTextActionId: action.id };
-      await this.repository.saveAction(action);
-      await this.repository.saveScene(updatedScene);
-      this.replaceAction(action);
-      this.scene.set(updatedScene);
+    } else if (scene.sceneTextActionId === existing.id) {
+      return;
     } else {
-      const element = firstTextElement(current);
-      const elements = element
-        ? current.elements.map((e) => (e.id === element.id ? { ...element, text } : e))
-        : [{ id: newId(), type: 'add-text' as const, text }, ...current.elements];
-      const action = { ...current, elements };
+      action = existing;
+    }
+    if (action !== existing) {
       await this.repository.saveAction(action);
       this.replaceAction(action);
     }
-    await this.touchProject();
+    if (scene.sceneTextActionId !== action.id) {
+      const updatedScene: Scene = { ...scene, sceneTextActionId: action.id };
+      await this.repository.saveScene(updatedScene);
+      this.scene.set(updatedScene);
+    }
   }
 
   /** Met à jour la date de modification du projet. */

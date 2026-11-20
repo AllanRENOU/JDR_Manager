@@ -39,9 +39,8 @@ describe('ActionEditor', () => {
       b.textContent?.includes(label),
     )!;
   const nameInput = (dialog: HTMLElement) => dialog.querySelector('input') as HTMLInputElement;
-  const segments = (dialog: HTMLElement) => [
-    ...dialog.querySelectorAll<HTMLButtonElement>('app-segmented-control button'),
-  ];
+  const triggerText = (dialog: HTMLElement) =>
+    dialog.querySelector('.trigger__value')?.textContent?.trim();
 
   it('nouvelle action : nom vide avec indication, clic du MJ par défaut, sans bouton Supprimer (8.1.1)', async () => {
     const { dialog, result } = open(null);
@@ -49,22 +48,17 @@ describe('ActionEditor', () => {
     expect(dialog.textContent).toContain('Scène : La taverne');
     expect(nameInput(dialog).value).toBe('');
     expect(nameInput(dialog).placeholder).toBe('Nom de l’action');
-    expect(
-      segments(dialog).map((s) => [s.textContent?.trim(), s.getAttribute('aria-checked')]),
-    ).toEqual([
-      ['Ouverture de la scène', 'false'],
-      ['Manuel', 'true'],
-    ]);
+    // Déclencheur affiché, sans choix possible (ACT-02).
+    expect(triggerText(dialog)).toBe('Déclenchement manuel');
+    expect(dialog.querySelector('app-segmented-control')).toBeNull();
     expect(button(dialog, 'Supprimer l’action')).toBeUndefined();
 
     nameInput(dialog).value = '  bagarre ';
     nameInput(dialog).dispatchEvent(new Event('input'));
-    segments(dialog)[0].click();
-    TestBed.tick();
     button(dialog, 'Enregistrer').click();
     expect(await result).toEqual({
       kind: 'save',
-      draft: { name: 'Bagarre', trigger: 'scene-open', hidden: false, elements: [] },
+      draft: { name: 'Bagarre', hidden: false, elements: [] },
     });
   });
 
@@ -91,13 +85,14 @@ describe('ActionEditor', () => {
     expect(action.name).toBe('Bagarre');
   });
 
-  it('« Texte de scène » : déclencheur figé à l’ouverture de la scène, pas de suppression', () => {
+  it('« Ouverture de la scène » : déclencheur affiché, ni masquage ni suppression (SCN-06)', () => {
     const { dialog } = open(
-      anAction('s1', { name: 'Texte de scène', isSceneText: true, trigger: 'scene-open' }),
+      anAction('s1', { name: 'Ouverture de la scène', isSceneText: true, trigger: 'scene-open' }),
     );
     expect(dialog.textContent).toContain('Modifier l’action');
-    expect(segments(dialog).every((s) => s.disabled)).toBe(true);
-    expect(dialog.textContent).toContain('se lance toujours à l’ouverture de la scène');
+    expect(triggerText(dialog)).toBe('À l’ouverture de la scène');
+    expect(dialog.querySelector('.trigger__hint')).toBeNull();
+    expect(dialog.querySelector('.trigger input[type=checkbox]')).toBeNull();
     expect(button(dialog, 'Supprimer l’action')).toBeUndefined();
   });
 
@@ -132,25 +127,8 @@ describe('ActionEditor', () => {
     checkbox()!.click();
     TestBed.tick();
 
-    // Passée à l'ouverture de la scène : la case disparaît et la propriété n'est pas gardée.
-    segments(dialog)[0].click();
-    TestBed.tick();
-    expect(checkbox()).toBeNull();
-    segments(dialog)[1].click();
-    TestBed.tick();
-    expect(checkbox()?.checked).toBe(true);
     button(dialog, 'Enregistrer').click();
     expect(await result).toMatchObject({ kind: 'save', draft: { hidden: true } });
-  });
-
-  it('déclencheur « Ouverture de la scène » : jamais masquée', async () => {
-    const { dialog, result } = open(
-      anAction('s1', { name: 'Entrée', trigger: 'manual', hidden: true }),
-    );
-    segments(dialog)[0].click();
-    TestBed.tick();
-    button(dialog, 'Enregistrer').click();
-    expect(await result).toMatchObject({ draft: { trigger: 'scene-open', hidden: false } });
   });
 
   it('suppression d’une action affichée par une autre : l’avertit (ACT-12, PRS-07)', async () => {
@@ -334,7 +312,6 @@ describe('ActionEditor', () => {
       kind: 'save',
       draft: {
         name: 'Bagarre',
-        trigger: 'manual',
         hidden: false,
         elements: [
           { id: 'e1', type: 'add-text', text: 'Bonjour' },

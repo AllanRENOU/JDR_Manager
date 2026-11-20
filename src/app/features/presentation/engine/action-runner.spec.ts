@@ -130,6 +130,19 @@ describe('ActionRunner', () => {
     ]);
   });
 
+  it('ignore un texte vide (texte de scène effacé) : ni affichage, ni pause (SCN-05)', async () => {
+    const { log, context } = recorder({ logPauses: true });
+    await runner.run(
+      action([
+        { id: 'a', type: 'add-text', text: '  ' },
+        { id: 'b', type: 'stop-all-sounds' },
+      ]),
+      context,
+      new AbortController().signal,
+    );
+    expect(log).toEqual(['arrêter-tout', 'effectuée:Bagarre']);
+  });
+
   it('s’interrompt quand le signal est annulé, sans marquer l’action effectuée (9.1.1)', async () => {
     const controller = new AbortController();
     const { log, context } = recorder();

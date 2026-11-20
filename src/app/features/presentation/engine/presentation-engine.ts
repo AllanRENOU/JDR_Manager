@@ -934,7 +934,7 @@ export class PresentationEngine {
   }
 }
 
-/** Actions déclenchées à l'ouverture : « Texte de scène » d'abord, puis par ordre (TRD §6.2). */
+/** Actions déclenchées à l'ouverture : « Ouverture de la scène » d’abord, puis par ordre (TRD §6.2). */
 function openingActions(actions: readonly Action[]): Action[] {
   return actions
     .filter((a) => a.trigger === 'scene-open')

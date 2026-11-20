@@ -26,15 +26,16 @@
         <span class="trigger__label" id="action-trigger-label">
           {{ 'action.editor.trigger' | transloco }}
         </span>
-        <app-segmented-control
-          [label]="'action.editor.trigger' | transloco"
-          [options]="triggerOptions()"
-          [formField]="form.trigger"
-        />
-        @if (isSceneText) {
-          <p class="trigger__hint">{{ 'action.editor.sceneTextTrigger' | transloco }}</p>
-        }
-        @if (draft().trigger === 'manual') {
+        <!-- Déclencheur en lecture seule (ACT-02) : il ne se choisit plus. -->
+        <p class="trigger__value">
+          @if (trigger === 'scene-open') {
+            <svg lucidePlay class="trigger__icon" aria-hidden="true"></svg>
+          } @else {
+            <svg lucideHand class="trigger__icon" aria-hidden="true"></svg>
+          }
+          {{ 'action.triggers.' + trigger | transloco }}
+        </p>
+        @if (trigger === 'manual') {
           <!-- Masquée au départ en Présentation, comme une action terminée (ACT-12). Explication
                en infobulle, et lue par les lecteurs d'écran via aria-describedby. -->
           <label class="app-check" [title]="'action.editor.hiddenHelp' | transloco">
@@ -101,7 +102,7 @@
       </button>
     </section>
 
-    @if (!isNew && !isSceneText) {
+    @if (!isNew && trigger === 'manual') {
       <button modalFooterStart appButton="danger" type="button" (click)="remove()">
         <svg lucideTrash2 aria-hidden="true"></svg>{{ 'action.editor.delete' | transloco }}
       </button>

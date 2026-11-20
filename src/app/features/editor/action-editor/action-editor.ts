@@ -11,9 +11,16 @@ import {
   signal,
   viewChildren,
 } from '@angular/core';
-import { FormField, disabled, form, maxLength, validate } from '@angular/forms/signals';
-import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
-import { LucideChevronRight, LucideDynamicIcon, LucidePlus, LucideTrash2 } from '@lucide/angular';
+import { FormField, form, maxLength, validate } from '@angular/forms/signals';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import {
+  LucideChevronRight,
+  LucideDynamicIcon,
+  LucideHand,
+  LucidePlay,
+  LucidePlus,
+  LucideTrash2,
+} from '@lucide/angular';
 
 import { pluralKey } from '../../../core/i18n/plural';
 import { Action, ActionElement, ActionElementType, Id, Trigger } from '../../../core/models';
@@ -24,10 +31,6 @@ import { Modal } from '../../../shared/ui/modal/modal';
 import { Menu } from '../../../shared/ui/menu/menu';
 import { MenuItem } from '../../../shared/ui/menu/menu-item';
 import { Modals } from '../../../shared/ui/modal/modals';
-import {
-  SegmentedControl,
-  SegmentedOption,
-} from '../../../shared/ui/segmented-control/segmented-control';
 import { SummaryContext } from '../action-summary';
 import { ElementCard } from '../element-card/element-card';
 import { ElementForm } from '../element-form/element-form';
@@ -36,8 +39,7 @@ import { ELEMENT_MENU, newElement } from '../element-types';
 /** Contenu modifiable d'une action. */
 export interface ActionDraft {
   name: string;
-  trigger: Trigger;
-  /** Masquée au départ en Présentation (ACT-12) ; ignoré si le déclencheur n'est pas manuel. */
+  /** Masquée au départ en Présentation (ACT-12) ; toujours `false` pour l'action d'ouverture. */
   hidden: boolean;
   elements: ActionElement[];
 }
@@ -71,7 +73,6 @@ import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
     Field,
     Input,
     Button,
-    SegmentedControl,
     FormField,
     ElementCard,
     ElementForm,
@@ -83,6 +84,8 @@ import { Capitalize } from '../../../shared/ui/capitalize/capitalize';
     TranslocoPipe,
     LucideDynamicIcon,
     LucidePlus,
+    LucidePlay,
+    LucideHand,
     LucideChevronRight,
     LucideTrash2,
   ],
@@ -98,13 +101,17 @@ export class ActionEditor {
   private readonly injector = inject(Injector);
 
   protected readonly isNew = this.data.action === null;
-  /** L'action « Texte de scène » se lance toujours à l'ouverture et ne se supprime pas (SCN-06). */
+  /** L'action « Ouverture de la scène » se lance toujours à l'ouverture et ne se supprime pas (SCN-06). */
   protected readonly isSceneText = this.data.action?.isSceneText ?? false;
+  /**
+   * Déclencheur, affiché sans pouvoir être changé (ACT-02) : seule l'action « Ouverture de la
+   * scène » se lance à l'ouverture ; une nouvelle action est toujours manuelle.
+   */
+  protected readonly trigger: Trigger = this.data.action?.trigger ?? 'manual';
 
   /** Copie de travail : rien n'est enregistré avant « Enregistrer ». */
   protected readonly draft = signal<ActionDraft>({
     name: this.data.action?.name ?? '',
-    trigger: this.data.action?.trigger ?? 'manual',
     hidden: this.data.action?.hidden ?? false,
     elements: structuredClone(this.data.action?.elements ?? []),
   });
@@ -115,21 +122,6 @@ export class ActionEditor {
       value().trim() ? undefined : { kind: 'required', message: 'action.editor.nameRequired' },
     );
     maxLength(path.name, 120);
-    disabled(path.trigger, () => this.isSceneText);
-  });
-
-  /** Libellés du déclencheur, mis à jour à l'arrivée des traductions (`translateSignal`). */
-  private readonly triggerLabels = translateSignal([
-    'action.triggerOptions.scene-open',
-    'action.triggerOptions.manual',
-  ]);
-
-  protected readonly triggerOptions = computed<SegmentedOption<Trigger>[]>(() => {
-    const [sceneOpen, manual] = this.triggerLabels();
-    return [
-      { value: 'scene-open', label: sceneOpen },
-      { value: 'manual', label: manual },
-    ];
   });
 
   /** Message d'erreur du nom, affiché une fois le champ quitté ou à l'enregistrement. */
@@ -222,7 +214,7 @@ export class ActionEditor {
         ...draft,
         name: draft.name.trim(),
         // Seule une action « au clic du MJ » peut être masquée au départ.
-        hidden: draft.trigger === 'manual' && draft.hidden,
+        hidden: this.trigger === 'manual' && draft.hidden,
       },
     });
   }
@@ -240,7 +232,7 @@ export class ActionEditor {
     this.ref.close();
   }
 
-  /** Supprime l'action après confirmation (NF-31) ; impossible pour « Texte de scène ». */
+  /** Supprime l'action après confirmation (NF-31) ; impossible pour l’action d’ouverture de la scène. */
   protected async remove(): Promise<void> {
     const name = this.data.action?.name ?? '';
     // Actions qui la font apparaître ou la masquent : elles la signaleront comme introuvable

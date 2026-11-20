@@ -35,7 +35,7 @@ const TRIGGERS: readonly Trigger[] = ['scene-open', 'manual'];
 
 /**
  * Partie « Actions » du volet droit de l'éditeur (SCN-06, SCN-13) : actions rangées par
- * déclencheur, résumé de leurs éléments, action « Texte de scène » verrouillée.
+ * déclencheur, résumé de leurs éléments, action « Ouverture de la scène » verrouillée.
  */
 @Component({
   selector: 'app-actions-panel',

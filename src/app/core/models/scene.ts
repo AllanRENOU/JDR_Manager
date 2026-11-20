@@ -8,6 +8,6 @@ export interface Scene {
   defaultBattlemapId: Id | null;
   /** Scènes proposées par le bouton « Scène suivante ». */
   nextSceneIds: Id[];
-  /** Action « Texte de scène », déclenchée à l'ouverture et non supprimable. */
+  /** Action « Ouverture de la scène » (porte le texte de scène), déclenchée à l’ouverture et non supprimable. */
   sceneTextActionId: Id | null;
 }

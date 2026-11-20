@@ -24,7 +24,7 @@ describe('ActionsPanel', () => {
 
   afterEach(() => TestBed.inject(Modals).closeAll());
 
-  it('range les actions par déclencheur, résume leurs éléments et verrouille « Texte de scène » (7.3.1)', async () => {
+  it('range les actions par déclencheur, résume leurs éléments et verrouille l’action d’ouverture (7.3.1)', async () => {
     const repository = TestBed.inject(DATA_REPOSITORY);
     const project = aProject();
     const node = aSceneNode(project.id);
@@ -44,7 +44,7 @@ describe('ActionsPanel', () => {
     await repository.saveScene(aScene(project.id, node.id));
     await repository.saveAction(
       anAction(node.id, {
-        name: 'Texte de scène',
+        name: 'Ouverture de la scène',
         isSceneText: true,
         trigger: 'scene-open',
         elements: [{ id: 't', type: 'add-text', text: 'x' }, play(tavern.id)],
@@ -69,7 +69,7 @@ describe('ActionsPanel', () => {
       'Déclenchement manuel',
     ]);
     const rows = [...el.querySelectorAll('.action')];
-    expect(rows[0].querySelector('.action__name')?.textContent).toContain('Texte de scène');
+    expect(rows[0].querySelector('.action__name')?.textContent).toContain('Ouverture de la scène');
     expect(rows[0].querySelector('.action__lock')).not.toBeNull();
     expect(
       rows[0].querySelector('.action__summary')?.textContent?.replace(/\s+/g, ' ').trim(),
@@ -106,11 +106,12 @@ describe('ActionsPanel', () => {
     await fixture.whenStable();
     const rows = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.action')];
 
-    const warning = rows[0].querySelector('.action__never-shown');
+    // rows[0] : action « Ouverture de la scène », créée à l'ouverture de la scène.
+    const warning = rows[1].querySelector('.action__never-shown');
     expect(warning?.getAttribute('title')).toBe('Cette action n’est jamais affichée');
     expect(warning?.nextElementSibling?.classList).toContain('action__icon');
-    expect(rows[1].querySelector('.action__never-shown')).toBeNull();
     expect(rows[2].querySelector('.action__never-shown')).toBeNull();
+    expect(rows[3].querySelector('.action__never-shown')).toBeNull();
   });
 
   it('« Nouvelle » ouvre l’éditeur d’action et enregistre la nouvelle action (8.1.1)', async () => {
@@ -141,8 +142,10 @@ describe('ActionsPanel', () => {
 
     await vi.waitFor(async () => {
       await fixture.whenStable();
-      expect(el.querySelector('.action__name')?.textContent).toContain('Bagarre');
+      expect(el.querySelectorAll('.action__name')[1]?.textContent).toContain('Bagarre');
     });
-    expect((await repository.listActions(node.id)).map((a) => a.name)).toEqual(['Bagarre']);
+    const saved = await repository.listActions(node.id);
+    expect(saved.find((a) => a.name === 'Bagarre')).toMatchObject({ trigger: 'manual' });
+    expect(saved.filter((a) => a.trigger === 'scene-open')).toHaveLength(1);
   });
 });

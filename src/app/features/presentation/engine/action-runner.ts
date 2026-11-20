@@ -121,6 +121,10 @@ export class ActionRunner {
         context.markDone(action);
         return { kind: 'change-scene', sceneId: element.sceneId };
       }
+      if (element.type === 'add-text' && !element.text.trim()) {
+        // Texte vide (ex. texte de scène effacé) : rien à afficher, pas de pause.
+        continue;
+      }
       if (DISPLAYED.has(element.type)) {
         await context.beforeDisplay(signal);
       }

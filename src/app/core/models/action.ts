@@ -12,7 +12,7 @@ export interface Action {
   trigger: Trigger;
   /** Position dans la liste des actions de la scène. */
   order: number;
-  /** `true` = action « Texte de scène » (non supprimable). */
+  /** `true` = action « Ouverture de la scène » (la seule déclenchée à l’ouverture, non supprimable, SCN-05). */
   isSceneText: boolean;
   /**
    * Action « au clic du MJ » masquée au départ dans la Présentation, comme une action terminée,

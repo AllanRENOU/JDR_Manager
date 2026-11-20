@@ -146,7 +146,8 @@
       "click": "Clic de l'utilisateur",
       "scene": "Scène"
     },
-    "sceneText": "Texte de scène",
+    "opening": "Ouverture de la scène",
+    "legacySceneTextName": "Texte de scène",
     "triggers": {
       "scene-open": "À l’ouverture de la scène",
       "manual": "Déclenchement manuel"
@@ -156,7 +157,7 @@
       "other": "{{ count }} éléments"
     },
     "empty": "Aucun élément",
-    "locked": "Action liée au texte de scène : elle ne peut pas être supprimée",
+    "locked": "Action d’ouverture de la scène : elle ne peut pas être supprimée",
     "missingTarget": "Un élément vise un objet supprimé",
     "noAction": "Aucune action pour cette scène.",
     "hidden": "Masquée au départ en Présentation",
@@ -220,7 +221,6 @@
       "namePlaceholder": "Nom de l’action",
       "nameRequired": "Donnez un nom à l’action.",
       "trigger": "Déclencheur",
-      "sceneTextTrigger": "L’action « Texte de scène » se lance toujours à l’ouverture de la scène.",
       "hidden": "Masquer l’action au départ",
       "hiddenHelp": "En Présentation, l’action est masquée comme une action terminée, jusqu’à ce qu’un élément « Afficher l’action » la fasse apparaître.",
       "elements": "Éléments, exécutés dans l’ordre",
@@ -246,10 +246,6 @@
       "toggleElement": "Déplier ou replier l’élément {{ index }} « {{ type }} »",
       "moveElement": "Déplacer l’élément {{ index }}",
       "invalidElements": "Corrigez les éléments signalés avant d’enregistrer."
-    },
-    "triggerOptions": {
-      "scene-open": "Ouverture de la scène",
-      "manual": "Manuel"
     },
     "form": {
       "battlemap": "Battlemap à afficher (battlemaps de la scène)",

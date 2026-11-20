@@ -105,8 +105,8 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | SCN-02 | L'utilisateur peut créer, renommer, supprimer et déplacer (glisser-déposer) scènes et dossiers. | M |
 | SCN-03 | Une scène (une seule par projet) peut être marquée comme **première scène**. | M |
 | SCN-04 | Une scène peut avoir **une ou plusieurs scènes suivantes**, choisies dans une fenêtre de sélection (arborescence avec recherche, sélection multiple, scènes déjà suivantes pré-cochées, scène actuelle non sélectionnable). | M |
-| SCN-05 | Une scène a un champ **« Texte de scène »**. Sa première saisie crée automatiquement l'action « Texte de scène » (déclencheur : ouverture de la scène ; élément : ajouter un texte). | M |
-| SCN-06 | L'action « Texte de scène » est visible, non supprimable, se lance en premier parmi les actions d'ouverture, et peut recevoir d'autres éléments. | M |
+| SCN-05 | Chaque scène a une action **« Ouverture de la scène »**, créée avec elle (ou à sa première ouverture dans l'éditeur pour une scène plus ancienne) : c'est la **seule** action déclenchée à l'ouverture. La scène a un champ **« Texte de scène »** : sa première saisie ajoute en tête de cette action un élément « Afficher un texte ». Un texte vide n'est pas affiché en Présentation. L'ancien nom par défaut « Texte de scène » est remplacé par « Ouverture de la scène ». | M |
+| SCN-06 | L'action « Ouverture de la scène » est visible, non supprimable, et peut recevoir d'autres éléments (son d'ambiance, battlemap…). | M |
 | SCN-07 | Sous le texte de scène, chaque texte que les actions peuvent ajouter est un champ modifiable présenté comme le texte de scène, surmonté du nom de l'action en sous-titre (plus petit que le titre de la scène) ; aucun autre libellé. Les éléments « Attendre », « Clic de l'utilisateur » et « Changer de scène » (« Aller à la scène '…' », scène supprimée signalée) sont montrés à leur place, en lecture seule. | M |
 | SCN-08 | En haut de l'arborescence, des boutons **Nouveau dossier** et **Nouvelle scène** créent l'élément dans le dossier sélectionné (sinon à la racine). | M |
 | SCN-09 | Chaque ligne de l'arborescence a un **menu contextuel**, ouvert par un bouton « ⋯ » au survol ou par un clic droit. Dossier : nouvelle scène, nouveau sous-dossier, renommer, supprimer. Scène : renommer, définir comme première scène, supprimer. | M |
@@ -130,7 +130,7 @@ Pendant une partie de jeu de rôle, le Maître du Jeu (MJ) doit jongler en même
 | ID | Exigence | Priorité |
 |---|---|---|
 | ACT-01 | Une action a un nom, un déclencheur et une liste ordonnée d'éléments exécutés les uns après les autres. | M |
-| ACT-02 | Déclencheurs disponibles : **ouverture de la scène**, **clic manuel**. | M |
+| ACT-02 | Déclencheurs : **ouverture de la scène** (réservé à l'action « Ouverture de la scène », SCN-05), **clic manuel** (toutes les autres actions). Le déclencheur ne se choisit pas : l'éditeur d'action l'affiche en lecture seule ; une nouvelle action est toujours manuelle. | M |
 | ACT-03 | L'utilisateur peut ajouter, modifier, supprimer et réordonner (glisser-déposer) les éléments d'une action. Chaque élément est une carte dépliable qui affiche son formulaire. | M |
 | ACT-04 | Élément **Afficher une battlemap** (choix parmi les battlemaps de la scène). | M |
 | ACT-05 | Élément **Lancer un son** (choix dans une bibliothèque) avec **volume**, **lecture en boucle**, **fondu en entrée** et **fondu en sortie**. | M |
