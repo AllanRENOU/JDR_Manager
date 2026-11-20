@@ -309,7 +309,7 @@
       "hideActionHelp": "Retire les actions cochées de la liste de la Présentation, comme des actions masquées au départ. Une action en cours se termine normalement. « Afficher l’action » les fait réapparaître.",
       "actionMissing": "Une action choisie a été supprimée.",
       "removeMissingActions": "Retirer",
-      "noManualAction": "Aucune autre action « Clic du MJ » dans cette scène.",
+      "noManualAction": "Aucune autre action manuelle dans cette scène.",
       "actionRequired": "Choisissez au moins une action à afficher.",
       "hideActionRequired": "Choisissez au moins une action à masquer, ou cochez « Masquer toutes les actions ».",
       "hideAll": "Masquer toutes les actions"

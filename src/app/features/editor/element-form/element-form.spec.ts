@@ -385,7 +385,7 @@ describe('ElementForm', () => {
     const { el, emitted } = render({ id: 'e1', type: 'show-action', actionIds: ['disparue'] });
     const warning = el.querySelector('.warning')!;
     expect(warning.textContent).toContain('Une action choisie a été supprimée.');
-    expect(el.textContent).toContain('Aucune autre action « Clic du MJ » dans cette scène.');
+    expect(el.textContent).toContain('Aucune autre action manuelle dans cette scène.');
 
     warning.querySelector('button')!.click();
     expect(emitted.at(-1)).toEqual({ id: 'e1', type: 'show-action', actionIds: [] });
